@@ -1,0 +1,21 @@
+{
+  "name": "area-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter '*' dev",
+    "build": "bun run build:shared && bun run --filter 'apps/*' build",
+    "postinstall": "bun run --filter '@area/shared' generate",
+    "db:generate": "bun run --filter '@area/shared' generate",
+    "db:push": "bun run --filter '@area/shared' push"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

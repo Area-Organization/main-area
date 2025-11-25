@@ -1,0 +1,18 @@
+{
+  "name": "@area/shared",
+  "main": "index.ts",
+  "scripts": {
+    "generate": "bun run --env-file=../../.env prisma generate",
+    "push": "bun run --env-file=../../.env prisma db push"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.3",
+    "prisma": "^7.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
