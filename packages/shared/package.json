@@ -2,8 +2,8 @@
   "name": "@area/shared",
   "main": "index.ts",
   "scripts": {
-    "generate": "bun run --env-file=./.env prisma generate",
-    "push": "bun run --env-file=./.env prisma db push"
+    "generate": "bun run --env-file=../../.env prisma generate",
+    "push": "bun run --env-file=../../.env prisma db push"
   },
   "dependencies": {
     "@prisma/client": "^7.0.0"
