@@ -10,7 +10,7 @@
     "build": "bun run build:shared && bun run --filter 'apps/*' build",
     "postinstall": "bun run --filter '@area/shared' generate",
     "db:generate": "bun run --filter '@area/shared' generate",
-    "db:push": "cd packages/shared && bunx prisma db push"
+    "db:push": "bun run --filter '@area/shared' push"
   },
   "devDependencies": {
     "@types/bun": "latest"
