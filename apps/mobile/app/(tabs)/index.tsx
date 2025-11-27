@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import { Platform, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -7,7 +8,31 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 
+// Import the Eden Treaty client
+import { client } from '@/lib/api';
+
 export default function HomeScreen() {
+  const [data, setData] = useState<string>('Loading...');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Example: Get the default route "/"
+        const { data, error } = await client.get();
+
+        if (error) {
+          setData(`Error: ${error.status}`);
+        } else if (data) {
+          setData(`Backend says: "${data}"`);
+        }
+      } catch (err) {
+        setData('Failed to connect to backend');
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -21,6 +46,13 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
+
+      {/* Display Backend Data for testing */}
+      <ThemedView style={styles.stepContainer}>
+        <ThemedText type="subtitle">Backend Connection:</ThemedText>
+        <ThemedText>{data}</ThemedText>
+      </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>
