@@ -1,12 +1,14 @@
 import { Elysia } from "elysia"
 import { cors } from "@elysiajs/cors"
 import openapi from "@elysiajs/openapi"
+import { aboutRoute } from "./routes/about"
 
 const app = new Elysia()
   .use(cors())
   .use(openapi())
-  .listen(8080)git push origin HEAD:<name-of-remote-branch>
-
-console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
+  .use(aboutRoute)
+  .listen(8080)
 
 export type App = typeof app
+
+console.log(`🦊 Elysia is running at http://${app.server?.hostname}:${app.server?.port}`)
