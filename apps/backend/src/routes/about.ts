@@ -7,9 +7,7 @@ export const aboutRoute = new Elysia({ prefix: ""})
   .get("/about.json", ({ request }) => {
     const clientIp = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
     return {
-      client: {
-        host: clientIp
-      },
+      client: { host: clientIp },
       server: {
         current_time: Math.floor(Date.now() / 1000),
         services: serviceRegistry.getAll()
