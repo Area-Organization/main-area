@@ -15,7 +15,9 @@
       "name": "@area/backend",
       "dependencies": {
         "@area/shared": "workspace:*",
+        "@elysiajs/bearer": "^1.4.1",
         "@elysiajs/cors": "^1.4.0",
+        "@elysiajs/jwt": "^1.4.0",
         "@elysiajs/openapi": "^1.4.11",
         "elysia": "^1.4.16",
       },
@@ -314,9 +316,13 @@
 
     "@electric-sql/pglite-tools": ["@electric-sql/pglite-tools@0.2.7", "", { "peerDependencies": { "@electric-sql/pglite": "0.3.2" } }, "sha512-9dAccClqxx4cZB+Ar9B+FZ5WgxDc/Xvl9DPrTWv+dYTf0YNubLzi4wHHRGRGhrJv15XwnyKcGOZAP1VXSneSUg=="],
 
+    "@elysiajs/bearer": ["@elysiajs/bearer@1.4.1", "", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-vLLSMEVsLKp/8p/eoAbXZdXKRs1jEQO4OkrfcKM2x8FkiK2aKNcFgLID45bH+6rYbCf8Ihg0NKw59zxMLl43OQ=="],
+
     "@elysiajs/cors": ["@elysiajs/cors@1.4.0", "", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-pb0SCzBfFbFSYA/U40HHO7R+YrcXBJXOWgL20eSViK33ol1e20ru2/KUaZYo5IMUn63yaTJI/bQERuQ+77ND8g=="],
 
     "@elysiajs/eden": ["@elysiajs/eden@1.4.5", "", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-hIOeH+S5NU/84A7+t8yB1JjxqjmzRkBF9fnLn6y+AH8EcF39KumOAnciMhIOkhhThVZvXZ3d+GsizRc+Fxoi8g=="],
+
+    "@elysiajs/jwt": ["@elysiajs/jwt@1.4.0", "", { "dependencies": { "jose": "^6.0.11" }, "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-Z0PvZhQxdDeKZ8HslXzDoXXD83NKExNPmoiAPki3nI2Xvh5wtUrBH+zWOD17yP14IbRo8fxGj3L25MRCAPsgPA=="],
 
     "@elysiajs/openapi": ["@elysiajs/openapi@1.4.11", "", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-d75bMxYJpN6qSDi/z9L1S7SLk1S/8Px+cTb3W2lrYzU8uQ5E0kXdy1oOMJEfTyVsz3OA19NP9KNxE7ztSbLBLg=="],
 
@@ -1493,6 +1499,8 @@
     "jimp-compact": ["jimp-compact@0.16.1", "", {}, "sha512-dZ6Ra7u1G8c4Letq/B5EzAxj4tLFHL+cGtdpR+PVm4yzPDj+lCk+AbivWt1eOM+ikzkowtyV7qSqX6qr3t71Ww=="],
 
     "jiti": ["jiti@2.6.1", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ=="],
+
+    "jose": ["jose@6.1.2", "", {}, "sha512-MpcPtHLE5EmztuFIqB0vzHAWJPpmN1E6L4oo+kze56LIs3MyXIj9ZHMDxqOvkP38gBR7K1v3jqd4WU2+nrfONQ=="],
 
     "js-tokens": ["js-tokens@4.0.0", "", {}, "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="],
 
