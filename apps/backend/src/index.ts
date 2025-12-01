@@ -5,7 +5,7 @@ import { aboutRoute } from "./routes/about"
 
 const app = new Elysia()
   .use(cors())
-  .use(openapi())
+  .use(openapi({ exclude: { staticFile: false } }))
   .use(aboutRoute)
   .listen(8080)
 
