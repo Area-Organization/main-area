@@ -1,28 +1,35 @@
-import {useState} from "react";
-import {StyleSheet, TextInput, Button, KeyboardAvoidingView, Platform} from "react-native";
-import {ThemedText} from "@/components/themed-text";
-import {ThemedView} from "@/components/themed-view";
-import {useSession} from "@/ctx";
+import { useState } from "react";
+import { StyleSheet, TextInput, Button, KeyboardAvoidingView, Platform } from "react-native";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useSession } from "@/ctx";
+import { useRouter } from "expo-router";
 
 export default function ConfigureScreen() {
-    const {setServerUrl, apiUrl} = useSession();
+    const { setServerUrl, apiUrl } = useSession();
+    const router = useRouter();
     // Default to Android Emulator localhost, fallback to localhost
     const [url, setUrl] = useState(apiUrl || "http://10.0.2.2:8080");
 
     const handleSave = () => {
         if (url.length > 0) {
             setServerUrl(url);
-            // Navigation is handled automatically by _layout.tsx based on state change
+            router.replace("/(auth)/login");
         }
     };
 
     return (
         <ThemedView style={styles.container}>
-            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.inner}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={styles.inner}
+            >
                 <ThemedText type="title" style={styles.title}>
                     Setup Connection
                 </ThemedText>
-                <ThemedText style={styles.subtitle}>Enter the IP address and port of your Area backend.</ThemedText>
+                <ThemedText style={styles.subtitle}>
+                    Enter the IP address and port of your Area backend.
+                </ThemedText>
 
                 <TextInput
                     style={styles.input}
@@ -68,5 +75,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         backgroundColor: "#fff",
         color: "#000"
+    },
+    resetContainer: {
+        marginTop: 20,
+        width: "100%"
     }
 });

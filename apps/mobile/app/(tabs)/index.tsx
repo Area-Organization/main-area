@@ -17,7 +17,7 @@ export default function HomeScreen() {
             if (!client) return;
 
             try {
-                const {data, error} = await client.get();
+                const {data, error} = await client["about.json"].get();
 
                 if (error) {
                     setData(`Error: ${error.status}`);
