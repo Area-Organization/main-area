@@ -1,4 +1,4 @@
-import { type ServiceType } from "../models/about.model";
+import { type ServiceType } from "../models/about.model"
 
 class ServiceRegistry {
   private services: Map<string, ServiceType> = new Map()

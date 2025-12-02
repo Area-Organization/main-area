@@ -1,7 +1,6 @@
-import { Elysia } from "elysia";
-import { AboutResponse } from "../models/about.model";
-import { serviceRegistry } from "../services/registry";
-
+import { Elysia } from "elysia"
+import { AboutResponse } from "../models/about.model"
+import { serviceRegistry } from "../services/registry"
 
 export const aboutRoute = new Elysia({ prefix: "" })
   .get("/about.json", ({ request }) => {

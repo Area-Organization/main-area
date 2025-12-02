@@ -1,5 +1,3 @@
-import type { ServiceType } from "../models/about.model";
-
 export interface IParameter {
   type: "string" | "number" | "boolean" | "select" | "multiselect"
   label: string
