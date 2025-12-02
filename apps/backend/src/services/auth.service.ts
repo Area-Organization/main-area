@@ -1,19 +1,7 @@
-import { prisma, PrismaClient } from '@area/shared';
-import { generateTokenPair, jwtAccess, jwtRefresh } from '../middlewares/jwt';
+import { prisma } from '@area/shared';
 import { hashPassword } from "../middlewares/password"
 
 export class AuthService {
-
-    async emailExist(data: {
-        email: string
-    }) {
-        const user = await prisma.user.findUnique({
-            where: {
-                email: data.email
-            },
-        })
-        return user
-    }
 
     async createUser(data: {
         email: string
@@ -29,6 +17,13 @@ export class AuthService {
         }
         })
         return user
+    }
+    
+    async emailExists(email: string): Promise<boolean> {
+        const user = await prisma.user.findUnique({
+            where: { email }
+        })
+        return user !== null
     }
 }
 
