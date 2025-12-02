@@ -3,7 +3,7 @@ import { AboutResponse } from "../models/about.model";
 import { serviceRegistry } from "../services/registry";
 
 
-export const aboutRoute = new Elysia({ prefix: ""})
+export const aboutRoute = new Elysia({ prefix: "" })
   .get("/about.json", ({ request }) => {
     const clientIp = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
     return {
