@@ -1,17 +1,25 @@
 import { prisma } from '@area/shared';
 import { hashPassword } from "../middlewares/password"
+import { verifyPassword } from '../middlewares/password';
 
 export class AuthService {
-
-    // signIn(email, password):
-    // register(username, email, password)
-    // isPasswordAndEmailCorrect()
-    // créer un token pour verifier l'email de l'utilisateur (verfiier si il a reçu un mail)
-    // updateExpiredToken(refreshToken)
-    // getAccessToken(refreshToken)
-
-    //  savegarder un refresh token
-    //  verifier si un refresh token est valid
+    async userAuth(data: {
+        password: string,
+        email: string
+    }) {
+        const user = await prisma.user.findUnique({
+            where: {
+                email: data.email
+            },
+        });
+        if (!user)
+            return null;
+        const hash = user.password || "";
+        const isValid = await verifyPassword(data.password, hash);
+        if (!isValid)
+            return null;
+        return user;
+    }
 
     async getUserById(data: {
         id: string
@@ -19,17 +27,6 @@ export class AuthService {
         const user = await prisma.user.findUnique({
             where: {
                 id: data.id
-            },
-        })
-        return user
-    }
-
-    async emailExist(data: {
-        email: string
-    }) {
-        const user = await prisma.user.findUnique({
-            where: {
-                email: data.email
             },
         })
         return user
