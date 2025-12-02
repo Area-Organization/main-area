@@ -13,6 +13,7 @@
     },
     "apps/backend": {
       "name": "@area/backend",
+      "version": "0.0.1",
       "dependencies": {
         "@area/shared": "workspace:*",
         "@elysiajs/bearer": "^1.4.1",

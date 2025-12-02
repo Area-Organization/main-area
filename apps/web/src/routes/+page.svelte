@@ -1,5 +1,10 @@
 <script>
 	import { client } from '$lib/api';
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+	    fetchTest();
+	});
 
 	// Just testing Eden Treaty
 	async function fetchTest() {
@@ -11,7 +16,6 @@
 		return data;
 	}
 
-	fetchTest();
 </script>
 
 <h1>Welcome to SvelteKit</h1>
