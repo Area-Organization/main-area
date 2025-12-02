@@ -25,7 +25,6 @@ model User {
   connections   UserConnection[]
   areas         Area[]
   oauthAccounts    OAuthAccount[]
-  refreshTokens    RefreshToken[]
   emailVerifications EmailVerification[]
   
   @@map("users")
@@ -49,22 +48,6 @@ model OAuthAccount {
   @@unique([provider, providerId])
   @@index([userId])
   @@map("oauth_accounts")
-}
-
-model RefreshToken {
-  id        String   @id @default(cuid())
-  token     String   @unique @db.Text
-  userId    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  revoked   Boolean  @default(false)
-  replacedBy String?
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([token])
-  @@map("refresh_tokens")
 }
 
 model EmailVerification {

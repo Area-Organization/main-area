@@ -1,6 +1,6 @@
 import { Elysia } from "elysia"
 import { cors } from "@elysiajs/cors"
-import openapi from "@elysiajs/openapi"
+import { openapi } from "@elysiajs/openapi"
 import { aboutRoute } from "./routes/about"
 
 const app = new Elysia()
