@@ -1,5 +1,6 @@
 import { PrismaClient } from '@area/shared';
 import { generateTokenPair, jwtAccess, jwtRefresh } from '../middlewares/jwt';
+import { hashPassword } from "../middlewares/password"
 
 export class AuthService {
 
@@ -29,7 +30,7 @@ export class AuthService {
             if (!payload)
                 return { valid: false, error: 'Invalid token' };
             if (type === 'refresh') {
-                const refreshToken = await this.prisma.refreshToken.findUnique({
+                const refreshToken = await prisma.refreshToken.findUnique({
                 where: { token }
                 });
                 if (!refreshToken)
@@ -47,9 +48,28 @@ export class AuthService {
     }
     // updateExpiredToken(refreshToken)
     // getAccessToken(refreshToken)
+
+    async createUser(data: {
+        email: string
+        password: string
+        name: string
+    }) {
+        const passwordHash = await hashPassword(data.password)
+        const user = await prisma.user.create({
+        data: {
+            email: data.email,
+            name: data.name,
+            password: passwordHash
+        }
+        })
+        return user
+    }
+
     private async getUserByEmail(email: string) {
-        return await this.prisma.user.findUnique({
+        return await prisma.user.findUnique({
             where: { email }
         });
     }
 }
+
+export const authService = new AuthService()
