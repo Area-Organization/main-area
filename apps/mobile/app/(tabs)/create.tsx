@@ -4,6 +4,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useServices, Service } from "@/hooks/use-services";
 import { useRouter } from "expo-router";
+import { ParamInputs } from "@/components/param-inputs";
 
 type Step = "SELECT_ACTION_SERVICE" | "SELECT_ACTION" | "SELECT_REACTION_SERVICE" | "SELECT_REACTION" | "CONFIGURE";
 
@@ -19,7 +20,8 @@ export default function CreateAreaScreen() {
   const [selectedReaction, setSelectedReaction] = useState<any>(null);
 
   // Configuration State (For params)
-  const [actionParams, setActionParams] = useState<Record<string, string>>({});
+  const [actionParams, setActionParams] = useState<Record<string, any>>({});
+  const [reactionParams, setReactionParams] = useState<Record<string, any>>({});
 
   const handleServiceSelect = (service: Service, type: "action" | "reaction") => {
     if (type === "action") {
@@ -42,11 +44,16 @@ export default function CreateAreaScreen() {
   };
 
   const handleSubmit = () => {
+    // Basic validation
+    // When the backend is ready, I will validate against 'required' fields in the params schema
+
     console.log("Creating AREA:", {
       action: `${actionService?.name}.${selectedAction?.name}`,
+      actionParams,
       reaction: `${reactionService?.name}.${selectedReaction?.name}`,
-      params: actionParams
+      reactionParams
     });
+
     Alert.alert("Success", "AREA Created successfully (Mock)!", [{ text: "OK", onPress: () => router.back() }]);
   };
 
@@ -80,7 +87,7 @@ export default function CreateAreaScreen() {
 
       {step === "SELECT_ACTION" && actionService && (
         <>
-          <ThemedText type="subtitle">2. Choose an Trigger (Action)</ThemedText>
+          <ThemedText type="subtitle">2. Choose a Trigger (Action)</ThemedText>
           {renderList(actionService.actions, (a) => handleItemSelect(a, "action"))}
         </>
       )}
@@ -103,15 +110,39 @@ export default function CreateAreaScreen() {
       )}
 
       {step === "CONFIGURE" && (
-        <ScrollView style={styles.list}>
-          <ThemedText type="subtitle">5. Review & Configure</ThemedText>
-          <View style={styles.summary}>
-            <ThemedText>
-              IF: {actionService?.name} - {selectedAction?.name}
-            </ThemedText>
-            <ThemedText>
-              THEN: {reactionService?.name} - {selectedReaction?.name}
-            </ThemedText>
+        <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 40 }}>
+          <ThemedText type="subtitle" style={{ marginBottom: 10 }}>
+            5. Configure Parameters
+          </ThemedText>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <ThemedText type="defaultSemiBold" style={{ color: "#fff" }}>
+                IF: {selectedAction?.name}
+              </ThemedText>
+            </View>
+            <View style={styles.sectionContent}>
+              <ParamInputs
+                params={selectedAction?.params}
+                values={actionParams}
+                onChange={(k, v) => setActionParams((prev) => ({ ...prev, [k]: v }))}
+              />
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={[styles.sectionHeader, { backgroundColor: "#e67e22" }]}>
+              <ThemedText type="defaultSemiBold" style={{ color: "#fff" }}>
+                THEN: {selectedReaction?.name}
+              </ThemedText>
+            </View>
+            <View style={styles.sectionContent}>
+              <ParamInputs
+                params={selectedReaction?.params}
+                values={reactionParams}
+                onChange={(k, v) => setReactionParams((prev) => ({ ...prev, [k]: v }))}
+              />
+            </View>
           </View>
 
           <Button title="Create Area" onPress={handleSubmit} />
@@ -133,10 +164,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc"
   },
-  summary: {
-    padding: 20,
-    backgroundColor: "#e1f5fe",
+  section: {
+    marginBottom: 20,
     borderRadius: 10,
-    marginBottom: 20
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#ddd"
+  },
+  sectionHeader: {
+    backgroundColor: "#0a7ea4",
+    padding: 10
+  },
+  sectionContent: {
+    padding: 15,
+    backgroundColor: "rgba(150,150,150,0.05)"
   }
 });

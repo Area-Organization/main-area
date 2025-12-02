@@ -14,7 +14,8 @@ export const MOCK_ABOUT_DATA = {
             name: "new_commit",
             description: "Triggers when a new commit is pushed",
             params: {
-              repository: { type: "string", required: true, label: "Repository Name" }
+              repository: { type: "string", required: true, label: "Repository Name" },
+              branch: { type: "string", required: false, label: "Branch (Optional)", description: "Defaults to main" }
             }
           },
           {
@@ -69,7 +70,9 @@ export const MOCK_ABOUT_DATA = {
             name: "every_day_at",
             description: "Triggers every day at a specific time",
             params: {
-              time: { type: "string", required: true, label: "Time (HH:MM)" }
+              hour: { type: "number", required: true, label: "Hour (0-23)" },
+              minute: { type: "number", required: true, label: "Minute (0-59)" },
+              timezone: { type: "string", required: false, label: "Timezone", description: "e.g., Europe/Paris" }
             }
           }
         ],
@@ -86,7 +89,8 @@ export const MOCK_ABOUT_DATA = {
             description: "Post a message to a channel",
             params: {
               channel_id: { type: "string", required: true, label: "Channel ID" },
-              content: { type: "string", required: true, label: "Message" }
+              content: { type: "string", required: true, label: "Message" },
+              tts: { type: "boolean", required: false, label: "Text to Speech", description: "Read message aloud" }
             }
           }
         ]
