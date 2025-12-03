@@ -3,17 +3,18 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start --tunnel",
+    "start": "bun --env-file=../../.env expo start --tunnel",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
+    "android": "bun --env-file=../../.env expo start --android",
+    "ios": "bun --env-file=../../.env expo start --ios",
+    "web": "bun --env-file=../../.env expo start --web",
     "lint": "expo lint"
   },
   "dependencies": {
     "@area/backend": "workspace:*",
     "@elysiajs/eden": "^1.4.5",
     "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
