@@ -17,7 +17,7 @@
 
 	const form = superForm(defaults(zod4(formSchema)), {
 		validators: zod4(formSchema),
-		SPA: true,
+		SPA: true
 	});
 
 	const { form: formData, enhance } = form;

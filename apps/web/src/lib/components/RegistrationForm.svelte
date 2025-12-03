@@ -5,7 +5,7 @@
 		username: z.string().min(2).max(50),
 		email: z.email(),
 		password: z.string().min(7),
-        confirmPassword: z.string().min(7),
+		confirmPassword: z.string().min(7)
 	});
 </script>
 
@@ -18,7 +18,7 @@
 
 	const form = superForm(defaults(zod4(formSchema)), {
 		validators: zod4(formSchema),
-		SPA: true,
+		SPA: true
 	});
 
 	const { form: formData, enhance } = form;
@@ -56,7 +56,7 @@
 			</Form.Control>
 			<Form.FieldErrors />
 		</Form.Field>
-        <Form.Field {form} name="confirmPassword">
+		<Form.Field {form} name="confirmPassword">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Confirm Password</Form.Label>
