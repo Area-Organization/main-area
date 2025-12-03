@@ -3,33 +3,21 @@ import { hashPassword } from "../middlewares/password"
 import { verifyPassword } from '../middlewares/password';
 
 export class AuthService {
-    async userAuth(data: {
-        password: string,
-        email: string
-    }) {
+    async userAuth(password: string, email: string) {
         const user = await prisma.user.findUnique({
-            where: {
-                email: data.email
-            },
+            where: { email },
         });
-        if (!user)
+        if (!user || !user.password)
             return null;
-        const hash = user.password || "";
-        if (hash === "")
-            return null;
-        const isValid = await verifyPassword(data.password, hash);
+        const isValid = await verifyPassword(password, user.password);
         if (!isValid)
             return null;
         return user;
     }
 
-    async getUserById(data: {
-        id: string
-    }) {
+    async getUserById(id: string) {
         const user = await prisma.user.findUnique({
-            where: {
-                id: data.id
-            },
+            where: { id },
         })
         return user
     }

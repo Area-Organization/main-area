@@ -34,6 +34,23 @@ export const jwtRefresh = new Elysia({ name: "jwt-refresh" })
     })
   )
 
+function parseTokenExpiry(expiry: string): number {
+  const match = expiry.match(/^(\d+)([smhd])$/)
+  if (!match) return 900
+  
+  const [, value, unit] = match
+  if (!value) return 900
+  const num = parseInt(value)
+  
+  switch (unit) {
+    case 's': return num
+    case 'm': return num * 60
+    case 'h': return num * 3600
+    case 'd': return num * 86400
+    default: return 900
+  }
+}
+
 export async function generateTokenPair(
   jwtAccessInstance: any,
   jwtRefreshInstance: any,
@@ -41,21 +58,14 @@ export async function generateTokenPair(
   email: string
 ) {
   const [accessToken, refreshToken] = await Promise.all([
-    jwtAccessInstance.sign({
-      userId,
-      email,
-      type: "access"
-    }),
-    jwtRefreshInstance.sign({
-      userId,
-      email,
-      type: "refresh"
-    })
+    jwtAccessInstance.sign({ userId, email, type: "access" }),
+    jwtRefreshInstance.sign({ userId, email, type: "refresh" })
   ])
+  const expiresInSeconds = parseTokenExpiry(ACCESS_TOKEN_EXPIRY as string)
   return {
     accessToken,
     refreshToken,
-    expiresIn: ACCESS_TOKEN_EXPIRY
+    expiresIn: expiresInSeconds
   }
 }
 
