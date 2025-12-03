@@ -3,6 +3,8 @@ import { cors } from "@elysiajs/cors"
 import { openapi } from "@elysiajs/openapi"
 import { aboutRoute } from "./routes/about"
 
+export type { IService } from './services/interface';
+
 const app = new Elysia()
   .use(cors())
   .use(openapi({ exclude: { staticFile: false } }))
