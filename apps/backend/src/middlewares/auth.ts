@@ -1,6 +1,16 @@
 import { Elysia } from "elysia";
 import { jwtAccess } from "./jwt";
 import { bearer } from "@elysiajs/bearer";
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { prisma } from "@area/shared";
+
+const prisma = new PrismaClient();
+export const auth = betterAuth({
+    database: prismaAdapter(prisma, {
+        provider: "postgresql",
+    }),
+});
 
 export const authMiddleware = new Elysia({ name: "auth" })
   .use(bearer())
