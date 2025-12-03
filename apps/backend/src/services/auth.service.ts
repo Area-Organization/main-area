@@ -16,7 +16,7 @@ export class AuthService {
             return null;
         const hash = user.password || "";
         if (hash === "")
-                return null;
+            return null;
         const isValid = await verifyPassword(data.password, hash);
         if (!isValid)
             return null;
