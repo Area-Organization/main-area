@@ -12,3 +12,129 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String?
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  connections   UserConnection[]
+  areas         Area[]
+  oauthAccounts    OAuthAccount[]
+  emailVerifications EmailVerification[]
+  
+  @@map("users")
+}
+
+model OAuthAccount {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     String
+  providerId   String
+  accessToken  String   @db.Text
+  refreshToken String?  @db.Text
+  expiresAt    Int?
+  scope        String?
+  tokenType    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  verified  Boolean  @default(false)
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("email_verifications")
+}
+
+model UserConnection {
+  id           String    @id @default(cuid())
+  serviceName  String
+  accessToken  String?   @db.Text
+  refreshToken String?   @db.Text
+  expiresAt    DateTime?
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  
+  actions   AreaAction[]
+  reactions AreaReaction[]
+  
+  @@unique([userId, serviceName])
+  @@index([userId])
+  @@map("user_connections")
+}
+
+model Area {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  enabled     Boolean   @default(true)
+  
+  lastTriggered DateTime?
+  triggerCount  Int      @default(0)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  
+  action   AreaAction?
+  reaction AreaReaction?
+  
+  @@index([userId])
+  @@index([enabled])
+  @@map("areas")
+}
+
+model AreaAction {
+  id          String @id @default(cuid())
+  serviceName String
+  actionName  String
+  params      Json
+  
+  area   Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  areaId String @unique
+  
+  connection   UserConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  connectionId String
+  
+  @@map("area_actions")
+}
+
+model AreaReaction {
+  id           String @id @default(cuid())
+  serviceName  String
+  reactionName String
+  params       Json
+  
+  area   Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  areaId String @unique
+  
+  connection   UserConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  connectionId String
+  
+  @@map("area_reactions")
+}
