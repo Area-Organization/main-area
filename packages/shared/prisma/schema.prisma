@@ -25,7 +25,6 @@ model User {
   connections   UserConnection[]
   areas         Area[]
   oauthAccounts    OAuthAccount[]
-  emailVerifications EmailVerification[]
   
   @@map("users")
 }
@@ -50,20 +49,6 @@ model OAuthAccount {
   @@map("oauth_accounts")
 }
 
-model EmailVerification {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  verified  Boolean  @default(false)
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([token])
-  @@map("email_verifications")
-}
 
 model UserConnection {
   id           String    @id @default(cuid())

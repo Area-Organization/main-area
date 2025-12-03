@@ -3,7 +3,7 @@ import { hashPassword } from "../middlewares/password"
 import { verifyPassword } from '../middlewares/password';
 
 export class AuthService {
-    async userAuth(password: string, email: string) {
+    async userAuth(email: string, password: string) {
         const user = await prisma.user.findUnique({
             where: { email },
         });
