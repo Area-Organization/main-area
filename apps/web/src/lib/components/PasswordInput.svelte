@@ -3,7 +3,7 @@
 	import Button from './ui/button/button.svelte';
 	import Input from './ui/input/input.svelte';
 
-	var visible = $state(false);
+	let visible = $state(false);
 	let { value = $bindable() } = $props();
 </script>
 
