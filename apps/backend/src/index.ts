@@ -2,14 +2,14 @@ import { Elysia } from "elysia"
 import { cors } from "@elysiajs/cors"
 import { openapi } from "@elysiajs/openapi"
 import { aboutRoute } from "./routes/about"
-import { betterAuthPlugin } from "./plugins/better-auth"
+import { betterAuth } from "./plugins/better-auth"
 
 export type { IService } from './services/interface';
 
 const app = new Elysia()
   .use(cors())
   .use(openapi({ exclude: { staticFile: false } }))
-  .use(betterAuthPlugin)
+  .use(betterAuth)
   .use(aboutRoute)
   .listen(8080)
 
