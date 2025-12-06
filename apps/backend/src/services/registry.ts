@@ -1,4 +1,4 @@
-import { type IService } from "@area/types"
+import { type IService } from "../interfaces/service"
 
 class ServiceRegistry {
   private services: Map<string, IService> = new Map()
