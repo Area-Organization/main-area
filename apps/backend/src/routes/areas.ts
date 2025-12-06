@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia"
 import { authMiddleware } from "../middlewares/better-auth"
 import { prisma } from "@area/shared"
 import { serviceRegistry } from "../services/registry"
-import { AreaErrorResponse, AreaResponse, AreasListResponse, CreateAreaBody, ListAreasQuery, UpdateAreaBody } from "../models/area.model"
+import { AreaErrorResponse, AreaResponse, AreasListResponse, AreaStatsResponse, AreaToggleResponse, CreateAreaBody, ListAreasQuery, UpdateAreaBody } from "../models/area.model"
 
 export const areasRoutes = new Elysia({ prefix: "/api/areas" })
   .use(authMiddleware)
@@ -130,7 +130,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
       set.status = 500
       return {
         error: "Internal Server Error",
-        message: "Failed to create area",
+        message: "Failed to create AREA",
         statusCode: 500
       }
     }
@@ -145,7 +145,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
     },
     detail: {
       tags: ["Areas"],
-      summary: "Create a new area",
+      summary: "Create a new AREA",
       description: "Creates a new automation by connecting an action to a reaction"
     }
   })
@@ -209,7 +209,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
       set.status = 500
       return {
         error: "Internal Server Error",
-        message: "Failed to fetch areas",
+        message: "Failed to fetch AREAs",
         statusCode: 500
       }
     }
@@ -222,7 +222,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
     },
     detail: {
       tags: ["Areas"],
-      summary: "List all area",
+      summary: "List all AREAs",
       description: "Retrieves all automation areas for the authentificated user"
     }
   })
@@ -242,7 +242,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
         set.status = 404
         return {
           error: "Not Found",
-          message: "area not found",
+          message: "AREA not found",
           statusCode: 404
         }
       }
@@ -276,7 +276,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
       set.status = 500
       return {
         error: "Internal Server Error",
-        message: "Failed to fetch area",
+        message: "Failed to fetch AREA",
         statusCode: 500
       }
     }
@@ -292,7 +292,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
     },
     detail: {
       tags: ["Areas"],
-      summary: "Get an area by ID",
+      summary: "Get an AREA by ID",
       description: "Retrieves a specific automation area"
     }
   })
@@ -305,7 +305,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
         set.status = 404
         return {
           error: "Not Found",
-          message: "area not found",
+          message: "AREA not found",
           statusCode: 404
         }
       }
@@ -439,7 +439,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
       set.status = 500
       return {
         error: "Internal Server Error",
-        message: "Failed to update area",
+        message: "Failed to update AREA",
         statusCode: 500
       }
     }
@@ -457,7 +457,110 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
     },
     detail: {
       tags: ["Areas"],
-      summary: "Update an area",
+      summary: "Update an AREA",
       description: "Updates an existing automation area"
+    }
+  })
+  .post("/:id/toggle", async ({ params, user, set }) => {
+    try {
+      const area = await prisma.area.findFirst({
+        where: {
+          id: params.id,
+          userId: user.id
+        }
+      })
+      if (!area) {
+        set.status = 404
+        return {
+          error: "Not Found",
+          message: "AREA not found",
+          statusCode: 404
+        }
+      }
+      const updatedArea = await prisma.area.update({
+        where: { id: params.id },
+        data: { enabled: !area.enabled }
+      })
+      return {
+        message: `AREA ${updatedArea.enabled ? 'enabled' : 'disabled'} successfully`,
+        enabled: updatedArea.enabled
+      }
+    } catch (error) {
+      set.status = 500
+      return {
+        error: "Internal Server Error",
+        message: "Failed to toggle AREA",
+        statusCode: 500
+      }
+    }
+  }, {
+    auth: true,
+    params: t.Object({
+      id: t.String()
+    }),
+    response: {
+      200: AreaToggleResponse,
+      404: AreaErrorResponse,
+      500: AreaErrorResponse
+    },
+    detail: {
+      tags: ["Areas"],
+      summary: "Toggle AREA status",
+      description: "Enables or disables an autimation area"
+    }
+  })
+  .get("/stats/overview", async ({ user, set }) => {
+    try {
+      const [totalAreas, activeAreas, inactiveAreas, recentAreas] = await Promise.all([
+        prisma.area.count({ where: { userId: user.id } }),
+        prisma.area.count({ where: { userId: user.id, enabled: true } }),
+        prisma.area.count({ where: { userId: user.id, enabled: false } }),
+        prisma.area.findMany({
+          where: {
+            userId: user.id,
+            lastTriggered: { not: null }
+          },
+          orderBy: { lastTriggered: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            name: true,
+            lastTriggered: true
+          }
+        })
+      ])
+      const totalTriggers = await prisma.area.aggregate({
+        where: { userId: user.id },
+        _sum: { triggerCount: true }
+      })
+      return {
+        totalAreas,
+        activeAreas,
+        inactiveAreas,
+        totalTriggers: totalTriggers._sum.triggerCount ?? 0,
+        recentlyTriggered: recentAreas.map(area => ({
+          id: area.id,
+          name: area.name,
+          triggeredAt: area.lastTriggered!.toISOString()
+        }))
+      }
+    } catch (error) {
+      set.status = 500
+      return {
+        error: "Internal Server Error",
+        message: "Failed to fetch AREA statistics",
+        statusCode: 500
+      }
+    }
+  }, {
+    auth: true,
+    response: {
+      200: AreaStatsResponse,
+      500: AreaErrorResponse
+    },
+    detail: {
+      tags: ["Areas"],
+      summary: "Get AREA statistics",
+      description: "Retrieves overview statistics for user's automation areas"
     }
   })
