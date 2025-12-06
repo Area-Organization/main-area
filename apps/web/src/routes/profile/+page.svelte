@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { IService } from "@area/shared";
+  import type { IService } from "@area/types";
   import * as Card from "$lib/components/ui/card/index.js";
   import ServiceCard from "@/components/ServiceCard.svelte";
 
@@ -62,7 +62,8 @@
             repository: {
               type: "string",
               label: "Repository",
-              required: true
+              required: true,
+              description: "Repository"
             },
             title: {
               type: "string",

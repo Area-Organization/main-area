@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia"
 import { authMiddleware } from "../middlewares/better-auth"
-import { prisma } from "@area/shared"
+import { prisma } from "../db/prisma"
 import { serviceRegistry } from "../services/registry"
 import { AreaErrorResponse, AreaResponse, AreasListResponse, AreaStatsResponse, AreaToggleResponse, CreateAreaBody, ListAreasQuery, UpdateAreaBody } from "../models/area.model"
 
