@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { useSession } from "@/ctx";
 import { MOCK_ABOUT_DATA } from "@/constants/mock-data";
+import type { ServiceDTO } from "@area/types";
 
 // Toggle this to switch between Real Backend and Mock Data
 const USE_MOCK = true;
 
-// Infer types from the mock data for now
-export type Service = (typeof MOCK_ABOUT_DATA.server.services)[0];
-export type Action = (typeof MOCK_ABOUT_DATA.server.services)[0]["actions"][0];
-export type Reaction = (typeof MOCK_ABOUT_DATA.server.services)[0]["reactions"][0];
+export type Service = ServiceDTO;
+// Helper types extracted from the ServiceDTO
+export type Action = ServiceDTO["actions"][0];
+export type Reaction = ServiceDTO["reactions"][0];
 
 export function useServices() {
   const { client } = useSession();
@@ -23,7 +24,8 @@ export function useServices() {
     if (USE_MOCK) {
       // Simulate network delay
       setTimeout(() => {
-        setServices(MOCK_ABOUT_DATA.server.services as Service[]);
+        // Cast mock data to compatible DTO type
+        setServices(MOCK_ABOUT_DATA.server.services as unknown as Service[]);
         setLoading(false);
       }, 500);
       return;
@@ -42,7 +44,7 @@ export function useServices() {
       if (error) {
         setError(error.status ? `Error: ${error.status}` : "Network Error");
       } else if (data && data.server) {
-        setServices(data.server.services as any[]);
+        setServices(data.server.services as Service[]);
       }
     } catch (err) {
       setError("Failed to fetch services");

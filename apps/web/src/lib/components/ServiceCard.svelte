@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { IService } from "@area/types";
+  import type { ServiceDTO } from "@area/types";
   import ServiceIcon from "./ServiceIcon.svelte";
   import * as Card from "$lib/components/ui/card/index.js";
   import { Switch } from "./ui/switch";
 
   interface Props {
-    service: IService;
+    service: ServiceDTO;
   }
 
   let { service }: Props = $props();

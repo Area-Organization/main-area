@@ -1,17 +1,17 @@
-import { type ServiceType } from "../models/about.model"
+import { type IService } from "@area/types"
 
 class ServiceRegistry {
-  private services: Map<string, ServiceType> = new Map()
+  private services: Map<string, IService> = new Map()
 
-  register(service: ServiceType): void {
+  register(service: IService): void {
     this.services.set(service.name, service)
   }
 
-  get(name: string): ServiceType | undefined {
+  get(name: string): IService | undefined {
     return this.services.get(name)
   }
 
-  getAll(): ServiceType[] {
+  getAll(): IService[] {
     return Array.from(this.services.values())
   }
 

@@ -1,10 +1,11 @@
 <script lang="ts">
-  import type { IService } from "@area/types";
+  import type { ServiceDTO } from "@area/types";
   import * as Card from "$lib/components/ui/card/index.js";
   import ServiceCard from "@/components/ServiceCard.svelte";
 
   let username = "Username";
-  const mockServices: IService[] = [
+
+  const mockServices: ServiceDTO[] = [
     {
       name: "GitHub",
       description: "Connect to GitHub repositories and workflows",
@@ -34,9 +35,6 @@
               required: false,
               default: "main"
             }
-          },
-          check: async (params, context) => {
-            return !!params.repository;
           }
         },
         {
@@ -48,9 +46,6 @@
               label: "Repository",
               required: true
             }
-          },
-          check: async (params, context) => {
-            return !!params.repository;
           }
         }
       ],
@@ -75,9 +70,6 @@
               label: "Issue Description",
               required: false
             }
-          },
-          execute: async (params, context) => {
-            console.log("Creating issue:", params);
           }
         }
       ]
@@ -104,9 +96,6 @@
               label: "Channel ID",
               required: true
             }
-          },
-          check: async (params, context) => {
-            return !!params.channel;
           }
         }
       ],
@@ -125,9 +114,6 @@
               label: "Message Content",
               required: true
             }
-          },
-          execute: async (params, context) => {
-            console.log("Sending Discord message:", params);
           }
         }
       ]
@@ -154,9 +140,6 @@
               label: "Channel Name",
               required: true
             }
-          },
-          check: async (params, context) => {
-            return !!params.channel;
           }
         }
       ],
@@ -175,9 +158,6 @@
               label: "Message Text",
               required: true
             }
-          },
-          execute: async (params, context) => {
-            console.log("Posting Slack message:", params);
           }
         }
       ]
