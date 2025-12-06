@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { IService } from "@apps/backend/src";
+  import type { IService } from "@area/shared";
   import ServiceIcon from "./ServiceIcon.svelte";
   import * as Card from "$lib/components/ui/card/index.js";
   import { Switch } from "./ui/switch";

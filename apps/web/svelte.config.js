@@ -9,7 +9,7 @@ const config = {
 	kit: {
 		alias: {
 			"@/*": "./src/lib/*",
-			"@apps/*": "../"
+			"@area/shared": "../../packages/shared/src/index.ts"
 		},
 		adapter: adapter()
 	}

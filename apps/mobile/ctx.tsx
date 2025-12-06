@@ -1,7 +1,7 @@
 import React, {createContext, useContext, useEffect, useState} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {treaty} from "@elysiajs/eden";
-import type {App} from "@area/backend";
+import type {App} from "@area/backend/src/app";
 
 /**
  * Custom fetcher to handle React Native's strict GET request body policy.
