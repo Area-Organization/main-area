@@ -1,5 +1,4 @@
 import { t, type Static } from "elysia"
-import { isOptional } from "elysia/schema"
 
 export const AreaStatus = t.Union([
   t.Literal('active'),
@@ -33,8 +32,8 @@ export const AreaSchema = t.Object({
   enabled: t.Boolean(),
   lastTriggered: t.Optional(t.String()),
   triggerCount: t.Number(),
-  createAt: t.String(),
-  updateAt: t.String(),
+  createdAt: t.String(),
+  updatedAt: t.String(),
   action: t.Optional(AreaActionSchema),
   reaction: t.Optional(AreaReactionSchema)
 })
@@ -124,9 +123,9 @@ export type AreaStatusType = Static<typeof AreaStatus>
 export type AreaActionType = Static<typeof AreaActionSchema>
 export type AreaReactionType = Static<typeof AreaReactionSchema>
 export type AreaType = Static<typeof AreaSchema>
-export type CreateAreaType = Static<typeof CreateAreaBody>
+export type CreateAreaBodyType = Static<typeof CreateAreaBody>
 export type UpdateAreaType = Static<typeof UpdateAreaBody>
-export type ListAreasType = Static<typeof ListAreasQuery>
+export type ListAreasQueryType = Static<typeof ListAreasQuery>
 export type AreaResponseType = Static<typeof AreaResponse>
 export type AreasListResponseType = Static<typeof AreasListResponse>
 export type AreaDeletedResponseType = Static<typeof AreaDeletedResponse>
