@@ -35,32 +35,32 @@ jobs:
         with:
           bun-version: latest
       - name: Installer les dépendances du Serveur
-        working-directory: ./server
+        working-directory: ./apps/backend
         run: bun install
 
       #check pour prisma
       - name: Générer le client Prisma
-        working-directory: ./server
+        working-directory: ./apps/backend
         env:
           DATABASE_URL: postgresql://user:password@localhost:5432/test_db
         run: bun run prisma generate
 
       - name: Vérifier la cohérence du Schema Prisma
-        working-directory: ./server
+        working-directory: ./apps/backend
         env:
           DATABASE_URL: postgresql://user:password@localhost:5432/test_db
         run: bun run prisma db push
 
       #vérification d'erreur de type
       - name: Vérifier le Lint (ESLint)
-        working-directory: ./server
+        working-directory: ./apps/backend
         run: bun run lint
         continue-on-error: true
       - name: Vérifier les Types (TypeScript)
-        working-directory: ./server
+        working-directory: ./apps/backend
         run: bun run tsc --noEmit
       - name: Lancer les tests Backend
-        working-directory: ./server
+        working-directory: ./apps/backend
         env:
           DATABASE_URL: postgresql://user:password@localhost:5432/test_db
         run: bun test
@@ -78,14 +78,14 @@ jobs:
           bun-version: latest
 
       - name: Installer les dépendances du Client
-        working-directory: ./Client
+        working-directory: ./apps/web
         run: bun install
 
       - name: Vérifier le Lint Frontend
-        working-directory: ./Client
+        working-directory: ./apps/web
         run: bun run lint
         continue-on-error: true
 
       - name: Vérifier le Build (Compilation Svelte)
-        working-directory: ./Client
+        working-directory: ./apps/web
         run: bun run build
