@@ -6,14 +6,22 @@ import { authHandler } from "./plugins/better-auth"
 import { authMiddleware } from "./middlewares/better-auth"
 import { areasRoutes } from "./routes/areas"
 import { connectRoutes } from "./routes/connect"
+import { betterAuth } from "better-auth/minimal"
+import { OpenAPI } from "./plugins/better-api"
 
 export const app = new Elysia()
   .use(cors())
-  .use(openapi({ exclude: { staticFile: false } }))
+  .use(openapi({
+    exclude: { staticFile: false },
+    documentation: {
+      paths: await OpenAPI.getPaths(),
+      components: await OpenAPI.components
+    }
+  }))
   .mount("/api/auth", authHandler)
-  .use(authMiddleware)
   .use(aboutRoute)
-  .use(areasRoutes)
+  .use(authMiddleware)
   .use(connectRoutes)
+  .use(areasRoutes)
 
 export type App = typeof app
