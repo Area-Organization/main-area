@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia"
 import { authMiddleware } from "../middlewares/better-auth"
-import { prisma } from "../db/prisma"
+import { prisma } from "../database/prisma"
 import { serviceRegistry } from "../services/registry"
 import { 
   AreaErrorResponse, 

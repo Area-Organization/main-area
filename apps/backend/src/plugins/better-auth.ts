@@ -1,3 +1,3 @@
-import { auth } from "../db/auth"
+import { auth } from "../database/auth"
 
 export const authHandler = auth.handler

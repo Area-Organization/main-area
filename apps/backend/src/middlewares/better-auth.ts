@@ -1,5 +1,5 @@
 import { Elysia } from "elysia"
-import { auth } from "../db/auth"
+import { auth } from "../database/auth"
 
 export const authMiddleware = new Elysia({ name: "auth" })
   .macro({
