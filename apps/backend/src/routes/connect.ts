@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia"
 import { prisma } from "../database/prisma"
 import { authMiddleware } from "../middlewares/better-auth"
 import { serviceRegistry } from "../services/registry"
-import { ConnectionErrorResponse, ConnectionResponse, ConnectionsListResponse, CreateConnectionBody } from "@area/types"
+import { ConnectionDeletedResponse, ConnectionErrorResponse, ConnectionResponse, ConnectionsListResponse, CreateConnectionBody, OAuth2AuthUrlResponse, OAuth2CallbackBody, UpdateConnectionBody } from "@area/types"
 
 export const connectRoutes = new Elysia({ prefix: "/api/connections" })
   .use(authMiddleware)
@@ -77,6 +77,7 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
       description: "Creates a new connection to a service for the authentificated user"
     }
   })
+
   .get("/", async ({ user, set }) => {
     try {
       const connections = await prisma.userConnection.findMany({
@@ -114,6 +115,7 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
       description: "Retrieves all service connections for the authentificated user"
     }
   })
+
   .get("/:id", async ({ params, user, set }) => {
     try {
       const connection = await prisma.userConnection.findFirst({
@@ -164,4 +166,129 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
       description: "Retrieves a specific service connection"
     }
   })
-  
+
+  .patch("/:id", async ({ params, body, user, set }) => {
+    try {
+      const existingConnection = await prisma.userConnection.findFirst({
+        where: {
+          id: params.id,
+          userId: user.id
+        }
+      })
+      if (!existingConnection) {
+        set.status = 404
+        return {
+          error: "Not Found",
+          message: "Connection not found",
+          statusCode: 404
+        }
+      }
+      const connection = await prisma.userConnection.update({
+        where: { id: params.id },
+        data: {
+          accessToken: body.accessToken,
+          refreshToken: body.refreshToken,
+          expiresAt: body.expiresAt ? new Date(body.expiresAt) : undefined,
+          metadata: body.metadata ?? undefined
+        }
+      })
+      return {
+        connection: {
+          id: connection.id,
+          serviceName: connection.serviceName,
+          expiresAt: connection.expiresAt?.toISOString(),
+          createdAt: connection.createdAt.toISOString(),
+          updatedAt: connection.updatedAt.toISOString(),
+          metadata: connection.metadata as Record<string, any> | undefined
+        }
+      }
+    } catch (error) {
+      set.status = 500
+      return {
+        error: "Internal Server Error",
+        message: "Failed to update connection",
+        statusCode: 500
+      }
+    }
+  }, {
+    auth: true,
+    params: t.Object({
+      id: t.String()
+    }),
+    body: UpdateConnectionBody,
+    response: {
+      200: ConnectionResponse,
+      404: ConnectionErrorResponse,
+      500: ConnectionErrorResponse
+    },
+    detail: {
+      tags: ["Connections"],
+      summary: "Update a connection",
+      description: "Updates an existing service connection"
+    }
+  })
+
+  .delete("/:id", async ({ params, user, set }) => {
+    try {
+      const connection = await prisma.userConnection.findFirst({
+        where: {
+          id: params.id,
+          userId: user.id
+        }
+      })
+      if (!connection) {
+        set.status = 404
+        return {
+          error: "Not Found",
+          message: "Connection not found",
+          statusCode: 404
+        }
+      }
+      const areasUsingConnection = await prisma.area.count({
+        where: {
+          OR: [
+            { action: { connectionId: params.id } },
+            { reaction: { connectionId: params.id }}
+          ]
+        }
+      })
+      if (areasUsingConnection > 0) {
+        set.status = 409
+        return {
+          error: "Conflict",
+          message: `Cannot delete connection: it is used by ${areasUsingConnection} AREA(s)`,
+          statusCode: 409
+        }
+      }
+      await prisma.userConnection.delete({
+        where: { id: params.id }
+      })
+      return {
+        message: "Connection deleted successfully",
+        connectionId: params.id
+      }
+    } catch (error) {
+      set.status = 500
+      return {
+        error: "Internal Server Error",
+        message: "Failed to delete connection",
+        statusCode: 500
+      }
+    }
+  }, {
+    auth: true,
+    params: t.Object({
+      id: t.String()
+    }),
+    response: {
+      200: ConnectionDeletedResponse,
+      404: ConnectionErrorResponse,
+      409: ConnectionErrorResponse,
+      500: ConnectionErrorResponse
+    },
+    detail: {
+      tags: ["Connections"],
+      summary: "Delete a connection",
+      description: "Permanently deletes a service connection"
+    }
+  })
