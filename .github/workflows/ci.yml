@@ -1,0 +1,91 @@
+name: CI - Area
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "dev"]
+
+jobs:
+  #test le backend avec elysia et prisma
+  backend-check:
+    runs-on: ubuntu-latest
+
+    #lancement de la db de test
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+      - name: Installer Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - name: Installer les dépendances du Serveur
+        working-directory: ./server
+        run: bun install
+
+      #check pour prisma
+      - name: Générer le client Prisma
+        working-directory: ./server
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/test_db
+        run: bun run prisma generate
+
+      - name: Vérifier la cohérence du Schema Prisma
+        working-directory: ./server
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/test_db
+        run: bun run prisma db push
+
+      #vérification d'erreur de type
+      - name: Vérifier le Lint (ESLint)
+        working-directory: ./server
+        run: bun run lint
+        continue-on-error: true
+      - name: Vérifier les Types (TypeScript)
+        working-directory: ./server
+        run: bun run tsc --noEmit
+      - name: Lancer les tests Backend
+        working-directory: ./server
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/test_db
+        run: bun test
+
+  #vérifier le frontend
+  frontend-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Installer les dépendances du Client
+        working-directory: ./client
+        run: bun install
+
+      - name: Vérifier le Lint Frontend
+        working-directory: ./client
+        run: bun run lint
+        continue-on-error: true
+
+      - name: Vérifier le Build (Compilation Svelte)
+        working-directory: ./client
+        run: bun run build
