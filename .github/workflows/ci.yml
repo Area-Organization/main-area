@@ -61,9 +61,9 @@ jobs:
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
-
-      - name: Installer les dépendances du Client
-        working-directory: ./apps/web
+      - name: Installer les dépendances
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
         run: bun install
 
       - name: Vérifier le Lint Frontend
