@@ -78,14 +78,14 @@ jobs:
           bun-version: latest
 
       - name: Installer les dépendances du Client
-        working-directory: ./client
+        working-directory: ./Client
         run: bun install
 
       - name: Vérifier le Lint Frontend
-        working-directory: ./client
+        working-directory: ./Client
         run: bun run lint
         continue-on-error: true
 
       - name: Vérifier le Build (Compilation Svelte)
-        working-directory: ./client
+        working-directory: ./Client
         run: bun run build
