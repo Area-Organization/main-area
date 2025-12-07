@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia"
 import { prisma } from "../database/prisma"
 import { authMiddleware } from "../middlewares/better-auth"
 import { serviceRegistry } from "../services/registry"
-import { ConnectionDeletedResponse, ConnectionErrorResponse, ConnectionResponse, ConnectionsListResponse, CreateConnectionBody, OAuth2AuthUrlResponse, OAuth2CallbackBody, UpdateConnectionBody } from "@area/types"
+import { ConnectionDeletedResponse, ConnectionErrorResponse, ConnectionResponse, ConnectionsListResponse, CreateConnectionBody, OAuth2AuthUrlResponse, OAuth2CallbackBody, UpdateConnectionBody, type OAuth2TokenResponseType } from "@area/types"
 
 export const connectRoutes = new Elysia({ prefix: "/api/connections" })
   .use(authMiddleware)
@@ -290,5 +290,171 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
       tags: ["Connections"],
       summary: "Delete a connection",
       description: "Permanently deletes a service connection"
+    }
+  })
+
+  .get("/oauth2/:serviceName/auth-url", async ({ params, user, set }) => {
+    try {
+      const service = serviceRegistry.get(params.serviceName)
+      if (!service) {
+        set.status = 404
+        return {
+          error: "Not Found",
+          message: `Service '${params.serviceName}' not found`,
+          statusCode: 404
+        }
+      }
+      if (!service.requiresAuth || service.authType !== 'oauth2' || !service.oauth) {
+        set.status = 400
+        return {
+          error: "Bad Request",
+          message: `Service '${params.serviceName}' does not support OAuth2`,
+          statusCode: 400
+        }
+      }
+      const state = crypto.randomUUID()
+      const authUrl = new URL(service.oauth.authorizationUrl)
+      authUrl.searchParams.set('client_id', service.oauth.clientId)
+      authUrl.searchParams.set('redirect_uri', `${process.env.API_URL || 'http://localhost:8080'}/api/connections/oauth2/callback`)
+      authUrl.searchParams.set('scope', service.oauth.scopes.join(' '))
+      authUrl.searchParams.set('state', state)
+      authUrl.searchParams.set('response_type', 'code')
+      return {
+        authUrl: authUrl.toString(),
+        state
+      }
+    } catch (error) {
+      console.error("Error generating OAuth2 URL:", error)
+      set.status = 500
+      return {
+        error: "Internal Server Error",
+        message: "Failed to generate authorization URL",
+        statusCode: 500
+      }
+    }
+  }, {
+    auth: true,
+    params: t.Object({
+      serviceName: t.String()
+    }),
+    response: {
+      200: OAuth2AuthUrlResponse,
+      400: ConnectionErrorResponse,
+      404: ConnectionErrorResponse,
+      500: ConnectionErrorResponse
+    },
+    detail: {
+      tags: ["Connections"],
+      summary: "Get OAuth2 authorization URL",
+      description: "Generates an OAuth2 authorization URL for a service"
+    }
+  })
+
+  .post("/oauth2/callback", async ({ body, user, set }) => {
+    try {
+      const service = serviceRegistry.get(body.serviceName)
+      if (!service) {
+        set.status = 404
+        return {
+          error: "Not Found",
+          message: `Service '${body.serviceName}' not found`,
+          statusCode: 404
+        }
+      }
+      if (!service.requiresAuth || service.authType !== 'oauth2' || !service.oauth) {
+        set.status = 400
+        return {
+          error: "Bad Request",
+          message: `Service '${body.serviceName}' does not support OAuth2`,
+          statusCode: 400
+        }
+      }
+      const tokenResponse = await fetch(service.oauth.tokenUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json'
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: body.code,
+          redirect_uri: `${process.env.API_URL || 'http://localhost:8080'}/api/connections/oauth2/callback`,
+          client_id: service.oauth.clientId,
+          client_secret: service.oauth.clientSecret
+        })
+      })
+      if (!tokenResponse.ok) {
+        const errorData = await tokenResponse.json().catch(() => ({}))
+        console.error("OAuth2 token exchange failed:", errorData)
+        set.status = 400
+        return {
+          error: "Bad Request",
+          message: "Failed to exchange authorization code for tokens",
+          statusCode: 400
+        }
+      }
+      const tokens = await tokenResponse.json() as OAuth2TokenResponseType
+      const expiresAt = tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null
+      const connection = await prisma.userConnection.upsert({
+        where: {
+          userId_serviceName: {
+            userId: user.id,
+            serviceName: body.serviceName
+          }
+        },
+        create: {
+          userId: user.id,
+          serviceName: body.serviceName,
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          expiresAt,
+          metadata: {
+            tokenType: tokens.token_type,
+            scope: tokens.scope
+          }
+        },
+        update: {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          expiresAt,
+          metadata: {
+            tokenType: tokens.token_type,
+            scope: tokens.scope
+          }
+        }
+      })
+      set.status = 201
+      return {
+        connection: {
+          id: connection.id,
+          serviceName: connection.serviceName,
+          expiresAt: connection.expiresAt?.toISOString(),
+          createdAt: connection.createdAt.toISOString(),
+          updatedAt: connection.updatedAt.toISOString(),
+          metadata: connection.metadata as Record<string, any> | undefined
+        }
+      }
+    } catch (error) {
+      console.error("Error handling OAuth2 callback:", error)
+      set.status = 500
+      return {
+        error: "Internal Server Error",
+        message: "Failed to complete OAuth2 authentication",
+        statusCode: 500
+      }
+    }
+  }, {
+    auth: true,
+    body: OAuth2CallbackBody,
+    response: {
+      201: ConnectionResponse,
+      400: ConnectionErrorResponse,
+      404: ConnectionErrorResponse,
+      500: ConnectionErrorResponse
+    },
+    detail: {
+      tags: ["Connections"],
+      summary: "Handle OAuth2 callback",
+      description: "Exchanges authorization code for access tokens and creates/updates connection"
     }
   })

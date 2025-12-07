@@ -55,7 +55,16 @@ export const ConnectionErrorResponse = t.Object({
   statusCode: t.Number()
 })
 
+export const OAuth2TokenResponse = t.Object({
+  access_token: t.String(),
+  refresh_token: t.Optional(t.String()),
+  expires_in: t.Optional(t.Number()),
+  token_type: t.Optional(t.String()),
+  scope: t.Optional(t.String())
+})
+
 export type UserConnectionSchemaType = Static<typeof UserConnectionSchema>
+export type OAuth2TokenResponseType = Static<typeof OAuth2TokenResponse>
 export type CreateConnectionBodyType = Static<typeof CreateConnectionBody>
 export type OAuth2CallbackBodyType = Static<typeof OAuth2CallbackBody>
 export type UpdateConnectionBodyType = Static<typeof UpdateConnectionBody>
