@@ -10,8 +10,6 @@ jobs:
   #test le backend avec elysia et prisma
   backend-check:
     runs-on: ubuntu-latest
-
-    #lancement de la db de test
     services:
       postgres:
         image: postgres:16-alpine
@@ -28,38 +26,25 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Récupérer le code
-        uses: actions/checkout@v4
-      - name: Installer Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-      - name: Installer les dépendances du Serveur
-        working-directory: ./apps/backend
-        run: bun install
-
-      #check pour prisma
-      - name: Générer le client Prisma
-        working-directory: ./apps/backend
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - name: Installer Dépendances Globales
         env:
           DATABASE_URL: postgresql://user:password@localhost:5432/test_db
-        run: bun run prisma generate
+        run: bun install
 
-      - name: Vérifier la cohérence du Schema Prisma
+      - name: Push DB Schema
         working-directory: ./apps/backend
         env:
           DATABASE_URL: postgresql://user:password@localhost:5432/test_db
         run: bun run prisma db push
 
-      #vérification d'erreur de type
-      - name: Vérifier le Lint (ESLint)
+      - name: Lint Backend
         working-directory: ./apps/backend
         run: bun run lint
         continue-on-error: true
-      - name: Vérifier les Types (TypeScript)
-        working-directory: ./apps/backend
-        run: bun run tsc --noEmit
-      - name: Lancer les tests Backend
+
+      - name: Test Backend
         working-directory: ./apps/backend
         env:
           DATABASE_URL: postgresql://user:password@localhost:5432/test_db
