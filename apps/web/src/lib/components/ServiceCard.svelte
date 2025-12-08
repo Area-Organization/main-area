@@ -17,7 +17,7 @@
       <div class="flex w-full justify-between items-center">
         <div class="flex gap-5 items-center">
           <ServiceIcon name={service.name} />
-          <Card.Title>{service.name}</Card.Title>
+          <Card.Title class="capitalize">{service.name}</Card.Title>
         </div>
         <Switch
           checked={false}
