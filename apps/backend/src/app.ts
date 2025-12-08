@@ -18,7 +18,7 @@ export const app = new Elysia()
       components: await OpenAPI.components
     }
   }))
-  .mount("/api/auth", authHandler)
+  .mount(authHandler)
   .use(aboutRoute)
   .use(authMiddleware)
   .use(connectRoutes)

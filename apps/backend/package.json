@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@area/types": "workspace:*",
+    "@better-auth/expo": "^1.4.5",
     "@elysiajs/cors": "^1.4.0",
     "@elysiajs/openapi": "^1.4.11",
     "@prisma/adapter-pg": "^7.0.1",

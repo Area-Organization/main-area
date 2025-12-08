@@ -1,105 +1,110 @@
-import {useState} from "react";
-import {StyleSheet, TextInput, Button, Alert, View} from "react-native";
-import {ThemedText} from "@/components/themed-text";
-import {ThemedView} from "@/components/themed-view";
-import {useSession} from "@/ctx";
-import {Link} from "expo-router";
+import { useState } from "react";
+import { StyleSheet, TextInput, Button, Alert, View, TouchableOpacity } from "react-native";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { authClient } from "@/lib/auth";
+import { useRouter } from "expo-router";
+import { useSession } from "@/ctx";
 
 export default function LoginScreen() {
-    const {signIn, client} = useSession();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { signIn } = useSession();
 
-    const handleLogin = async () => {
-        setLoading(true);
-        try {
-            // Check if client is initialized
-            if (!client) {
-                Alert.alert("Error", "Network configuration missing.");
-                return;
-            }
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
 
-            // TODO: Replace with actual backend call once Authentication endpoints are ready
-            // const { data, error } = await client.auth.login.post({ email, password });
+    setLoading(true);
+    try {
+      const { data, error } = await authClient.signIn.email({
+        email,
+        password
+      });
 
-            // Mocking successful login for now
-            if (email && password) {
-                signIn("mock-jwt-token");
-            } else {
-                Alert.alert("Error", "Please fill in all fields");
-            }
-        } catch (error) {
-            Alert.alert("Error", "Failed to login");
-        } finally {
-            setLoading(false);
-        }
-    };
+      if (error) {
+        const errorMessage =
+          error.message ||
+          error.statusText ||
+          (error.status ? `Server Error: ${error.status}` : "Unknown error occurred");
 
-    return (
-        <ThemedView style={styles.container}>
-            <View style={styles.content}>
-                <ThemedText type="title" style={styles.title}>
-                    Welcome Back
-                </ThemedText>
+        Alert.alert("Login Failed", errorMessage);
+      } else {
+        // Refresh the session state manually before navigating
+        await signIn();
+        router.replace("/(tabs)");
+      }
+    } catch (err: any) {
+      console.error("Unexpected error:", err);
+      Alert.alert("Error", err.message || "An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                />
+  return (
+    <ThemedView style={styles.container}>
+      <View style={styles.content}>
+        <ThemedText type="title" style={styles.title}>
+          Welcome Back
+        </ThemedText>
 
-                <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          placeholderTextColor="#666"
+        />
 
-                <View style={styles.buttonContainer}>
-                    <Button title={loading ? "Signing in..." : "Sign In"} onPress={handleLogin} disabled={loading} />
-                </View>
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholderTextColor="#666"
+        />
 
-                <Link href="/register" style={styles.link}>
-                    <ThemedText type="link">Don&apos;t have an account? Sign up</ThemedText>
-                </Link>
+        <View style={styles.buttonContainer}>
+          <Button title={loading ? "Signing in..." : "Sign In"} onPress={handleLogin} disabled={loading} />
+        </View>
 
-                <Link href="/configure" style={styles.link}>
-                    <ThemedText type="default" style={{fontSize: 14, color: "#888"}}>
-                        Change Server Configuration
-                    </ThemedText>
-                </Link>
-            </View>
-        </ThemedView>
-    );
+        <View style={styles.footer}>
+          <ThemedText>Don&apos;t have an account?</ThemedText>
+          <TouchableOpacity onPress={() => router.replace("/(auth)/register")}>
+            <ThemedText type="link">Sign Up</ThemedText>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ThemedView>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1
-    },
-    content: {
-        flex: 1,
-        padding: 20,
-        justifyContent: "center",
-        gap: 15
-    },
-    title: {
-        marginBottom: 20,
-        textAlign: "center"
-    },
-    input: {
-        height: 50,
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        backgroundColor: "#fff",
-        color: "#000"
-    },
-    buttonContainer: {
-        marginTop: 10
-    },
-    link: {
-        marginTop: 15,
-        alignSelf: "center"
-    }
+  container: { flex: 1, padding: 20, justifyContent: "center" },
+  content: { gap: 16 },
+  title: { textAlign: "center", marginBottom: 20 },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    backgroundColor: "#fff",
+    color: "#000"
+  },
+  buttonContainer: { marginTop: 10 },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 20
+  }
 });

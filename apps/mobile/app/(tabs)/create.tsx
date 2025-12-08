@@ -47,13 +47,6 @@ export default function CreateAreaScreen() {
     // Basic validation
     // When the backend is ready, I will validate against 'required' fields in the params schema
 
-    console.log("Creating AREA:", {
-      action: `${actionService?.name}.${selectedAction?.name}`,
-      actionParams,
-      reaction: `${reactionService?.name}.${selectedReaction?.name}`,
-      reactionParams
-    });
-
     Alert.alert("Success", "AREA Created successfully (Mock)!", [{ text: "OK", onPress: () => router.back() }]);
   };
 
