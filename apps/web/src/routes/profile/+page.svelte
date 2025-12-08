@@ -1,12 +1,12 @@
 <script lang="ts">
   import * as Card from "$lib/components/ui/card/index.js";
   import ServiceCard from "@/components/ServiceCard.svelte";
+  import { authClient } from "@/auth-client";
 
-  export let data;
+  const session = authClient.useSession();
+  const username = $derived($session.data?.user?.name ?? "User");
 
-  let username = "Username";
-
-  const { servicesPromise, serviceConnectionPromise } = data;
+  const { servicesPromise, serviceConnectionPromise } = $props();
 </script>
 
 <div class="flex flex-col h-full w-full items-center gap-15 mt-15">
