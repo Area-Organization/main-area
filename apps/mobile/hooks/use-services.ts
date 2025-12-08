@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "@/ctx";
-import { MOCK_ABOUT_DATA } from "@/constants/mock-data";
 import type { ServiceDTO } from "@area/types";
-
-// Toggle this to switch between Real Backend and Mock Data
-const USE_MOCK = true;
 
 export type Service = ServiceDTO;
 // Helper types extracted from the ServiceDTO
@@ -21,16 +17,6 @@ export function useServices() {
     setLoading(true);
     setError(null);
 
-    if (USE_MOCK) {
-      // Simulate network delay
-      setTimeout(() => {
-        // Cast mock data to compatible DTO type
-        setServices(MOCK_ABOUT_DATA.server.services as unknown as Service[]);
-        setLoading(false);
-      }, 500);
-      return;
-    }
-
     if (!client) {
       setError("Client not initialized");
       setLoading(false);
@@ -38,7 +24,6 @@ export function useServices() {
     }
 
     try {
-      // @ts-ignore - dynamic access to treaty client might have type mismatch in early dev
       const { data, error } = await client["about.json"].get();
 
       if (error) {
