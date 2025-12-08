@@ -73,5 +73,5 @@ jobs:
       #   continue-on-error: true
 
       - name: Vérifier le Build
-        working-directory: ./apps/*
+        working-directory: ./
         run: bun run build
