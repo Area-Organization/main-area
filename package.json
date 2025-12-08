@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "dev": "bun run --filter '*' dev",
-    "build": "bun run --filter 'apps/*' build",
+    "build": "bun run --filter '@area/*' build",
     "postinstall": "bun run --filter '@area/backend' db:generate",
     "db:generate": "bun run --filter '@area/backend' db:generate",
     "db:push": "bun run --filter '@area/backend' db:push",
