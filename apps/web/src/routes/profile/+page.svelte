@@ -2,8 +2,10 @@
   import type { ServiceDTO } from "@area/types";
   import * as Card from "$lib/components/ui/card/index.js";
   import ServiceCard from "@/components/ServiceCard.svelte";
+  import { authClient } from "@/auth-client";
 
-  let username = "Username";
+  const session = authClient.useSession();
+  const username = $derived($session.data?.user?.name ?? "User");
 
   const mockServices: ServiceDTO[] = [
     {
