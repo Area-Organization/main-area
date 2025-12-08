@@ -1,11 +1,13 @@
 import { type IService } from "../interfaces/service"
 import { githubService } from "./github"
+import { gmailService } from "./gmail"
 
 class ServiceRegistry {
   private services: Map<string, IService> = new Map()
   
   constructor() {
     this.register(githubService)
+    this.register(gmailService)
   }
   
   register(service: IService): void {
