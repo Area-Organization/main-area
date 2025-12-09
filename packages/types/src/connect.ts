@@ -44,6 +44,10 @@ export const ConnectionDeletedResponse = t.Object({
   connectionId: t.String()
 })
 
+export const OAuth2AuthUrlQuery = t.Object({
+  callbackUrl: t.Optional(t.String())
+})
+
 export const OAuth2AuthUrlResponse = t.Object({
   authUrl: t.String(),
   state: t.String()
@@ -71,5 +75,6 @@ export type UpdateConnectionBodyType = Static<typeof UpdateConnectionBody>
 export type ConnectionResponseType = Static<typeof ConnectionResponse>
 export type ConnectionsListResponseType = Static<typeof ConnectionsListResponse>
 export type ConnectionDeletedResponseType = Static<typeof ConnectionDeletedResponse>
+export type OAuth2AuthUrlQueryType = Static<typeof OAuth2AuthUrlQuery>
 export type OAuth2AuthUrlResponseType = Static<typeof OAuth2AuthUrlResponse>
 export type ConnectionErrorResponseType = Static<typeof ConnectionErrorResponse>

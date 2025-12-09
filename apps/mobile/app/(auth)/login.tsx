@@ -39,7 +39,6 @@ export default function LoginScreen() {
         router.replace("/(tabs)");
       }
     } catch (err: any) {
-      console.error("Unexpected error:", err);
       Alert.alert("Error", err.message || "An unexpected error occurred");
     } finally {
       setLoading(false);
