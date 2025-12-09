@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { authClient } from "@/lib/auth";
+import { client, type AreaClient } from "@/lib/api";
 
 type SessionContextType = {
   signIn: () => Promise<void>;
@@ -7,6 +8,7 @@ type SessionContextType = {
   session: typeof authClient.$Infer.Session.session | null;
   user: typeof authClient.$Infer.Session.user | null;
   isLoading: boolean;
+  client: AreaClient;
 };
 
 const SessionContext = createContext<SessionContextType>({
@@ -14,7 +16,8 @@ const SessionContext = createContext<SessionContextType>({
   signOut: () => null,
   session: null,
   user: null,
-  isLoading: false
+  isLoading: false,
+  client
 });
 
 export function useSession() {
@@ -60,7 +63,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         signOut,
         session,
         user,
-        isLoading
+        isLoading,
+        client
       }}
     >
       {children}

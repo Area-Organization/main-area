@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { prisma } from "./prisma"
 import { expo } from "@better-auth/expo"
-import { openAPI } from "better-auth/plugins"
+import { openAPI, bearer } from "better-auth/plugins"
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -12,9 +12,9 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false
   },
-  plugins: [openAPI(), expo()],
+  plugins: [openAPI(), expo(), bearer()],
   trustedOrigins: [
     "exp://", // Allow Expo Go
-    "mobile://" // The app scheme (match app.json)
+    "area://", // The app scheme (app.json)
   ]
 })

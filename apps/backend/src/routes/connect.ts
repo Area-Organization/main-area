@@ -2,9 +2,133 @@ import { Elysia, t } from "elysia"
 import { prisma } from "../database/prisma"
 import { authMiddleware } from "../middlewares/better-auth"
 import { serviceRegistry } from "../services/registry"
-import { ConnectionDeletedResponse, ConnectionErrorResponse, ConnectionResponse, ConnectionsListResponse, CreateConnectionBody, OAuth2AuthUrlResponse, OAuth2CallbackBody, UpdateConnectionBody, type OAuth2TokenResponseType } from "@area/types"
+import { 
+  ConnectionDeletedResponse, 
+  ConnectionErrorResponse, 
+  ConnectionResponse, 
+  ConnectionsListResponse, 
+  CreateConnectionBody, 
+  OAuth2AuthUrlQuery, 
+  OAuth2AuthUrlResponse, 
+  OAuth2CallbackBody, 
+  UpdateConnectionBody, 
+  type OAuth2TokenResponseType 
+} from "@area/types"
+
+// Helper to encode state securely (User ID + Service + Callback)
+const encodeState = (data: Record<string, any>) => Buffer.from(JSON.stringify(data)).toString('base64')
+const decodeState = (state: string) => {
+  try {
+    return JSON.parse(Buffer.from(state, 'base64').toString('ascii'))
+  } catch {
+    return null
+  }
+}
+
+const getBaseUrl = () => process.env.BETTER_AUTH_URL || process.env.API_URL || 'http://localhost:8080'
 
 export const connectRoutes = new Elysia({ prefix: "/api/connections" })
+  // ==========================================
+  // PUBLIC CALLBACK ROUTE (No Auth Middleware)
+  // ==========================================
+  .get("/oauth2/callback", async ({ query, set }) => {
+    try {
+      const { code, state } = query
+      if (!code || !state) {
+        set.status = 400
+        return "Missing code or state"
+      }
+
+      const stateData = decodeState(state)
+      if (!stateData || !stateData.userId || !stateData.serviceName) {
+        set.status = 400
+        return "Invalid state parameter"
+      }
+
+      const { userId, serviceName, callbackUrl } = stateData
+      const service = serviceRegistry.get(serviceName)
+      
+      if (!service || !service.requiresAuth || service.authType !== 'oauth2' || !service.oauth) {
+        set.status = 400
+        return "Invalid service configuration"
+      }
+
+      // Exchange code for tokens
+      const tokenResponse = await fetch(service.oauth.tokenUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json'
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: code,
+          redirect_uri: `${getBaseUrl()}/api/connections/oauth2/callback`,
+          client_id: service.oauth.clientId,
+          client_secret: service.oauth.clientSecret
+        })
+      })
+
+      if (!tokenResponse.ok) {
+        const redirect = new URL(callbackUrl || "area://oauth-callback")
+        redirect.searchParams.set("status", "error")
+        redirect.searchParams.set("message", "Token exchange failed")
+        return set.redirect = redirect.toString()
+      }
+
+      const tokens = await tokenResponse.json() as OAuth2TokenResponseType
+      const expiresAt = tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null
+
+      // Save connection
+      await prisma.userConnection.upsert({
+        where: {
+          userId_serviceName: {
+            userId,
+            serviceName
+          }
+        },
+        create: {
+          userId,
+          serviceName,
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          expiresAt,
+          metadata: {
+            tokenType: tokens.token_type,
+            scope: tokens.scope
+          }
+        },
+        update: {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          expiresAt,
+          metadata: {
+            tokenType: tokens.token_type,
+            scope: tokens.scope
+          }
+        }
+      })
+
+      // Redirect back to app
+      const redirect = new URL(callbackUrl || "area://oauth-callback")
+      redirect.searchParams.set("status", "success")
+      redirect.searchParams.set("service", serviceName)
+      return set.redirect = redirect.toString()
+
+    } catch (error) {
+      console.error("OAuth Callback Error:", error)
+      return set.status = 500
+    }
+  }, {
+    query: t.Object({
+      code: t.String(),
+      state: t.String()
+    })
+  })
+
+  // ==========================================
+  // PROTECTED ROUTES (Require Auth)
+  // ==========================================
   .use(authMiddleware)
   .post("/", async ({ body, user, set }) => {
     try {
@@ -51,7 +175,7 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
           expiresAt: connection.expiresAt?.toISOString(),
           createdAt: connection.createdAt.toISOString(),
           updatedAt: connection.updatedAt.toISOString(),
-          matadata: connection.metadata as Record<string, any> | undefined
+          metadata: connection.metadata as Record<string, any> | undefined
         }
       }
     } catch (error) {
@@ -293,7 +417,7 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
     }
   })
 
-  .get("/oauth2/:serviceName/auth-url", async ({ params, user, set }) => {
+  .get("/oauth2/:serviceName/auth-url", async ({ params, query, user, set }) => {
     try {
       const service = serviceRegistry.get(params.serviceName)
       if (!service) {
@@ -312,13 +436,28 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
           statusCode: 400
         }
       }
-      const state = crypto.randomUUID()
+      
+      // Embed Service, UserID, and mobile callback URL into the state
+      const state = encodeState({
+        serviceName: params.serviceName,
+        userId: user.id,
+        callbackUrl: query.callbackUrl,
+        nonce: crypto.randomUUID()
+      })
+
       const authUrl = new URL(service.oauth.authorizationUrl)
       authUrl.searchParams.set('client_id', service.oauth.clientId)
-      authUrl.searchParams.set('redirect_uri', `${process.env.API_URL || 'http://localhost:8080'}/api/connections/oauth2/callback`)
+      
+      // Redirect to Backend Callback (Using Public URL)
+      authUrl.searchParams.set('redirect_uri', `${getBaseUrl()}/api/connections/oauth2/callback`)
       authUrl.searchParams.set('scope', service.oauth.scopes.join(' '))
       authUrl.searchParams.set('state', state)
       authUrl.searchParams.set('response_type', 'code')
+      
+      // Some providers need prompt=consent to force refresh token
+      authUrl.searchParams.set('access_type', 'offline')
+      authUrl.searchParams.set('prompt', 'consent')
+
       return {
         authUrl: authUrl.toString(),
         state
@@ -337,6 +476,7 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
     params: t.Object({
       serviceName: t.String()
     }),
+    query: OAuth2AuthUrlQuery,
     response: {
       200: OAuth2AuthUrlResponse,
       400: ConnectionErrorResponse,
@@ -350,6 +490,7 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
     }
   })
 
+  // I left it cuz maybe it will be needed at some point but the main flow is now via GET + State
   .post("/oauth2/callback", async ({ body, user, set }) => {
     try {
       const service = serviceRegistry.get(body.serviceName)
@@ -378,7 +519,8 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
         body: new URLSearchParams({
           grant_type: 'authorization_code',
           code: body.code,
-          redirect_uri: `${process.env.API_URL || 'http://localhost:8080'}/api/connections/oauth2/callback`,
+          // We use the public URL for the redirect_uri
+          redirect_uri: `${getBaseUrl()}/api/connections/oauth2/callback`,
           client_id: service.oauth.clientId,
           client_secret: service.oauth.clientSecret
         })
