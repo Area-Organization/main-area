@@ -15,11 +15,7 @@ export default function ServicesScreen() {
   const handleConnect = async (serviceName: string) => {
     setLoading(serviceName);
     try {
-      // 1. Determine local callback URL (deep link)
-      // This creates a URL like "area://oauth-callback" or "exp://.../oauth-callback"
       const callbackUrl = Linking.createURL("oauth-callback");
-
-      // 2. Get the Auth URL from backend
       const { data, error } = await client.api.connections.oauth2({ serviceName })["auth-url"].get({
         query: { callbackUrl }
       });
@@ -34,11 +30,9 @@ export default function ServicesScreen() {
         return;
       }
 
-      // 3. Open WebBrowser to authenticate
       const result = await WebBrowser.openAuthSessionAsync(data.authUrl, callbackUrl);
 
       if (result.type === "success" && result.url) {
-        // Parse the result URL to see if it was successful or error
         const url = new URL(result.url);
         const status = url.searchParams.get("status");
         const message = url.searchParams.get("message");
@@ -47,7 +41,7 @@ export default function ServicesScreen() {
           Alert.alert("Connection Failed", message || "Unknown error");
         } else if (status === "success") {
           Alert.alert("Success", `Connected to ${serviceName}`);
-          refresh(); // Refresh services list to show connected status
+          refresh();
         }
       }
     } catch (error: any) {
@@ -60,7 +54,7 @@ export default function ServicesScreen() {
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="title" style={styles.title}>
-        Explore Services
+        Services
       </ThemedText>
 
       <FlatList
@@ -71,7 +65,6 @@ export default function ServicesScreen() {
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <ThemedText type="defaultSemiBold">{item.name}</ThemedText>
-              {/* I'll later show something like a 'Connected' badge here if the user is connected */}
             </View>
             <ThemedText style={styles.description}>{item.description}</ThemedText>
 
