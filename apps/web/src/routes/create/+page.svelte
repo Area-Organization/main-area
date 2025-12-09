@@ -5,14 +5,17 @@
   import { Button } from "$lib/components/ui/button/index.js";
   import { Input } from "@/components/ui/input";
   import { getServices } from "@/api/getServices";
-  import type { ActionDTO, ReactionDTO, ServiceDTO } from "@area/types";
+  import { getServiceConnections } from "@/api/getServiceConnections";
+  import type { ActionDTO, ReactionDTO, ServiceDTO, UserConnectionSchemaType } from "@area/types";
   import { onMount } from "svelte";
   import { superForm } from "sveltekit-superforms";
   import { typebox } from "sveltekit-superforms/adapters";
   import { createAreaSchema } from "@/schemas/area.schemas";
   import { client } from "@/api";
+  import { goto, invalidateAll } from "$app/navigation";
 
   let servicesPromise = $state<Promise<ServiceDTO[]>>();
+  let userConnections = $state<UserConnectionSchemaType[]>([]);
 
   let step = $state(1);
   let selectedActionService = $state<ServiceDTO | null>(null);
@@ -22,6 +25,11 @@
 
   let actionParamValues = $state<Record<string, any>>({});
   let reactionParamValues = $state<Record<string, any>>({});
+
+  function getConnectionId(serviceName: string): string | undefined {
+    const connection = userConnections.find((c) => c.serviceName === serviceName);
+    return connection?.id;
+  }
 
   const form = superForm(
     {
@@ -45,6 +53,19 @@
       async onUpdate({ form }) {
         if (!form.valid) return;
 
+        const actionConnectionId = getConnectionId(form.data.action.serviceName);
+        const reactionConnectionId = getConnectionId(form.data.reaction.serviceName);
+
+        if (!actionConnectionId) {
+          alert(`You are not connected to ${form.data.action.serviceName}. Please go to profile and connect.`);
+          return;
+        }
+
+        if (!reactionConnectionId) {
+          alert(`You are not connected to ${form.data.reaction.serviceName}. Please go to profile and connect.`);
+          return;
+        }
+
         try {
           const { data, error } = await client.api.areas.post({
             name: form.data.name,
@@ -53,22 +74,26 @@
               serviceName: form.data.action.serviceName,
               actionName: form.data.action.actionName,
               params: form.data.action.params,
-              connectionId: "TO-BE-REPLACED"
+              connectionId: actionConnectionId
             },
             reaction: {
               serviceName: form.data.reaction.serviceName,
               reactionName: form.data.reaction.reactionName,
               params: form.data.reaction.params,
-              connectionId: "TO-BE-REPLACED"
+              connectionId: reactionConnectionId
             }
           });
 
           if (error) {
             console.error("Failed to create AREA:", error.status, error.value);
+            alert(`Error: ${error.value.message || "Failed to create AREA"}`);
             return;
           }
 
           console.log("AREA created successfully:", data);
+
+          await invalidateAll();
+          await goto("/");
         } catch (error) {
           console.error("Error creating AREA:", error);
         }
@@ -78,8 +103,14 @@
 
   const { form: formData, enhance } = form;
 
-  onMount(() => {
+  onMount(async () => {
     servicesPromise = getServices();
+    try {
+      const result = await getServiceConnections();
+      userConnections = result.connections;
+    } catch (e) {
+      console.error("Failed to fetch connections", e);
+    }
   });
 
   function validateParams(params: Record<string, any>, paramValues: Record<string, any>): boolean {
