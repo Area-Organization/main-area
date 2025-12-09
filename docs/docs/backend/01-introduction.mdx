@@ -1,0 +1,25 @@
+---
+title: Introduction au Backend
+---
+
+# Introduction au Backend
+
+Le backend est le cœur du projet AREA. Il est responsable de toute la logique métier, de la gestion des utilisateurs, de la communication avec les services externes et du déclenchement des automatisations.
+
+## Technologies Clés
+
+-   **Runtime & Package Manager**: [Bun](https://bun.sh/)
+-   **Framework API**: [ElysiaJS](https://elysiajs.com/) - Un framework rapide et léger pour Bun et Node.js, offrant une excellente expérience de développement avec une inférence de type de bout en bout.
+-   **Base de Données**: PostgreSQL
+-   **ORM**: [Prisma](https://www.prisma.io/) - Un ORM de nouvelle génération pour Node.js et TypeScript qui simplifie l'interaction avec la base de données.
+-   **Authentification**: [Better Auth](https://better-auth.dev/) - Une solution d'authentification complète gérant l'inscription par email/mot de passe et les fournisseurs OAuth2.
+-   **Validation & Typage**: [TypeBox](https://github.com/sinclairzx81/typebox) et [Eden Treaty](https://elysiajs.com/plugins/eden.html) pour garantir une sécurité de type de bout en bout entre le backend et les clients.
+
+## Responsabilités Principales
+
+1.  **Exposition d'une API REST**: Fournir des endpoints pour que les clients (web et mobile) puissent interagir avec la plateforme.
+2.  **Gestion des Utilisateurs**: Inscription, connexion, et gestion des sessions via email/mot de passe et OAuth2 (Google, GitHub, etc.).
+3.  **Gestion des Connexions aux Services**: Stockage sécurisé des jetons d'accès et de rafraîchissement pour les services externes auxquels un utilisateur est connecté.
+4.  **Logique des AREA**: Création, lecture, mise à jour et suppression (CRUD) des automatisations (Actions et Réactions).
+5.  **Exécution des Tâches (Hooks)**: Un gestionnaire de hooks (`HookManager`) interroge périodiquement les actions configurées pour vérifier si elles doivent être déclenchées.
+6.  **Service Discovery**: Exposition d'un fichier `about.json` qui décrit tous les services, actions et réactions disponibles sur la plateforme.

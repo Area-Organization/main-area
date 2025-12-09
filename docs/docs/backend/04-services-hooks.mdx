@@ -1,0 +1,36 @@
+---
+title: Services & Hooks
+---
+
+# Gestion des Services et Exécution des Hooks
+
+## Le Registre de Services (`ServiceRegistry`)
+
+Le `ServiceRegistry` est une classe singleton qui centralise la définition de tous les services disponibles dans l'application.
+
+-   **Localisation**: `src/services/registry.ts`
+-   **Fonctionnement**: Chaque service (ex: `githubService`, `gmailService`) est un objet qui implémente l'interface `IService`. Il est ensuite enregistré dans le `ServiceRegistry` au démarrage du serveur.
+-   **Interface `IService`**:
+    -   `name`, `description`: Informations de base.
+    -   `requiresAuth`, `authType`, `oauth`: Configuration de l'authentification.
+    -   `actions`: Un tableau d'objets `IAction`.
+    -   `reactions`: Un tableau d'objets `IReaction`.
+
+### Interfaces `IAction` et `IReaction`
+
+-   **`IAction`**: Étend la DTO `ActionDTO` et ajoute une fonction `check`.
+    -   `check(params, context)`: C'est la fonction clé. Elle est appelée périodiquement par le `HookManager`. Elle doit contenir la logique pour vérifier si le déclencheur est activé (ex: appeler l'API de GitHub pour voir s'il y a un nouveau commit). Elle doit retourner `true` si l'action est déclenchée, et `false` sinon.
+-   **`IReaction`**: Étend la DTO `ReactionDTO` et ajoute une fonction `execute`.
+    -   `execute(params, context)`: Cette fonction est appelée lorsqu'une action est déclenchée. Elle contient la logique pour exécuter la conséquence (ex: appeler l'API de Discord pour poster un message).
+
+## Le Gestionnaire de Hooks (`HookManager`)
+
+Le `HookManager` est le moteur qui fait fonctionner les automatisations.
+
+-   **Localisation**: `src/hooks/manager.ts`
+-   **Fonctionnement**:
+    1.  Au démarrage (`hookManager.start()`), il lance un minuteur (`setInterval`).
+    2.  À chaque intervalle (par défaut, 60 secondes), il appelle `checkAllAreas`.
+    3.  `checkAllAreas` récupère toutes les AREAs qui sont activées (`enabled: true`) depuis la base de données.
+    4.  Pour chaque AREA, il exécute la fonction `check` de l'action correspondante.
+    5.  Si `check` retourne `true`, le `HookManager` exécute alors la fonction `execute` de la réaction associée, en lui passant les données potentiellement retournées par l'action (`actionData`).
