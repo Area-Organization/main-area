@@ -1,4 +1,4 @@
-import { Elysia, t } from "elysia"
+import { Elysia, t, redirect } from "elysia"
 import { prisma } from "../database/prisma"
 import { authMiddleware } from "../middlewares/better-auth"
 import { serviceRegistry } from "../services/registry"
@@ -70,10 +70,10 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
       })
 
       if (!tokenResponse.ok) {
-        const redirect = new URL(callbackUrl || "area://oauth-callback")
-        redirect.searchParams.set("status", "error")
-        redirect.searchParams.set("message", "Token exchange failed")
-        return set.redirect = redirect.toString()
+        const redirectURL = new URL(callbackUrl || "area://oauth-callback")
+        redirectURL.searchParams.set("status", "error")
+        redirectURL.searchParams.set("message", "Token exchange failed")
+        return redirect(redirectURL.toString())
       }
 
       const tokens = await tokenResponse.json() as OAuth2TokenResponseType
@@ -110,10 +110,10 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
       })
 
       // Redirect back to app
-      const redirect = new URL(callbackUrl || "area://oauth-callback")
-      redirect.searchParams.set("status", "success")
-      redirect.searchParams.set("service", serviceName)
-      return set.redirect = redirect.toString()
+      const redirectURL = new URL(callbackUrl || "area://oauth-callback")
+      redirectURL.searchParams.set("status", "success")
+      redirectURL.searchParams.set("service", serviceName)
+      return redirect(redirectURL.toString())
 
     } catch (error) {
       console.error("OAuth Callback Error:", error)

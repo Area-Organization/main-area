@@ -22,7 +22,7 @@
   let authPromise = $state<Promise<OAuth2AuthUrlResponseType>>();
 
   onMount(() => {
-    authPromise = getServiceAuthUrl(service.name);
+    authPromise = getServiceAuthUrl(service.name, window.location.href);
   });
 </script>
 
