@@ -62,6 +62,18 @@ export default function CreateAreaScreen() {
     };
   }, [client]);
 
+  const resetForm = () => {
+    setStep("SELECT_ACTION_SERVICE");
+    setActionService(null);
+    setSelectedAction(null);
+    setReactionService(null);
+    setSelectedReaction(null);
+    setAreaName("");
+    setAreaDescription("");
+    setActionParams({});
+    setReactionParams({});
+  };
+
   const handleServiceSelect = (service: Service, type: "action" | "reaction") => {
     const connection = connections.find((c) => c.serviceName === service.name);
 
@@ -141,7 +153,13 @@ export default function CreateAreaScreen() {
         Alert.alert("Failed to create AREA", msg || "Unknown error occurred");
       } else {
         Alert.alert("Success", "AREA created successfully!", [
-          { text: "OK", onPress: () => router.replace("/(tabs)") }
+          {
+            text: "OK",
+            onPress: () => {
+              resetForm();
+              router.replace("/(tabs)");
+            }
+          }
         ]);
       }
     } catch (err: any) {
