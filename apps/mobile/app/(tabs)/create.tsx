@@ -1,28 +1,30 @@
-import React, { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  View,
-  Button,
-  Alert,
-  TextInput,
-  ActivityIndicator
-} from "react-native";
+import React, { useState, useCallback } from "react";
+import { StyleSheet, ScrollView, TouchableOpacity, View, Alert, ActivityIndicator } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useServices, Service } from "@/hooks/use-services";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { ParamInputs } from "@/components/param-inputs";
 import { useSession } from "@/ctx";
+import { Layout } from "@/constants/theme";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
 type Step = "SELECT_ACTION_SERVICE" | "SELECT_ACTION" | "SELECT_REACTION_SERVICE" | "SELECT_REACTION" | "CONFIGURE";
 
 export default function CreateAreaScreen() {
   const router = useRouter();
   const { client } = useSession();
-  const { services } = useServices();
+  const { services, refresh: refreshServices, loading: loadingServices } = useServices();
   const [step, setStep] = useState<Step>("SELECT_ACTION_SERVICE");
+
+  // Colors
+  const cardColor = useThemeColor({}, "card");
+  const borderColor = useThemeColor({}, "border");
+  const primaryColor = useThemeColor({}, "primary");
+  const mutedColor = useThemeColor({}, "muted");
 
   // Selection State
   const [actionService, setActionService] = useState<Service | null>(null);
@@ -36,31 +38,40 @@ export default function CreateAreaScreen() {
   const [actionParams, setActionParams] = useState<Record<string, any>>({});
   const [reactionParams, setReactionParams] = useState<Record<string, any>>({});
 
-  // Loading & Data State
   const [submitting, setSubmitting] = useState(false);
   const [connections, setConnections] = useState<any[]>([]);
   const [loadingConnections, setLoadingConnections] = useState(true);
 
-  // Fetch connections on mount to ensure user is connected to services
-  useEffect(() => {
-    let mounted = true;
-    const fetchConnections = async () => {
-      try {
-        const { data } = await client.api.connections.get();
-        if (mounted && data?.connections) {
-          setConnections(data.connections);
+  // Refresh data whenever the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const fetchData = async () => {
+        setLoadingConnections(true);
+        try {
+          // 1. Refresh Services list
+          await refreshServices();
+
+          // 2. Refresh Connections
+          const { data } = await client.api.connections.get();
+          if (isActive && data?.connections) {
+            setConnections(data.connections);
+          }
+        } catch (e) {
+          console.error("Failed to refresh create screen data", e);
+        } finally {
+          if (isActive) setLoadingConnections(false);
         }
-      } catch (e) {
-        console.error("Failed to fetch connections", e);
-      } finally {
-        if (mounted) setLoadingConnections(false);
-      }
-    };
-    fetchConnections();
-    return () => {
-      mounted = false;
-    };
-  }, [client]);
+      };
+
+      fetchData();
+
+      return () => {
+        isActive = false;
+      };
+    }, [client])
+  );
 
   const resetForm = () => {
     setStep("SELECT_ACTION_SERVICE");
@@ -78,14 +89,10 @@ export default function CreateAreaScreen() {
     const connection = connections.find((c) => c.serviceName === service.name);
 
     if (!connection) {
-      Alert.alert(
-        "Connection Required",
-        `You are not connected to ${service.name}. Please connect in the Services tab first.`,
-        [
-          { text: "Cancel", style: "cancel" },
-          { text: "Go to Services", onPress: () => router.navigate("/(tabs)/services") }
-        ]
-      );
+      Alert.alert("Connection Required", `Connect to ${service.name} in Services tab first.`, [
+        { text: "Cancel", style: "cancel" },
+        { text: "Go to Services", onPress: () => router.navigate("/(tabs)/services") }
+      ]);
       return;
     }
 
@@ -109,23 +116,7 @@ export default function CreateAreaScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!areaName.trim()) {
-      Alert.alert("Validation Error", "Please provide a name for your automation.");
-      return;
-    }
-
-    if (!actionService || !selectedAction || !reactionService || !selectedReaction) {
-      Alert.alert("Error", "Incomplete selection.");
-      return;
-    }
-
-    const actionConnection = connections.find((c) => c.serviceName === actionService.name);
-    const reactionConnection = connections.find((c) => c.serviceName === reactionService.name);
-
-    if (!actionConnection || !reactionConnection) {
-      Alert.alert("Error", "Missing required service connections.");
-      return;
-    }
+    if (!areaName.trim()) return Alert.alert("Error", "Name required");
 
     setSubmitting(true);
     try {
@@ -133,208 +124,188 @@ export default function CreateAreaScreen() {
         name: areaName,
         description: areaDescription || undefined,
         action: {
-          serviceName: actionService.name,
+          serviceName: actionService!.name,
           actionName: selectedAction.name,
           params: actionParams,
-          connectionId: actionConnection.id
+          connectionId: connections.find((c) => c.serviceName === actionService!.name).id
         },
         reaction: {
-          serviceName: reactionService.name,
+          serviceName: reactionService!.name,
           reactionName: selectedReaction.name,
           params: reactionParams,
-          connectionId: reactionConnection.id
+          connectionId: connections.find((c) => c.serviceName === reactionService!.name).id
         }
       };
 
-      const { data, error } = await client.api.areas.post(payload);
+      const { error } = await client.api.areas.post(payload);
 
       if (error) {
-        const msg = typeof error.value === "object" && error.value ? (error.value as any).message : String(error.value);
-        Alert.alert("Failed to create AREA", msg || "Unknown error occurred");
-      } else {
-        Alert.alert("Success", "AREA created successfully!", [
-          {
-            text: "OK",
-            onPress: () => {
-              resetForm();
-              router.replace("/(tabs)");
-            }
-          }
-        ]);
+        throw new Error(typeof error.value === "object" ? (error.value as any).message : String(error.value));
       }
+
+      Alert.alert("Success", "AREA created!", [
+        {
+          text: "OK",
+          onPress: () => {
+            resetForm();
+            // Navigate back to home
+            router.navigate("/(tabs)");
+          }
+        }
+      ]);
     } catch (err: any) {
-      Alert.alert("Error", err.message || "An unexpected error occurred");
+      Alert.alert("Error", err.message || "Failed to create AREA");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const renderList = (data: any[], onPress: (item: any) => void) => (
-    <ScrollView style={styles.list}>
-      {data.map((item, idx) => (
-        <TouchableOpacity key={idx} style={styles.card} onPress={() => onPress(item)}>
-          <ThemedText type="defaultSemiBold">{item.name}</ThemedText>
-          <ThemedText style={{ fontSize: 12 }}>{item.description}</ThemedText>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
+  const renderOption = (label: string, sub: string, onPress: () => void) => (
+    <TouchableOpacity style={[styles.card, { backgroundColor: cardColor, borderColor }]} onPress={onPress}>
+      <View style={{ flex: 1 }}>
+        <ThemedText type="defaultSemiBold">{label}</ThemedText>
+        <ThemedText style={{ fontSize: 12, opacity: 0.6 }}>{sub}</ThemedText>
+      </View>
+      <IconSymbol name="chevron.right" size={20} color={mutedColor} />
+    </TouchableOpacity>
   );
 
-  if (loadingConnections) {
+  if (loadingConnections || loadingServices) {
     return (
       <ThemedView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" />
-        <ThemedText>Loading connections...</ThemedText>
+        <ActivityIndicator size="large" color={primaryColor} />
+        <ThemedText style={{ marginTop: 20 }}>Loading services...</ThemedText>
       </ThemedView>
     );
   }
 
+  // Filter lists safely
+  const actionServices = services.filter((s) => s.actions && s.actions.length > 0);
+  const reactionServices = services.filter((s) => s.reactions && s.reactions.length > 0);
+
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.header}>
-        New Automation
-      </ThemedText>
+      <View style={styles.header}>
+        <ThemedText type="title">Create</ThemedText>
+        {step !== "SELECT_ACTION_SERVICE" && (
+          <Button title="Reset" variant="secondary" onPress={resetForm} style={{ height: 36, paddingHorizontal: 12 }} />
+        )}
+      </View>
 
-      {step === "SELECT_ACTION_SERVICE" && (
-        <>
-          <ThemedText type="subtitle">1. Choose a Service (If)</ThemedText>
-          {renderList(
-            services.filter((s) => s.actions.length > 0),
-            (s) => handleServiceSelect(s, "action")
-          )}
-        </>
-      )}
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {step === "SELECT_ACTION_SERVICE" && (
+          <>
+            <ThemedText type="subtitle" style={styles.stepTitle}>
+              1. Select Trigger Service
+            </ThemedText>
+            {actionServices.length === 0 ? (
+              <ThemedText style={{ fontStyle: "italic", opacity: 0.6 }}>No services with actions available.</ThemedText>
+            ) : (
+              actionServices.map((s, i) => (
+                <View key={i} style={{ marginBottom: 8 }}>
+                  {renderOption(s.name, s.description, () => handleServiceSelect(s, "action"))}
+                </View>
+              ))
+            )}
+          </>
+        )}
 
-      {step === "SELECT_ACTION" && actionService && (
-        <>
-          <ThemedText type="subtitle">2. Choose a Trigger (Action)</ThemedText>
-          {renderList(actionService.actions, (a) => handleItemSelect(a, "action"))}
-        </>
-      )}
+        {step === "SELECT_ACTION" && actionService && (
+          <>
+            <ThemedText type="subtitle" style={styles.stepTitle}>
+              2. Select Trigger
+            </ThemedText>
+            {actionService.actions.map((a: any, i: number) => (
+              <View key={i} style={{ marginBottom: 8 }}>
+                {renderOption(a.name, a.description, () => handleItemSelect(a, "action"))}
+              </View>
+            ))}
+          </>
+        )}
 
-      {step === "SELECT_REACTION_SERVICE" && (
-        <>
-          <ThemedText type="subtitle">3. Choose a Service (Then)</ThemedText>
-          {renderList(
-            services.filter((s) => s.reactions.length > 0),
-            (s) => handleServiceSelect(s, "reaction")
-          )}
-        </>
-      )}
+        {step === "SELECT_REACTION_SERVICE" && (
+          <>
+            <ThemedText type="subtitle" style={styles.stepTitle}>
+              3. Select Action Service
+            </ThemedText>
+            {reactionServices.map((s, i) => (
+              <View key={i} style={{ marginBottom: 8 }}>
+                {renderOption(s.name, s.description, () => handleServiceSelect(s, "reaction"))}
+              </View>
+            ))}
+          </>
+        )}
 
-      {step === "SELECT_REACTION" && reactionService && (
-        <>
-          <ThemedText type="subtitle">4. Choose an Effect (Reaction)</ThemedText>
-          {renderList(reactionService.reactions, (r) => handleItemSelect(r, "reaction"))}
-        </>
-      )}
+        {step === "SELECT_REACTION" && reactionService && (
+          <>
+            <ThemedText type="subtitle" style={styles.stepTitle}>
+              4. Select Action
+            </ThemedText>
+            {reactionService.reactions.map((r: any, i: number) => (
+              <View key={i} style={{ marginBottom: 8 }}>
+                {renderOption(r.name, r.description, () => handleItemSelect(r, "reaction"))}
+              </View>
+            ))}
+          </>
+        )}
 
-      {step === "CONFIGURE" && (
-        <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 40 }}>
-          <ThemedText type="subtitle" style={{ marginBottom: 15 }}>
-            5. Finalize Configuration
-          </ThemedText>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <ThemedText type="defaultSemiBold" style={{ color: "#fff" }}>
-                General Info
-              </ThemedText>
+        {step === "CONFIGURE" && selectedAction && selectedReaction && (
+          <View style={{ gap: 20 }}>
+            <View style={[styles.card, { backgroundColor: cardColor, borderColor, padding: 20 }]}>
+              <ThemedText type="defaultSemiBold">Area Details</ThemedText>
+              <View style={{ gap: 10, marginTop: 10 }}>
+                <Input placeholder="Name" value={areaName} onChangeText={setAreaName} />
+                <Input placeholder="Description" value={areaDescription} onChangeText={setAreaDescription} />
+              </View>
             </View>
-            <View style={styles.sectionContent}>
-              <ThemedText type="defaultSemiBold">Name</ThemedText>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. Sync GitHub Issues to Email"
-                placeholderTextColor="#999"
-                value={areaName}
-                onChangeText={setAreaName}
-              />
-              <ThemedText type="defaultSemiBold" style={{ marginTop: 10 }}>
-                Description
-              </ThemedText>
-              <TextInput
-                style={styles.input}
-                placeholder="Optional description"
-                placeholderTextColor="#999"
-                value={areaDescription}
-                onChangeText={setAreaDescription}
-              />
-            </View>
-          </View>
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <ThemedText type="defaultSemiBold" style={{ color: "#fff" }}>
-                IF: {selectedAction?.name}
+            <View style={[styles.card, { backgroundColor: cardColor, borderColor, padding: 20 }]}>
+              <ThemedText type="defaultSemiBold" style={{ color: primaryColor }}>
+                IF: {selectedAction.name}
               </ThemedText>
-            </View>
-            <View style={styles.sectionContent}>
               <ParamInputs
-                params={selectedAction?.params}
+                params={selectedAction.params}
                 values={actionParams}
                 onChange={(k, v) => setActionParams((prev) => ({ ...prev, [k]: v }))}
               />
             </View>
-          </View>
 
-          <View style={styles.section}>
-            <View style={[styles.sectionHeader, { backgroundColor: "#e67e22" }]}>
-              <ThemedText type="defaultSemiBold" style={{ color: "#fff" }}>
-                THEN: {selectedReaction?.name}
+            <View style={[styles.card, { backgroundColor: cardColor, borderColor, padding: 20 }]}>
+              <ThemedText type="defaultSemiBold" style={{ color: primaryColor }}>
+                THEN: {selectedReaction.name}
               </ThemedText>
-            </View>
-            <View style={styles.sectionContent}>
               <ParamInputs
-                params={selectedReaction?.params}
+                params={selectedReaction.params}
                 values={reactionParams}
                 onChange={(k, v) => setReactionParams((prev) => ({ ...prev, [k]: v }))}
               />
             </View>
-          </View>
 
-          <Button title={submitting ? "Creating..." : "Create Area"} onPress={handleSubmit} disabled={submitting} />
-        </ScrollView>
-      )}
+            <Button title={submitting ? "Creating..." : "Create Area"} onPress={handleSubmit} loading={submitting} />
+          </View>
+        )}
+      </ScrollView>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, paddingTop: 60 },
-  header: { marginBottom: 20 },
-  list: { flex: 1, marginTop: 10 },
+  container: { flex: 1, paddingTop: 60 },
+  header: {
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10
+  },
+  scroll: { padding: 20, paddingBottom: 50 },
+  stepTitle: { marginBottom: 15 },
   card: {
-    padding: 15,
-    borderRadius: 8,
-    backgroundColor: "rgba(150,150,150,0.1)",
-    marginBottom: 10,
+    padding: 16,
+    borderRadius: Layout.radius,
     borderWidth: 1,
-    borderColor: "#ccc"
-  },
-  section: {
-    marginBottom: 20,
-    borderRadius: 10,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#ddd"
-  },
-  sectionHeader: {
-    backgroundColor: "#0a7ea4",
-    padding: 10
-  },
-  sectionContent: {
-    padding: 15,
-    backgroundColor: "rgba(150,150,150,0.05)"
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: "#fff",
-    minHeight: 40,
-    color: "#000",
-    marginTop: 5
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
   }
 });

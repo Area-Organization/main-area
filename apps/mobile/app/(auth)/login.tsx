@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { StyleSheet, TextInput, Button, Alert, View, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Alert, TouchableOpacity } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { authClient } from "@/lib/auth";
 import { useRouter } from "expo-router";
 import { useSession } from "@/ctx";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -14,32 +16,18 @@ export default function LoginScreen() {
   const { signIn } = useSession();
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
-
+    if (!email || !password) return Alert.alert("Error", "Please fill in all fields");
     setLoading(true);
     try {
-      const { data, error } = await authClient.signIn.email({
-        email,
-        password
-      });
-
+      const { error } = await authClient.signIn.email({ email, password });
       if (error) {
-        const errorMessage =
-          error.message ||
-          error.statusText ||
-          (error.status ? `Server Error: ${error.status}` : "Unknown error occurred");
-
-        Alert.alert("Login Failed", errorMessage);
+        Alert.alert("Login Failed", error.message || "Unknown error");
       } else {
-        // Refresh the session state manually before navigating
         await signIn();
         router.replace("/(tabs)");
       }
     } catch (err: any) {
-      Alert.alert("Error", err.message || "An unexpected error occurred");
+      Alert.alert("Error", err.message);
     } finally {
       setLoading(false);
     }
@@ -47,63 +35,41 @@ export default function LoginScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.content}>
+      <View style={styles.header}>
         <ThemedText type="title" style={styles.title}>
-          Welcome Back
+          AREA
         </ThemedText>
+        <ThemedText style={styles.subtitle}>Automation Platform</ThemedText>
+      </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
+      <View style={styles.form}>
+        <ThemedText type="defaultSemiBold">Welcome Back</ThemedText>
+        <Input
+          placeholder="Email address"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
-          placeholderTextColor="#666"
         />
+        <Input placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
+        <Button title={loading ? "Signing in..." : "Sign In"} onPress={handleLogin} loading={loading} />
+      </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          placeholderTextColor="#666"
-        />
-
-        <View style={styles.buttonContainer}>
-          <Button title={loading ? "Signing in..." : "Sign In"} onPress={handleLogin} disabled={loading} />
-        </View>
-
-        <View style={styles.footer}>
-          <ThemedText>Don&apos;t have an account?</ThemedText>
-          <TouchableOpacity onPress={() => router.replace("/(auth)/register")}>
-            <ThemedText type="link">Sign Up</ThemedText>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.footer}>
+        <ThemedText>Don&apos;t have an account?</ThemedText>
+        <TouchableOpacity onPress={() => router.replace("/(auth)/register")}>
+          <ThemedText type="link">Create account</ThemedText>
+        </TouchableOpacity>
       </View>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: "center" },
-  content: { gap: 16 },
-  title: { textAlign: "center", marginBottom: 20 },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    backgroundColor: "#fff",
-    color: "#000"
-  },
-  buttonContainer: { marginTop: 10 },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 8,
-    marginTop: 20
-  }
+  container: { flex: 1, padding: 24, justifyContent: "center" },
+  header: { marginBottom: 40, alignItems: "center" },
+  title: { fontSize: 40, fontWeight: "900", letterSpacing: -1 },
+  subtitle: { opacity: 0.5, marginTop: 5 },
+  form: { gap: 16 },
+  footer: { flexDirection: "row", justifyContent: "center", gap: 8, marginTop: 30 }
 });

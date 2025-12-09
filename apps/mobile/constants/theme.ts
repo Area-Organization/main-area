@@ -1,53 +1,81 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
+import { Platform } from "react-native";
 
-import { Platform } from 'react-native';
+const palette = {
+  light: {
+    background: "#FFFFFF", // oklch(1.0 0 0)
+    foreground: "#09090B", // oklch(0.1448 0 0)
+    card: "#FFFFFF",
+    cardForeground: "#09090B",
+    primary: "#7C3AED", // Approx for oklch(0.5795 0.2300 280.0547)
+    primaryForeground: "#FFFFFF",
+    muted: "#F4F4F5",
+    mutedForeground: "#71717A",
+    destructive: "#EF4444",
+    border: "#E4E4E7",
+    input: "#E4E4E7"
+  },
+  dark: {
+    background: "#09090B", // oklch(0.1221 0 0)
+    foreground: "#FAFAFA", // oklch(0.9851 0 0)
+    card: "#18181B", // oklch(0.1684 0 0)
+    cardForeground: "#FAFAFA",
+    primary: "#8B5CF6", // Approx for oklch(0.5945 0.2325 285.8306)
+    primaryForeground: "#FFFFFF",
+    muted: "#27272A",
+    mutedForeground: "#A1A1AA",
+    destructive: "#7F1D1D",
+    border: "#27272A",
+    input: "#27272A"
+  }
+};
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+export const Layout = {
+  radius: 16, // 1rem
+  spacing: 4 // 0.25rem
+};
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: palette.light.foreground,
+    background: palette.light.background,
+    tint: palette.light.primary,
+    icon: palette.light.mutedForeground,
+    tabIconDefault: palette.light.mutedForeground,
+    tabIconSelected: palette.light.primary,
+    card: palette.light.card,
+    border: palette.light.border,
+    notification: palette.light.destructive,
+    primary: palette.light.primary,
+    primaryForeground: palette.light.primaryForeground,
+    muted: palette.light.muted,
+    input: palette.light.input
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+    text: palette.dark.foreground,
+    background: palette.dark.background,
+    tint: palette.dark.primary,
+    icon: palette.dark.mutedForeground,
+    tabIconDefault: palette.dark.mutedForeground,
+    tabIconSelected: palette.dark.primary,
+    card: palette.dark.card,
+    border: palette.dark.border,
+    notification: palette.dark.destructive,
+    primary: palette.dark.primary,
+    primaryForeground: palette.dark.primaryForeground,
+    muted: palette.dark.muted,
+    input: palette.dark.input
+  }
 };
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
+    sans: "System",
+    serif: "Georgia",
+    mono: "Menlo"
   },
   default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
+    sans: "sans-serif",
+    serif: "serif",
+    mono: "monospace"
+  }
 });

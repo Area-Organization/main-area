@@ -1,140 +1,226 @@
-import { StyleSheet, Button, View, ActivityIndicator } from "react-native";
-import ParallaxScrollView from "@/components/parallax-scroll-view";
+import React, { useCallback, useState } from "react";
+import { StyleSheet, View, RefreshControl, Alert, ScrollView } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useSession } from "@/ctx";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { useServices } from "@/hooks/use-services";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { Layout } from "@/constants/theme";
+import { Button } from "@/components/ui/button";
+import { useFocusEffect } from "expo-router";
+
+type Area = {
+  id: string;
+  name: string;
+  description?: string;
+  active?: boolean;
+  action?: { serviceName?: string; actionName?: string };
+  reaction?: { serviceName?: string; reactionName?: string };
+};
 
 export default function HomeScreen() {
-  const { signOut } = useSession();
-  const { services, loading, error, refresh } = useServices();
+  const { client, signOut, user } = useSession();
+  const [areas, setAreas] = useState<Area[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Calculate total actions/reactions available
-  const totalActions = services.reduce((acc, s) => acc + (s.actions?.length || 0), 0);
-  const totalReactions = services.reduce((acc, s) => acc + (s.reactions?.length || 0), 0);
+  const cardColor = useThemeColor({}, "card");
+  const borderColor = useThemeColor({}, "border");
+  const primaryColor = useThemeColor({}, "primary");
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await client.api.areas.get();
+
+      if (error) {
+        console.error("API Error:", error);
+        return;
+      }
+
+      // Debug: Log the data to see exactly what the backend returns
+      console.log("Fetched Areas Data:", JSON.stringify(data, null, 2));
+
+      if (data && Array.isArray(data)) {
+        setAreas(data);
+      } else if (data && (data as any).areas) {
+        setAreas((data as any).areas);
+      }
+    } catch (e) {
+      console.error("Fetch Error:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
+
+  const handleDelete = async (id: string) => {
+    Alert.alert("Delete Area", "Are you sure you want to delete this automation?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await client.api.areas({ id }).delete();
+            fetchData();
+          } catch (e) {
+            Alert.alert("Error", "Failed to delete area");
+          }
+        }
+      }
+    ]);
+  };
+
+  const getServiceInitial = (serviceName?: string) => {
+    return serviceName ? serviceName[0].toUpperCase() : "?";
+  };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={<IconSymbol size={310} color="#808080" name="house.fill" style={styles.headerImage} />}
-    >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Dashboard</ThemedText>
-        <Button title="Refresh" onPress={refresh} disabled={loading} />
-      </ThemedView>
-
-      {error && (
-        <ThemedView style={styles.card}>
-          <ThemedText style={{ color: "red" }}>{error}</ThemedText>
-        </ThemedView>
-      )}
-
-      <ThemedView style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <ThemedText type="title">{services.length}</ThemedText>
-          <ThemedText>Services</ThemedText>
-        </View>
-        <View style={styles.statItem}>
-          <ThemedText type="title">{totalActions}</ThemedText>
-          <ThemedText>Actions</ThemedText>
-        </View>
-        <View style={styles.statItem}>
-          <ThemedText type="title">{totalReactions}</ThemedText>
-          <ThemedText>Reactions</ThemedText>
-        </View>
-      </ThemedView>
-
-      <ThemedView style={styles.sectionContainer}>
-        <ThemedText type="subtitle">Active Services</ThemedText>
-        {loading && <ActivityIndicator size="small" style={{ marginTop: 10 }} />}
-
-        {!loading && services.length === 0 && !error && (
-          <ThemedText style={{ marginTop: 10, fontStyle: "italic" }}>
-            No services found. Check backend registry.
+    <ThemedView style={styles.container}>
+      <View style={styles.header}>
+        <View>
+          <ThemedText type="subtitle" style={{ color: primaryColor }}>
+            Welcome back,
           </ThemedText>
+          <ThemedText type="title">{user?.name || "User"}</ThemedText>
+        </View>
+        <Button title="Log Out" onPress={signOut} variant="outline" style={{ height: 40, borderRadius: 20 }} />
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
+      >
+        <View style={styles.sectionHeader}>
+          <ThemedText type="subtitle">My Automations</ThemedText>
+          <ThemedText style={{ color: "#888" }}>{areas.length} active</ThemedText>
+        </View>
+
+        {areas.length === 0 && !loading ? (
+          <View style={[styles.emptyState, { borderColor, backgroundColor: cardColor }]}>
+            <IconSymbol name="plus.circle.fill" size={48} color={primaryColor} />
+            <ThemedText style={{ marginTop: 10, textAlign: "center" }}>You haven&apos;t created any AREAs yet.</ThemedText>
+          </View>
+        ) : (
+          <View style={styles.list}>
+            {areas.map((area) => {
+              // Safety check: if area is malformed, skip rendering detailed info or render fallback
+              if (!area || !area.id) return null;
+
+              const actionService = area.action?.serviceName;
+              const reactionService = area.reaction?.serviceName;
+
+              return (
+                <View key={area.id} style={[styles.card, { backgroundColor: cardColor, borderColor }]}>
+                  <View style={styles.cardHeader}>
+                    <View style={styles.iconRow}>
+                      <View style={[styles.serviceIcon, { backgroundColor: primaryColor + "20" }]}>
+                        <ThemedText style={{ fontWeight: "bold", color: primaryColor }}>
+                          {getServiceInitial(actionService)}
+                        </ThemedText>
+                      </View>
+                      <IconSymbol name="chevron.right" size={16} color="#999" />
+                      <View style={[styles.serviceIcon, { backgroundColor: primaryColor + "20" }]}>
+                        <ThemedText style={{ fontWeight: "bold", color: primaryColor }}>
+                          {getServiceInitial(reactionService)}
+                        </ThemedText>
+                      </View>
+                    </View>
+                    <Button
+                      title="Delete"
+                      variant="destructive"
+                      onPress={() => handleDelete(area.id)}
+                      style={{ height: 32, paddingHorizontal: 12, borderRadius: 8 }}
+                    />
+                  </View>
+
+                  <ThemedText type="defaultSemiBold" style={styles.areaName}>
+                    {area.name || "Untitled Area"}
+                  </ThemedText>
+                  {area.description ? <ThemedText style={styles.areaDesc}>{area.description}</ThemedText> : null}
+
+                  <View style={styles.divider} />
+
+                  <View style={styles.logicRow}>
+                    <ThemedText style={styles.logicText}>
+                      <ThemedText style={{ fontWeight: "bold" }}>IF </ThemedText>
+                      {area.action?.actionName || "Unknown Trigger"}
+                    </ThemedText>
+                    <ThemedText style={styles.logicText}>
+                      <ThemedText style={{ fontWeight: "bold" }}>THEN </ThemedText>
+                      {area.reaction?.reactionName || "Unknown Effect"}
+                    </ThemedText>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
         )}
-
-        {services.map((service, index) => (
-          <ThemedView key={index} style={styles.serviceCard}>
-            <View style={styles.serviceHeader}>
-              <ThemedText type="defaultSemiBold">{service.name}</ThemedText>
-              {/* Mock connection status */}
-              <ThemedText style={{ fontSize: 12, color: "green" }}>Connected</ThemedText>
-            </View>
-            <ThemedText>{service.description}</ThemedText>
-            <View style={styles.badgeContainer}>
-              <ThemedText style={styles.badge}>{service.actions?.length || 0} Actions</ThemedText>
-              <ThemedText style={styles.badge}>{service.reactions?.length || 0} Reactions</ThemedText>
-            </View>
-          </ThemedView>
-        ))}
-      </ThemedView>
-
-      <Button title="Sign Out" onPress={signOut} color="#ff5555" />
-    </ParallaxScrollView>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: "#808080",
-    bottom: -90,
-    left: -35,
-    position: "absolute"
-  },
-  titleContainer: {
+  container: { flex: 1, paddingTop: 60 },
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    gap: 8
-  },
-  statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    padding: 15,
-    backgroundColor: "rgba(150, 150, 150, 0.1)",
-    borderRadius: 10,
-    marginBottom: 10
-  },
-  statItem: {
     alignItems: "center"
   },
-  sectionContainer: {
-    gap: 8,
-    marginBottom: 8
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "baseline",
+    marginBottom: 15
+  },
+  list: { gap: 15 },
+  emptyState: {
+    padding: 40,
+    borderRadius: Layout.radius,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderStyle: "dashed"
   },
   card: {
-    padding: 15,
-    borderRadius: 10,
-    backgroundColor: "rgba(150, 150, 150, 0.1)",
-    marginBottom: 10
-  },
-  serviceCard: {
-    padding: 15,
-    borderRadius: 10,
+    padding: 16,
+    borderRadius: Layout.radius,
     borderWidth: 1,
-    borderColor: "#ccc",
-    marginBottom: 10,
-    gap: 5
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2
   },
-  serviceHeader: {
+  cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginBottom: 12
+  },
+  iconRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8
+  },
+  serviceIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: "center",
     alignItems: "center"
   },
-  badgeContainer: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 5
-  },
-  badge: {
-    fontSize: 12,
-    backgroundColor: "#0a7ea4",
-    color: "white",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    overflow: "hidden"
-  }
+  areaName: { fontSize: 18 },
+  areaDesc: { fontSize: 14, color: "#888", marginTop: 4 },
+  divider: { height: 1, backgroundColor: "#eee", marginVertical: 12 },
+  logicRow: { gap: 4 },
+  logicText: { fontSize: 14, opacity: 0.8 }
 });
