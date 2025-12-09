@@ -4,7 +4,7 @@ import type { IContext } from "../interfaces/service"
 
 class HookManager {
   private intervalId: Timer | null = null
-  private checkIntervalMs: number = 60000 
+  private checkIntervalMs: number = 60000
 
   start(intervalMs: number = 60000) {
     if (this.intervalId) {
@@ -60,8 +60,8 @@ class HookManager {
       console.error(`Service not found for AREA ${area.id}`)
       return
     }
-    const action = actionService.actions.find(a => a.name === area.action.actionName)
-    const reaction = reactionService.reactions.find(r => r.name === area.reaction.reactionName)
+    const action = actionService.actions.find((a) => a.name === area.action.actionName)
+    const reaction = reactionService.reactions.find((r) => r.name === area.reaction.reactionName)
     if (!action || !reaction) {
       console.error(`Action or reaction not found for AREA ${area.id}`)
       return
@@ -80,6 +80,9 @@ class HookManager {
       console.error(`Reaction connection not found for AREA ${area.id}`)
       return
     }
+    const storedParams = area.action.params as any
+    const { metadata: storedMetadata, ...actionParams } = storedParams
+
     const actionContext: IContext = {
       userId: area.userId,
       tokens: {
@@ -87,22 +90,26 @@ class HookManager {
         refreshToken: actionConnection.refreshToken || undefined,
         expiresAt: actionConnection.expiresAt?.getTime()
       },
-      metadata: (area.action.params as any)?.metadata || {}
+      metadata: storedMetadata || {}
     }
-    const triggered = await action.check(area.action.params as Record<string, any>, actionContext)
+
+    const triggered = await action.check(actionParams, actionContext)
+
+    if (actionContext.metadata && Object.keys(actionContext.metadata).length > 0) {
+      await prisma.areaAction.update({
+        where: { id: area.action.id },
+        data: {
+          params: {
+            ...actionParams,
+            metadata: actionContext.metadata
+          }
+        }
+      })
+      console.log(`Updated metadata for AREA ${area.id}:`, actionContext.metadata)
+    }
+
     if (triggered) {
       console.log(`Action triggered for AREA ${area.id}: ${area.name}`)
-      if (actionContext.metadata && Object.keys(actionContext.metadata).length > 0) {
-        await prisma.areaAction.update({
-          where: { id: area.action.id },
-          data: {
-            params: {
-              ...(area.action.params as any),
-              metadata: actionContext.metadata
-            }
-          }
-        })
-      }
       const reactionContext: IContext = {
         userId: area.userId,
         tokens: {

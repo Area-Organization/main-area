@@ -36,20 +36,17 @@ export const newEmailAction: IAction = {
       if (from) query += ` from:${from}`
       if (subject) query += ` subject:${subject}`
       if (label) query += ` label:${label}`
-      const response = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=1`,
-        {
-          headers: {
-            "Authorization": `Bearer ${tokens.accessToken}`,
-            "Accept": "application/json"
-          }
+      const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=1`, {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
+          Accept: "application/json"
         }
-      )
+      })
       if (!response.ok) {
         console.error(`Gmail API error: ${response.status}`)
         return false
       }
-      const data = await response.json() as {
+      const data = (await response.json()) as {
         messages?: Array<{ id: string; threadId: string }>
         resultSizeEstimate: number
       }
@@ -67,19 +64,16 @@ export const newEmailAction: IAction = {
         return false
       }
       if (latestMessageId !== lastCheckedId) {
-        const messageResponse = await fetch(
-          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${latestMessageId}`,
-          {
-            headers: {
-              "Authorization": `Bearer ${tokens.accessToken}`,
-              "Accept": "application/json"
-            }
+        const messageResponse = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${latestMessageId}`, {
+          headers: {
+            Authorization: `Bearer ${tokens.accessToken}`,
+            Accept: "application/json"
           }
-        )
+        })
         if (!messageResponse.ok) {
           return false
         }
-        const messageData = await messageResponse.json() as {
+        const messageData = (await messageResponse.json()) as {
           id: string
           snippet: string
           payload: {
@@ -88,11 +82,13 @@ export const newEmailAction: IAction = {
           }
         }
         const headers = messageData.payload.headers
-        const fromHeader = headers.find(h => h.name.toLowerCase() === "from")?.value || "Unknown"
-        const subjectHeader = headers.find(h => h.name.toLowerCase() === "subject")?.value || "No Subject"
-        const dateHeader = headers.find(h => h.name.toLowerCase() === "date")?.value || new Date().toISOString()
-        const attachments = messageData.payload.parts?.filter(p => p.filename) || []
+        const fromHeader = headers.find((h) => h.name.toLowerCase() === "from")?.value || "Unknown"
+        const subjectHeader = headers.find((h) => h.name.toLowerCase() === "subject")?.value || "No Subject"
+        const dateHeader = headers.find((h) => h.name.toLowerCase() === "date")?.value || new Date().toISOString()
+        const attachments = messageData.payload.parts?.filter((p) => p.filename) || []
+
         context.metadata = { lastEmailId: latestMessageId }
+
         context.actionData = {
           messageId: latestMessageId,
           from: fromHeader,
@@ -108,6 +104,47 @@ export const newEmailAction: IAction = {
     } catch (error) {
       console.error("Error checking Gmail:", error)
       return false
+    }
+  },
+
+  async setup(params, context: IContext): Promise<void> {
+    const { tokens } = context
+
+    if (!tokens?.accessToken) {
+      throw new Error("Gmail access token not found")
+    }
+
+    const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
+      headers: {
+        Authorization: `Bearer ${tokens.accessToken}`,
+        Accept: "application/json"
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error("Cannot access Gmail API")
+    }
+
+    const { from, subject, label } = params
+    let query = "is:unread"
+    if (from) query += ` from:${from}`
+    if (subject) query += ` subject:${subject}`
+    if (label) query += ` label:${label}`
+
+    const messagesResponse = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=1`, {
+      headers: {
+        Authorization: `Bearer ${tokens.accessToken}`,
+        Accept: "application/json"
+      }
+    })
+
+    if (messagesResponse.ok) {
+      const data = (await messagesResponse.json()) as {
+        messages?: Array<{ id: string }>
+      }
+      if (data.messages && data.messages.length > 0) {
+        context.metadata = { lastEmailId: data.messages[0].id }
+      }
     }
   }
 }

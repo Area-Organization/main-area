@@ -52,6 +52,7 @@ export const newStarAction: IAction = {
       }
       if (currentStarCount > lastStarCount) {
         context.metadata = { starCount: currentStarCount }
+        
         context.actionData = {
           previousCount: lastStarCount,
           currentCount: currentStarCount,
@@ -83,5 +84,8 @@ export const newStarAction: IAction = {
     if (!response.ok) {
       throw new Error(`Cannot access repository ${owner}/${repo}`)
     }
+
+    const repoData = await response.json() as { stargazers_count: number }
+    context.metadata = { starCount: repoData.stargazers_count }
   }
 }

@@ -14,6 +14,7 @@ export const auth = betterAuth({
   },
   plugins: [openAPI(), expo(), bearer()],
   trustedOrigins: [
+    "http://localhost:5173", // Web client
     "exp://", // Allow Expo Go
     "area://", // The app scheme (app.json)
   ]

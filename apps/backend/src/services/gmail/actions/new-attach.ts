@@ -28,20 +28,17 @@ export const newEmailWithAttachmentAction: IAction = {
       let query = "has:attachment is:unread"
       if (from) query += ` from:${from}`
       if (fileExtension) query += ` filename:${fileExtension}`
-      const response = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=1`,
-        {
-          headers: {
-            "Authorization": `Bearer ${tokens.accessToken}`,
-            "Accept": "application/json"
-          }
+      const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=1`, {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
+          Accept: "application/json"
         }
-      )
+      })
       if (!response.ok) {
         console.error(`Gmail API error: ${response.status}`)
         return false
       }
-      const data = await response.json() as {
+      const data = (await response.json()) as {
         messages?: Array<{ id: string }>
       }
       if (!data.messages || data.messages.length === 0) {
@@ -58,24 +55,21 @@ export const newEmailWithAttachmentAction: IAction = {
         return false
       }
       if (latestMessageId !== lastCheckedId) {
-        const messageResponse = await fetch(
-          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${latestMessageId}`,
-          {
-            headers: {
-              "Authorization": `Bearer ${tokens.accessToken}`,
-              "Accept": "application/json"
-            }
+        const messageResponse = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${latestMessageId}`, {
+          headers: {
+            Authorization: `Bearer ${tokens.accessToken}`,
+            Accept: "application/json"
           }
-        )
+        })
         if (!messageResponse.ok) {
           return false
         }
-        const messageData = await messageResponse.json() as {
+        const messageData = (await messageResponse.json()) as {
           id: string
           snippet: string
           payload: {
             headers: Array<{ name: string; value: string }>
-            parts?: Array<{ 
+            parts?: Array<{
               filename: string
               mimeType: string
               body: { attachmentId: string; size: number }
@@ -83,15 +77,17 @@ export const newEmailWithAttachmentAction: IAction = {
           }
         }
         const headers = messageData.payload.headers
-        const fromHeader = headers.find(h => h.name.toLowerCase() === "from")?.value || "Unknown"
-        const subjectHeader = headers.find(h => h.name.toLowerCase() === "subject")?.value || "No Subject"
-        const attachments = messageData.payload.parts?.filter(p => p.filename && p.body?.attachmentId) || []
-        const attachmentsList = attachments.map(a => ({
+        const fromHeader = headers.find((h) => h.name.toLowerCase() === "from")?.value || "Unknown"
+        const subjectHeader = headers.find((h) => h.name.toLowerCase() === "subject")?.value || "No Subject"
+        const attachments = messageData.payload.parts?.filter((p) => p.filename && p.body?.attachmentId) || []
+        const attachmentsList = attachments.map((a) => ({
           filename: a.filename,
           mimeType: a.mimeType,
           size: a.body.size
         }))
+
         context.metadata = { lastAttachmentEmailId: latestMessageId }
+
         context.actionData = {
           messageId: latestMessageId,
           from: fromHeader,
@@ -107,6 +103,46 @@ export const newEmailWithAttachmentAction: IAction = {
     } catch (error) {
       console.error("Error checking Gmail attachments:", error)
       return false
+    }
+  },
+
+  async setup(params, context: IContext): Promise<void> {
+    const { tokens } = context
+
+    if (!tokens?.accessToken) {
+      throw new Error("Gmail access token not found")
+    }
+
+    const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
+      headers: {
+        Authorization: `Bearer ${tokens.accessToken}`,
+        Accept: "application/json"
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error("Cannot access Gmail API")
+    }
+
+    const { fileExtension, from } = params
+    let query = "has:attachment is:unread"
+    if (from) query += ` from:${from}`
+    if (fileExtension) query += ` filename:${fileExtension}`
+
+    const messagesResponse = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=1`, {
+      headers: {
+        Authorization: `Bearer ${tokens.accessToken}`,
+        Accept: "application/json"
+      }
+    })
+
+    if (messagesResponse.ok) {
+      const data = (await messagesResponse.json()) as {
+        messages?: Array<{ id: string }>
+      }
+      if (data.messages && data.messages.length > 0) {
+        context.metadata = { lastAttachmentEmailId: data.messages[0].id }
+      }
     }
   }
 }
