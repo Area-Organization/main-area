@@ -10,12 +10,11 @@ import {
   CreateConnectionBody, 
   OAuth2AuthUrlQuery, 
   OAuth2AuthUrlResponse, 
-  OAuth2CallbackBody, 
   UpdateConnectionBody, 
   type OAuth2TokenResponseType 
 } from "@area/types"
 
-// Helper to encode state securely (User ID + Service + Callback)
+const getBaseUrl = () => process.env.BETTER_AUTH_URL || process.env.API_URL || 'http://localhost:8080'
 const encodeState = (data: Record<string, any>) => Buffer.from(JSON.stringify(data)).toString('base64')
 const decodeState = (state: string) => {
   try {
@@ -25,110 +24,7 @@ const decodeState = (state: string) => {
   }
 }
 
-const getBaseUrl = () => process.env.BETTER_AUTH_URL || process.env.API_URL || 'http://localhost:8080'
-
 export const connectRoutes = new Elysia({ prefix: "/api/connections" })
-  // ==========================================
-  // PUBLIC CALLBACK ROUTE (No Auth Middleware)
-  // ==========================================
-  .get("/oauth2/callback", async ({ query, set }) => {
-    try {
-      const { code, state } = query
-      if (!code || !state) {
-        set.status = 400
-        return "Missing code or state"
-      }
-
-      const stateData = decodeState(state)
-      if (!stateData || !stateData.userId || !stateData.serviceName) {
-        set.status = 400
-        return "Invalid state parameter"
-      }
-
-      const { userId, serviceName, callbackUrl } = stateData
-      const service = serviceRegistry.get(serviceName)
-      
-      if (!service || !service.requiresAuth || service.authType !== 'oauth2' || !service.oauth) {
-        set.status = 400
-        return "Invalid service configuration"
-      }
-
-      // Exchange code for tokens
-      const tokenResponse = await fetch(service.oauth.tokenUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json'
-        },
-        body: new URLSearchParams({
-          grant_type: 'authorization_code',
-          code: code,
-          redirect_uri: `${getBaseUrl()}/api/connections/oauth2/callback`,
-          client_id: service.oauth.clientId,
-          client_secret: service.oauth.clientSecret
-        })
-      })
-
-      if (!tokenResponse.ok) {
-        const redirectURL = new URL(callbackUrl || "area://oauth-callback")
-        redirectURL.searchParams.set("status", "error")
-        redirectURL.searchParams.set("message", "Token exchange failed")
-        return redirect(redirectURL.toString())
-      }
-
-      const tokens = await tokenResponse.json() as OAuth2TokenResponseType
-      const expiresAt = tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null
-
-      // Save connection
-      await prisma.userConnection.upsert({
-        where: {
-          userId_serviceName: {
-            userId,
-            serviceName
-          }
-        },
-        create: {
-          userId,
-          serviceName,
-          accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token,
-          expiresAt,
-          metadata: {
-            tokenType: tokens.token_type,
-            scope: tokens.scope
-          }
-        },
-        update: {
-          accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token,
-          expiresAt,
-          metadata: {
-            tokenType: tokens.token_type,
-            scope: tokens.scope
-          }
-        }
-      })
-
-      // Redirect back to app
-      const redirectURL = new URL(callbackUrl || "area://oauth-callback")
-      redirectURL.searchParams.set("status", "success")
-      redirectURL.searchParams.set("service", serviceName)
-      return redirect(redirectURL.toString())
-
-    } catch (error) {
-      console.error("OAuth Callback Error:", error)
-      return set.status = 500
-    }
-  }, {
-    query: t.Object({
-      code: t.String(),
-      state: t.String()
-    })
-  })
-
-  // ==========================================
-  // PROTECTED ROUTES (Require Auth)
-  // ==========================================
   .use(authMiddleware)
   .post("/", async ({ body, user, set }) => {
     try {
@@ -436,28 +332,20 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
           statusCode: 400
         }
       }
-      
-      // Embed Service, UserID, and mobile callback URL into the state
       const state = encodeState({
         serviceName: params.serviceName,
         userId: user.id,
         callbackUrl: query.callbackUrl,
         nonce: crypto.randomUUID()
       })
-
       const authUrl = new URL(service.oauth.authorizationUrl)
       authUrl.searchParams.set('client_id', service.oauth.clientId)
-      
-      // Redirect to Backend Callback (Using Public URL)
       authUrl.searchParams.set('redirect_uri', `${getBaseUrl()}/api/connections/oauth2/callback`)
       authUrl.searchParams.set('scope', service.oauth.scopes.join(' '))
       authUrl.searchParams.set('state', state)
       authUrl.searchParams.set('response_type', 'code')
-      
-      // Some providers need prompt=consent to force refresh token
       authUrl.searchParams.set('access_type', 'offline')
       authUrl.searchParams.set('prompt', 'consent')
-
       return {
         authUrl: authUrl.toString(),
         state
@@ -490,25 +378,23 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
     }
   })
 
-  // I left it cuz maybe it will be needed at some point but the main flow is now via GET + State
-  .post("/oauth2/callback", async ({ body, user, set }) => {
+  .get("/oauth2/callback", async ({ query, set }) => {
     try {
-      const service = serviceRegistry.get(body.serviceName)
-      if (!service) {
-        set.status = 404
-        return {
-          error: "Not Found",
-          message: `Service '${body.serviceName}' not found`,
-          statusCode: 404
-        }
-      }
-      if (!service.requiresAuth || service.authType !== 'oauth2' || !service.oauth) {
+      const { code, state } = query
+      if (!code || !state) {
         set.status = 400
-        return {
-          error: "Bad Request",
-          message: `Service '${body.serviceName}' does not support OAuth2`,
-          statusCode: 400
-        }
+        return "Missing code or state"
+      }
+      const stateData = decodeState(state)
+      if (!stateData || !stateData.userId || !stateData.serviceName) {
+        set.status = 400
+        return "Invalid state parameter"
+      }
+      const { userId, serviceName, callbackUrl } = stateData
+      const service = serviceRegistry.get(serviceName)
+      if (!service || !service.requiresAuth || service.authType !== 'oauth2' || !service.oauth) {
+        set.status = 400
+        return "Invalid service configuration"
       }
       const tokenResponse = await fetch(service.oauth.tokenUrl, {
         method: 'POST',
@@ -518,35 +404,30 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
         },
         body: new URLSearchParams({
           grant_type: 'authorization_code',
-          code: body.code,
-          // We use the public URL for the redirect_uri
+          code: code,
           redirect_uri: `${getBaseUrl()}/api/connections/oauth2/callback`,
           client_id: service.oauth.clientId,
           client_secret: service.oauth.clientSecret
         })
       })
       if (!tokenResponse.ok) {
-        const errorData = await tokenResponse.json().catch(() => ({}))
-        console.error("OAuth2 token exchange failed:", errorData)
-        set.status = 400
-        return {
-          error: "Bad Request",
-          message: "Failed to exchange authorization code for tokens",
-          statusCode: 400
-        }
+        const redirectURL = new URL(callbackUrl || "area://oauth-callback")
+        redirectURL.searchParams.set("status", "error")
+        redirectURL.searchParams.set("message", "Token exchange failed")
+        return redirect(redirectURL.toString())
       }
       const tokens = await tokenResponse.json() as OAuth2TokenResponseType
       const expiresAt = tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null
-      const connection = await prisma.userConnection.upsert({
+      await prisma.userConnection.upsert({
         where: {
           userId_serviceName: {
-            userId: user.id,
-            serviceName: body.serviceName
+            userId,
+            serviceName
           }
         },
         create: {
-          userId: user.id,
-          serviceName: body.serviceName,
+          userId,
+          serviceName,
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token,
           expiresAt,
@@ -565,38 +446,17 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
           }
         }
       })
-      set.status = 201
-      return {
-        connection: {
-          id: connection.id,
-          serviceName: connection.serviceName,
-          expiresAt: connection.expiresAt?.toISOString(),
-          createdAt: connection.createdAt.toISOString(),
-          updatedAt: connection.updatedAt.toISOString(),
-          metadata: connection.metadata as Record<string, any> | undefined
-        }
-      }
+      const redirectURL = new URL(callbackUrl || "area://oauth-callback")
+      redirectURL.searchParams.set("status", "success")
+      redirectURL.searchParams.set("service", serviceName)
+      return redirect(redirectURL.toString())
     } catch (error) {
-      console.error("Error handling OAuth2 callback:", error)
-      set.status = 500
-      return {
-        error: "Internal Server Error",
-        message: "Failed to complete OAuth2 authentication",
-        statusCode: 500
-      }
+      console.error("OAuth Callback Error:", error)
+      return set.status = 500
     }
   }, {
-    auth: true,
-    body: OAuth2CallbackBody,
-    response: {
-      201: ConnectionResponse,
-      400: ConnectionErrorResponse,
-      404: ConnectionErrorResponse,
-      500: ConnectionErrorResponse
-    },
-    detail: {
-      tags: ["Connections"],
-      summary: "Handle OAuth2 callback",
-      description: "Exchanges authorization code for access tokens and creates/updates connection"
-    }
+    query: t.Object({
+      code: t.String(),
+      state: t.String()
+    })
   })
