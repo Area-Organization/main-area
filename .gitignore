@@ -78,3 +78,4 @@ temp/
 .eslintcache
 .stylelintcache
 .prettierignore
+/generated/prisma

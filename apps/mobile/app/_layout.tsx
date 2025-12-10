@@ -1,24 +1,62 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { Stack, useRouter, useSegments } from "expo-router";
+import { useEffect } from "react";
+import { SessionProvider, useSession } from "@/ctx";
+import { ThemeProvider, DarkTheme, DefaultTheme } from "@react-navigation/native";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { ActivityIndicator, View } from "react-native";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
-
-export default function RootLayout() {
+// This component handles the redirection logic
+function RootLayoutNav() {
+  const { session, isLoading } = useSession();
+  const segments = useSegments();
+  const router = useRouter();
   const colorScheme = useColorScheme();
 
+  useEffect(() => {
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (isLoading) {
+      return;
+    }
+
+    if (!session && !inAuthGroup) {
+      router.replace("/(auth)/login");
+    } else if (session && inAuthGroup) {
+      router.replace("/(tabs)");
+    }
+  }, [session, isLoading, segments]);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
+        {/* Protected App Routes */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+
+        {/* Public Auth Routes */}
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+
+        {/* Hide the index route as it's just a redirect */}
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+
+        {/* 404 / Not Found */}
+        <Stack.Screen name="+not-found" />
       </Stack>
-      <StatusBar style="auto" />
     </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <SessionProvider>
+      <RootLayoutNav />
+    </SessionProvider>
   );
 }

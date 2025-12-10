@@ -32,6 +32,7 @@ The project is organized as a Monorepo and consists of three main components:
 - **Backend:** ElysiaJS, Prisma (PostgreSQL)
 - **Frontend:** SvelteKit, TailwindCSS
 - **Mobile:** Expo (React Native)
+- **Type Safety:** Eden Treaty (End-to-End type safety between Backend, Web, and Mobile)
 - **DevOps:** Docker, Docker Compose
 
 ---
@@ -39,17 +40,17 @@ The project is organized as a Monorepo and consists of three main components:
 ## 🚀 Features
 
 - **User Management:**
-  - Registration/Login via Email & Password.
-  - OAuth2 Integration (Google, GitHub, Discord, etc.).
+    - Registration/Login via Email & Password.
+    - OAuth2 Integration (Google, GitHub, Discord, etc.).
 - **Services:**
-  - Subscription to external services.
-  - Management of API tokens.
+    - Subscription to external services.
+    - Management of API tokens.
 - **Automation:**
-  - Configuration of **Actions** (Triggers).
-  - Configuration of **REactions** (Outputs).
-  - Automatic polling and execution via Hooks.
+    - Configuration of **Actions** (Triggers).
+    - Configuration of **REactions** (Outputs).
+    - Automatic polling and execution via Hooks.
 - **Accessibility:**
-  - Fully accessible Web and Mobile interfaces.
+    - Fully accessible Web and Mobile interfaces.
 
 ---
 
@@ -59,12 +60,13 @@ The project is organized as a Monorepo and consists of three main components:
 
 - [Bun](https://bun.com/) (v1.0.0+)
 - [Docker](https://www.docker.com/) & Docker Compose
+- (Optional) [ngrok](https://ngrok.com/) for mobile testing on physical devices.
 
 ### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Area-Organization/main-area.git
-cd area
+cd main-area
 ```
 
 ### 2. Install Dependencies
@@ -77,12 +79,15 @@ bun install
 
 ### 3. Environment Variables
 
-Copy the example environment files and configure your keys (Database URL, OAuth Client IDs, etc.).
+We use a centralized `.env` file at the **root** of the monorepo.
 
-```bash
-cp apps/backend/.env.example .env
-cp packages/shared/.env.example .env
-# Edit .env with your specific configuration
+1. Rename `.env.example` to `.env` at the root.
+2. Add your database URL and API configurations.
+3. **Crucial:** For the mobile app to connect to the backend, define `EXPO_PUBLIC_API_URL`.
+
+```ini
+# Mobile Connection (Use http://0.0.0.0:8080 for emulators, or ngrok for physical devices)
+EXPO_PUBLIC_API_URL=https://your-generated-id.ngrok-free.app
 ```
 
 ### 4. Database Setup
@@ -106,16 +111,38 @@ bun run dev
 ```
 
 - Server runs at: `http://localhost:8080`
-- Web runs at: `http://localhost:5173` (Vite dev port)
+- Web runs at: `http://localhost:5173`
 
 **Terminal 2: Mobile (Expo)**
 
+To run the mobile app, you have two options:
+
+**Option A: Emulators (iOS/Android)**
+If you are using a computer emulator, `localhost` works fine.
+
 ```bash
-cd main-area/apps/mobile
-bun run start
+cd apps/mobile
+bun start
 ```
 
-- Scan the QR code with Expo Go.
+**Option B: Physical Device (Recommended)**
+To run the app on your real phone, your phone needs to access the backend. We use **ngrok** for this.
+
+1. Start ngrok on port 8080:
+    ```bash
+    ngrok http 8080
+    ```
+2. Copy the HTTPS URL provided by ngrok (e.g., `https://xxxx.ngrok-free.app`).
+3. Update your **root `.env`**:
+    ```ini
+    EXPO_PUBLIC_API_URL="https://xxxx.ngrok-free.app"
+    ```
+4. Start the mobile app:
+    ```bash
+    cd apps/mobile
+    bun start
+    ```
+5. Scan the QR code with Expo Go.
 
 ---
 
@@ -147,29 +174,29 @@ The server exposes a strictly formatted `about.json` at the root to describe ava
 
 ```json
 {
-  "client": {
-    "host": "127.0.0.1"
-  },
-  "server": {
-    "current_time": 1709210000,
-    "services": [
-      {
-        "name": "github",
-        "actions": [
-          {
-            "name": "new_commit",
-            "description": "A new commit is pushed to the repository"
-          }
-        ],
-        "reactions": [
-          {
-            "name": "create_issue",
-            "description": "Creates a new issue on a repository"
-          }
+    "client": {
+        "host": "127.0.0.1"
+    },
+    "server": {
+        "current_time": 1709210000,
+        "services": [
+            {
+                "name": "github",
+                "actions": [
+                    {
+                        "name": "new_commit",
+                        "description": "A new commit is pushed to the repository"
+                    }
+                ],
+                "reactions": [
+                    {
+                        "name": "create_issue",
+                        "description": "Creates a new issue on a repository"
+                    }
+                ]
+            }
         ]
-      }
-    ]
-  }
+    }
 }
 ```
 
