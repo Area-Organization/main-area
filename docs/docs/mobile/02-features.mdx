@@ -1,0 +1,30 @@
+---
+title: Fonctionnalités et Flux
+---
+
+# Fonctionnalités et Flux Utilisateur
+
+### Gestion de Session
+
+-   Le `SessionProvider` (dans `ctx.tsx`) est le composant racine qui gère l'état d'authentification.
+-   Le hook `useSession()` permet à n'importe quel composant d'accéder à l'état de la session (`session`, `user`), au client API (`client`) et aux fonctions `signIn`/`signOut`.
+-   Le layout principal (`app/_layout.tsx`) utilise ce hook pour rediriger automatiquement l'utilisateur vers l'écran de connexion s'il n'est pas authentifié, ou vers le tableau de bord s'il l'est.
+
+### Navigation
+
+L'application utilise une navigation par onglets (`Tabs`) définie dans `app/(tabs)/_layout.tsx` :
+1.  **Home**: Le tableau de bord principal qui liste les AREAs de l'utilisateur.
+2.  **Create**: L'écran pour créer une nouvelle AREA.
+3.  **Services**: L'écran pour connecter ou gérer les services externes.
+
+### Flux OAuth sur Mobile
+
+La connexion à un service externe via OAuth2 est un défi sur mobile. Voici comment elle est implémentée :
+
+1.  Sur l'écran **Services**, l'utilisateur appuie sur "Connecter".
+2.  L'application appelle l'endpoint `GET /api/connections/oauth2/:serviceName/auth-url` en passant `Linking.createURL("oauth-callback")` comme `callbackUrl`.
+3.  Le backend génère une URL d'autorisation et la retourne.
+4.  L'application ouvre cette URL dans un navigateur web in-app en utilisant `WebBrowser.openAuthSessionAsync`.
+5.  Une fois que l'utilisateur a autorisé l'application, le fournisseur OAuth redirige vers le callback du backend (`/api/connections/oauth2/callback`).
+6.  Le backend finalise l'authentification et redirige à son tour vers l'URL de callback mobile fournie à l'étape 2 (ex: `area://oauth-callback?status=success`).
+7.  Cette redirection ferme le navigateur web in-app et ramène l'utilisateur à l'application, sur l'écran `app/oauth-callback.tsx`, qui le redirige finalement vers l'onglet Services.

@@ -1,0 +1,33 @@
+---
+title: Introduction
+sidebar_position: 1
+---
+
+# Bienvenue sur la Documentation Technique du Projet AREA
+
+Ce site contient la documentation technique complète pour le projet **AREA (Action-REAction)**, une plateforme d'automatisation inspirée par des services comme IFTTT et Zapier.
+
+##  Objectif du Projet
+
+L'objectif est de permettre aux utilisateurs de connecter différents services (Google, GitHub, etc.) en créant des **AREA**s. Chaque AREA est composée de :
+
+-   **Une Action :** Un déclencheur provenant d'un service (ex: "Un nouvel email est reçu").
+-   **Une Réaction :** Une conséquence exécutée sur un autre service (ex: "Poster un message sur Discord").
+
+##  Architecture Globale
+
+Le projet est structuré en **monorepo** géré par **Bun** et se divise en trois composants principaux :
+
+1.  **Serveur Backend (`/apps/backend`)**:
+    -   API REST développée avec **ElysiaJS**.
+    -   Gère la logique métier, l'authentification (OAuth2), et l'exécution des déclencheurs.
+
+2.  **Client Web (`/apps/web`)**:
+    -   Interface utilisateur développée avec **SvelteKit** et **TailwindCSS**.
+    -   Permet aux utilisateurs de créer et gérer leurs AREA.
+
+3.  **Client Mobile (`/apps/mobile`)**:
+    -   Application native développée avec **React Native (Expo)**.
+    -   Offre les mêmes fonctionnalités que le client web sur mobile.
+
+Cette documentation est divisée en sections correspondant à chaque composant pour faciliter la navigation et la compréhension.

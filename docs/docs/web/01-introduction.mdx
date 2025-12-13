@@ -1,0 +1,36 @@
+---
+title: Introduction au Client Web
+---
+
+# Introduction au Client Web
+
+Le client web est l'interface principale permettant aux utilisateurs d'interagir avec la plateforme AREA. Il est conçu pour être réactif, intuitif et entièrement typé grâce à l'intégration avec le backend.
+
+## Technologies Clés
+
+-   **Framework**: [SvelteKit](https://kit.svelte.dev/)
+-   **Styling**: [TailwindCSS](https://tailwindcss.com/) avec [shadcn-svelte](https://www.shadcn-svelte.com/) pour les composants d'interface utilisateur.
+-   **Client API**: [Eden Treaty](https://elysiajs.com/plugins/eden.html) - Permet d'appeler l'API backend avec une sécurité de type de bout en bout, comme si on appelait des fonctions TypeScript locales. Le client est initialisé dans `src/lib/api.ts`.
+-   **Authentification**: La librairie [Better Auth](https://better-auth.dev/) fournit des helpers pour SvelteKit, utilisés via notre `src/lib/auth-client.ts`.
+-   **Gestion de Formulaires**: [Superforms](https://superforms.rocks/) pour une gestion robuste des formulaires côté client et serveur.
+
+## Structure des Dossiers
+
+Le client web suit la structure standard d'un projet SvelteKit :
+
+apps/web/
+├── src/
+│ ├── lib/
+│ │ ├── api/ # Fonctions d'appel à l'API
+│ │ ├── components/ # Composants Svelte réutilisables (LoginForm, ServiceCard, etc.)
+│ │ ├── schemas/ # Schémas de validation (utilisés par Superforms)
+│ │ ├── api.ts # Initialisation du client Eden Treaty
+│ │ └── auth-client.ts# Initialisation du client Better Auth
+│ └── routes/ # Structure des pages de l'application
+│ ├── +layout.svelte
+│ ├── +page.svelte # Dashboard principal
+│ ├── create/ # Page de création d'AREA
+│ ├── login/ # Page de connexion
+│ ├── profile/ # Page de gestion des services
+│ └── register/ # Page d'inscription
+└── svelte.config.js

@@ -1,0 +1,36 @@
+---
+title: Introduction au Client Mobile
+---
+
+# Introduction au Client Mobile
+
+L'application mobile offre une expérience native pour gérer ses AREAs en déplacement. Elle est développée avec React Native et le framework Expo pour simplifier le développement et le déploiement.
+
+## Technologies Clés
+
+-   **Framework**: [React Native](https://reactnative.dev/) avec [Expo](https://expo.dev/)
+-   **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) - Un système de navigation basé sur les fichiers, similaire à Next.js ou SvelteKit.
+-   **Client API**: [Eden Treaty](https://elysiajs.com/plugins/eden.html) - Comme pour le web, il assure une communication typée avec le backend. Le client est configuré dans `lib/api.ts`.
+-   **Authentification**: [Better Auth](https://better-auth.dev/) avec son client React (`createAuthClient`) et son plugin Expo (`expoClient`). La gestion de session est centralisée dans `ctx.tsx`.
+-   **Stockage Sécurisé**: `expo-secure-store` est utilisé pour stocker de manière sécurisée les jetons de session.
+
+## Structure des Dossiers
+
+La structure est dictée par Expo Router :
+
+apps/mobile/
+├── app/
+│ ├── (auth)/ # Groupe de routes pour l'authentification (login, register)
+│ ├── (tabs)/ # Groupe de routes pour la navigation par onglets
+│ │ ├── _layout.tsx # Définition des onglets (Home, Create, Services)
+│ │ ├── index.tsx # Écran d'accueil (Dashboard)
+│ │ ├── create.tsx # Écran de création d'AREA
+│ │ └── services.tsx # Écran de gestion des services
+│ ├── _layout.tsx # Layout principal de l'application (gère la redirection)
+│ └── oauth-callback.tsx # Page de redirection après le flux OAuth
+├── components/ # Composants React réutilisables
+├── constants/ # Constantes (thème, couleurs)
+├── ctx.tsx # Contexte React pour la gestion de session (SessionProvider)
+└── lib/
+├── api.ts # Initialisation du client Eden Treaty
+└── auth.ts # Initialisation du client Better Auth

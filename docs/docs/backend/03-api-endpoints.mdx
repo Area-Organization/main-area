@@ -1,0 +1,38 @@
+---
+title: API Endpoints
+---
+
+# API Endpoints
+
+Le backend expose une API REST pour gérer les ressources de la plateforme. Tous les endpoints (sauf authentification et `about.json`) nécessitent une authentification par session (cookie) ou Bearer Token.
+
+### Fichier de Description (`about.json`)
+
+-   **`GET /about.json`**
+    -   **Description**: Fournit des informations publiques sur le serveur, y compris la liste de tous les services, actions et réactions disponibles. C'est le point d'entrée pour les clients afin de découvrir les fonctionnalités de la plateforme.
+    -   **Réponse**: Un objet JSON contenant les informations du client et du serveur.
+
+### Authentification (`/api/auth`)
+
+-   Ces routes sont gérées automatiquement par la librairie **Better Auth**. Elles incluent :
+    -   `POST /api/auth/sign-up/email`: Créer un compte avec email/mot de passe.
+    -   `POST /api/auth/sign-in/email`: Se connecter.
+    -   `GET /api/auth/session`: Obtenir les informations de la session actuelle.
+    -   `POST /api/auth/sign-out`: Se déconnecter.
+    -   Et d'autres routes pour les fournisseurs OAuth.
+
+### Connexions aux Services (`/api/connections`)
+
+-   **`GET /api/connections`**: Liste toutes les connexions de l'utilisateur authentifié.
+-   **`DELETE /api/connections/:id`**: Supprime une connexion à un service.
+-   **`GET /api/connections/oauth2/:serviceName/auth-url`**: Génère une URL d'autorisation OAuth2 pour connecter un nouveau service. Le `callbackUrl` peut être passé en query param pour rediriger l'utilisateur après l'autorisation (utile pour le mobile).
+-   **`GET /api/connections/oauth2/callback`**: Endpoint public de callback pour le flux OAuth2. Il reçoit le `code` et le `state` du fournisseur, échange le code contre un jeton et stocke la connexion.
+
+### AREA (`/api/areas`)
+
+-   **`POST /api/areas`**: Crée une nouvelle AREA. Nécessite le nom, la description, et les détails de l'action et de la réaction (service, nom, paramètres, `connectionId`).
+-   **`GET /api/areas`**: Liste les AREAs de l'utilisateur avec des options de pagination (`limit`, `offset`) et de recherche (`search`).
+-   **`GET /api/areas/:id`**: Récupère les détails d'une AREA spécifique.
+-   **`PATCH /api/areas/:id`**: Met à jour une AREA (nom, description, statut `enabled`, etc.).
+-   **`POST /api/areas/:id/toggle`**: Active ou désactive une AREA.
+-   **`GET /api/areas/stats/overview`**: Récupère des statistiques sur les AREAs de l'utilisateur.

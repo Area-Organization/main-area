@@ -1,21 +1,38 @@
 {
   "name": "@area/backend",
-  "module": "index.ts",
+  "version": "0.0.1",
+  "module": "src/index.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./type": "./src/app.ts"
+  },
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun --env-file=../../.env --watch run index.ts"
+    "dev": "bun --env-file=../../.env --watch run src/index.ts",
+    "db:generate": "bun run --env-file=../../.env prisma generate",
+    "db:push": "bun run --env-file=../../.env prisma db push",
+    "db:studio": "bun run --env-file=../../.env prisma studio"
   },
   "devDependencies": {
-    "@types/bun": "^1.3.3"
+    "@types/bun": "^1.3.4",
+    "prisma": "^7.1.0"
   },
   "peerDependencies": {
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@area/shared": "workspace:*",
+    "@area/types": "workspace:*",
+    "@better-auth/expo": "^1.4.6",
     "@elysiajs/cors": "^1.4.0",
     "@elysiajs/openapi": "^1.4.11",
-    "elysia": "^1.4.16"
+    "@prisma/adapter-pg": "^7.1.0",
+    "@prisma/client": "^7.1.0",
+    "@sinclair/typebox": "^0.34.41",
+    "better-auth": "^1.4.6",
+    "elysia": "^1.4.19",
+    "pg": "^8.16.3"
   }
 }
