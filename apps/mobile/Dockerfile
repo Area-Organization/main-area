@@ -1,30 +1,13 @@
-FROM node:20-slim
+FROM alpine:latest
 
 WORKDIR /app
 
-RUN npm install -g bun
+# We copy the pre-built APK from our local machine into the container
+COPY client.apk /app/client.apk
 
-COPY package.json bun.lock ./
-COPY packages ./packages
+# We then create the directory where the shared volume will be mounted
+RUN mkdir -p /dist
 
-COPY apps/backend/package.json ./apps/backend/package.json
-COPY apps/web/package.json ./apps/web/package.json
-COPY apps/mobile/package.json ./apps/mobile/package.json
-
-RUN bun install --no-save --ignore-scripts
-
-WORKDIR /app
-COPY apps/mobile ./apps/mobile
-
-WORKDIR /app/apps/mobile
-
-ENV EXPO_PUBLIC_API_URL="http://localhost:8080"
-
-RUN npx expo export -p web --output-dir dist
-
-RUN npm install -g serve
-
-ENV PORT=8082
-EXPOSE 8082
-
-CMD ["serve", "dist", "-p", "8082", "--single"]
+# When the container starts, we copy the file to the shared volume
+# Then keep the container running so Docker Compose doesn't think it crashed
+CMD cp /app/client.apk /dist/client.apk && tail -f /dev/null

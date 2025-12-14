@@ -14,7 +14,7 @@ import {
   type OAuth2TokenResponseType 
 } from "@area/types"
 
-const getBaseUrl = () => process.env.BETTER_AUTH_URL || process.env.API_URL || 'http://localhost:8080'
+const getBaseUrl = () => process.env.BACKEND_API_URL || 'http://localhost:8080'
 const encodeState = (data: Record<string, any>) => Buffer.from(JSON.stringify(data)).toString('base64')
 const decodeState = (state: string) => {
   try {

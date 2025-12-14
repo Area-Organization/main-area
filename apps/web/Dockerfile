@@ -4,16 +4,17 @@ WORKDIR /app
 
 COPY . .
 
-RUN bun install --no-save
+RUN bun install --no-save --ignore-scripts
 
 WORKDIR /app/apps/web
 
-RUN bun run build
-
 ENV NODE_ENV=production
-
 ENV PORT=3000
-ENV HOST=0.0.0.0
+
+ARG BACKEND_API_URL
+ENV BACKEND_API_URL=$BACKEND_API_URL
+
+RUN bun run build
 
 EXPOSE 3000
 

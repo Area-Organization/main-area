@@ -326,7 +326,10 @@
             <Form.Field {form} name="name">
               <Form.Control>
                 {#snippet children({ props })}
-                  <Form.Label>AREA Name</Form.Label>
+                  <Form.Label>
+                      AREA Name
+                      <span class="text-destructive">*</span>
+                  </Form.Label>
                   <Input {...props} bind:value={$formData.name} placeholder="My Automation" />
                 {/snippet}
               </Form.Control>

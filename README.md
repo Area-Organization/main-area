@@ -83,11 +83,11 @@ We use a centralized `.env` file at the **root** of the monorepo.
 
 1. Rename `.env.example` to `.env` at the root.
 2. Add your database URL and API configurations.
-3. **Crucial:** For the mobile app to connect to the backend, define `EXPO_PUBLIC_API_URL`.
+3. **Crucial:** For the mobile app to connect to the backend, define `BACKEND_API_URL`.
 
 ```ini
 # Mobile Connection (Use http://0.0.0.0:8080 for emulators, or ngrok for physical devices)
-EXPO_PUBLIC_API_URL=https://your-generated-id.ngrok-free.app
+BACKEND_API_URL=https://your-generated-id.ngrok-free.app
 ```
 
 ### 4. Database Setup
@@ -135,7 +135,7 @@ To run the app on your real phone, your phone needs to access the backend. We us
 2. Copy the HTTPS URL provided by ngrok (e.g., `https://xxxx.ngrok-free.app`).
 3. Update your **root `.env`**:
     ```ini
-    EXPO_PUBLIC_API_URL="https://xxxx.ngrok-free.app"
+    BACKEND_API_URL="https://xxxx.ngrok-free.app"
     ```
 4. Start the mobile app:
     ```bash
