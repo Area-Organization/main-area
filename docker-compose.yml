@@ -10,6 +10,11 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   server:
     build:
@@ -18,7 +23,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
@@ -29,10 +35,7 @@ services:
       - GMAIL_CLIENT_ID=${GMAIL_CLIENT_ID}
       - GMAIL_CLIENT_SECRET=${GMAIL_CLIENT_SECRET}
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
-    # 1. cd into apps/backend so Prisma finds prisma.config.ts
-    # 2. Loop until db push succeeds (waits for DB connection)
-    # 3. cd back to root and start the app
-    command: sh -c "cd apps/backend && until bunx prisma db push; do echo 'Waiting for DB...'; sleep 2; done && cd ../.. && bun run apps/backend/src/index.ts"
+    command: sh -c "cd apps/backend && bunx prisma db push && bun run src/index.ts"
 
   client_mobile:
     build:

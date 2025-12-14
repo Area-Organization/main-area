@@ -16,8 +16,6 @@
         if (!form.valid) return;
 
         try {
-          console.log(form.data.password);
-
           if (form.data.password !== form.data.confirmPassword) {
             console.error("Passwords must match");
             return;
