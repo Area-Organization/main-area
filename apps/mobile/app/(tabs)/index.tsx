@@ -6,6 +6,7 @@ import { useSession } from "@/ctx";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Button } from "@/components/ui/button";
 import { useFocusEffect } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Area = {
   id: string;
@@ -20,6 +21,7 @@ export default function HomeScreen() {
   const { client, signOut, user } = useSession();
   const [areas, setAreas] = useState<Area[]>([]);
   const [loading, setLoading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const fetchData = async () => {
     setLoading(true);
@@ -70,7 +72,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 pt-[60px]">
+    <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
       <View className="px-5 pb-5 flex-row justify-between items-center">
         <View>
           <ThemedText type="subtitle" className="text-primary">

@@ -8,11 +8,13 @@ import * as Linking from "expo-linking";
 import { useSession } from "@/ctx";
 import { Button } from "@/components/ui/button";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ServicesScreen() {
   const { client } = useSession();
   const { services, refresh } = useServices();
   const [loading, setLoading] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
 
   const cardColor = useThemeColor({}, "card");
   const borderColor = useThemeColor({}, "border");
@@ -51,7 +53,7 @@ export default function ServicesScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 px-5 pt-15">
+    <ThemedView className="flex-1 px-5" style={{ paddingTop: insets.top }}>
       <ThemedText type="title" className="mb-5">
         Services
       </ThemedText>

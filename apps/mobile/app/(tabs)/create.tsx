@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Step = "SELECT_ACTION_SERVICE" | "SELECT_ACTION" | "SELECT_REACTION_SERVICE" | "SELECT_REACTION" | "CONFIGURE";
 
@@ -18,6 +19,7 @@ export default function CreateAreaScreen() {
   const { client } = useSession();
   const { services, refresh: refreshServices, loading: loadingServices } = useServices();
   const [step, setStep] = useState<Step>("SELECT_ACTION_SERVICE");
+  const insets = useSafeAreaInsets();
 
   const cardColor = useThemeColor({}, "card");
   const borderColor = useThemeColor({}, "border");
@@ -178,7 +180,7 @@ export default function CreateAreaScreen() {
   const reactionServices = services.filter((s) => s.reactions && s.reactions.length > 0);
 
   return (
-    <ThemedView className="flex-1 pt-15">
+    <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
       <View className="px-5 flex-row justify-between items-center mb-2.5">
         <ThemedText type="title">Create</ThemedText>
         {step !== "SELECT_ACTION_SERVICE" && (
