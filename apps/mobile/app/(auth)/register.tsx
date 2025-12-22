@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, View, Alert, TouchableOpacity } from "react-native";
+import { View, Alert, TouchableOpacity } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { authClient } from "@/lib/auth";
@@ -32,20 +32,20 @@ export default function RegisterScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.header}>
+    <ThemedView className="flex-1 p-6 justify-center">
+      <View className="mb-8">
         <ThemedText type="title">Create Account</ThemedText>
-        <ThemedText style={{ opacity: 0.6 }}>Start automating your digital life</ThemedText>
+        <ThemedText className="opacity-60">Start automating your digital life</ThemedText>
       </View>
 
-      <View style={styles.form}>
+      <View className="gap-4">
         <Input placeholder="Full Name" value={name} onChangeText={setName} />
         <Input placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" />
         <Input placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
         <Button title={loading ? "Creating..." : "Sign Up"} onPress={handleRegister} loading={loading} />
       </View>
 
-      <View style={styles.footer}>
+      <View className="flex-row justify-center gap-2 mt-8">
         <ThemedText>Already have an account?</ThemedText>
         <TouchableOpacity onPress={() => router.replace("/(auth)/login")}>
           <ThemedText type="link">Sign In</ThemedText>
@@ -54,10 +54,3 @@ export default function RegisterScreen() {
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: "center" },
-  header: { marginBottom: 30 },
-  form: { gap: 16 },
-  footer: { flexDirection: "row", justifyContent: "center", gap: 8, marginTop: 30 }
-});

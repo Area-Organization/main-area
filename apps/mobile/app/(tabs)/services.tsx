@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { StyleSheet, Alert, View, FlatList } from "react-native";
+import { Alert, View, FlatList } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useServices } from "@/hooks/use-services";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { useSession } from "@/ctx";
-import { Layout } from "@/constants/theme";
 import { Button } from "@/components/ui/button";
 import { useThemeColor } from "@/hooks/use-theme-color";
 
@@ -52,39 +51,44 @@ export default function ServicesScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>
+    <ThemedView className="flex-1 px-5 pt-15">
+      <ThemedText type="title" className="mb-5">
         Services
       </ThemedText>
 
       <FlatList
         data={services}
         keyExtractor={(item) => item.name}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={{ paddingBottom: 40, gap: 15 }}
         renderItem={({ item }) => (
-          <View style={[styles.card, { backgroundColor: cardColor, borderColor }]}>
-            <View style={styles.cardContent}>
-              <ThemedText type="defaultSemiBold" style={{ fontSize: 18 }}>
+          <View
+            className="p-4 rounded-lg border flex-row items-center justify-between"
+            style={{ backgroundColor: cardColor, borderColor }}
+          >
+            <View className="flex-1 pr-2.5">
+              <ThemedText type="defaultSemiBold" className="text-lg">
                 {item.name}
               </ThemedText>
-              <ThemedText style={styles.description}>{item.description}</ThemedText>
+              <ThemedText className="text-sm text-[#888] my-1">{item.description}</ThemedText>
 
-              <View style={styles.badges}>
-                <View style={styles.badge}>
-                  <ThemedText style={styles.badgeText}>{item.actions.length} Triggers</ThemedText>
+              <View className="flex-row gap-1.5 mt-1.5">
+                <View className="bg-primary/10 px-1.5 py-0.5 rounded-sm">
+                  <ThemedText className="text-xs text-primary font-semibold">{item.actions.length} Triggers</ThemedText>
                 </View>
-                <View style={styles.badge}>
-                  <ThemedText style={styles.badgeText}>{item.reactions.length} Actions</ThemedText>
+                <View className="bg-primary/10 px-1.5 py-0.5 rounded-sm">
+                  <ThemedText className="text-xs text-primary font-semibold">
+                    {item.reactions.length} Actions
+                  </ThemedText>
                 </View>
               </View>
             </View>
-            <View style={styles.action}>
+            <View className="w-25">
               <Button
                 title={loading === item.name ? "..." : "Connect"}
                 onPress={() => handleConnect(item.name)}
                 variant="outline"
                 loading={loading === item.name}
-                style={{ height: 40, borderRadius: 12 }}
+                className="h-10 rounded-xl"
               />
             </View>
           </View>
@@ -93,23 +97,3 @@ export default function ServicesScreen() {
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 20, paddingTop: 60 },
-  title: { marginBottom: 20 },
-  list: { paddingBottom: 40, gap: 15 },
-  card: {
-    padding: 16,
-    borderRadius: Layout.radius,
-    borderWidth: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between"
-  },
-  cardContent: { flex: 1, paddingRight: 10 },
-  description: { fontSize: 13, color: "#888", marginVertical: 4 },
-  action: { width: 100 },
-  badges: { flexDirection: "row", gap: 5, marginTop: 5 },
-  badge: { backgroundColor: "rgba(124, 58, 237, 0.1)", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  badgeText: { fontSize: 10, color: "#7C3AED", fontWeight: "600" }
-});

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, View, Alert, TouchableOpacity } from "react-native";
+import { View, Alert, TouchableOpacity } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { authClient } from "@/lib/auth";
@@ -34,15 +34,15 @@ export default function LoginScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.header}>
-        <ThemedText type="title" style={styles.title}>
+    <ThemedView className="flex-1 p-6 justify-center">
+      <View className="mb-10 items-center">
+        <ThemedText type="title" className="text-4xl font-black tracking-tighter">
           AREA
         </ThemedText>
-        <ThemedText style={styles.subtitle}>Automation Platform</ThemedText>
+        <ThemedText className="opacity-50 mt-1.5">Automation Platform</ThemedText>
       </View>
 
-      <View style={styles.form}>
+      <View className="gap-4">
         <ThemedText type="defaultSemiBold">Welcome Back</ThemedText>
         <Input
           placeholder="Email address"
@@ -55,7 +55,7 @@ export default function LoginScreen() {
         <Button title={loading ? "Signing in..." : "Sign In"} onPress={handleLogin} loading={loading} />
       </View>
 
-      <View style={styles.footer}>
+      <View className="flex-row justify-center gap-2 mt-8">
         <ThemedText>Don&apos;t have an account?</ThemedText>
         <TouchableOpacity onPress={() => router.replace("/(auth)/register")}>
           <ThemedText type="link">Create account</ThemedText>
@@ -64,12 +64,3 @@ export default function LoginScreen() {
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: "center" },
-  header: { marginBottom: 40, alignItems: "center" },
-  title: { fontSize: 40, fontWeight: "900", letterSpacing: -1 },
-  subtitle: { opacity: 0.5, marginTop: 5 },
-  form: { gap: 16 },
-  footer: { flexDirection: "row", justifyContent: "center", gap: 8, marginTop: 30 }
-});

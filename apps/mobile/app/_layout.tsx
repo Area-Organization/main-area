@@ -1,3 +1,4 @@
+import "../global.css"; // Import NativeWind styles
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import { SessionProvider, useSession } from "@/ctx";
@@ -28,7 +29,7 @@ function RootLayoutNav() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" />
       </View>
     );
@@ -37,16 +38,9 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
-        {/* Protected App Routes */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-
-        {/* Public Auth Routes */}
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-
-        {/* Hide the index route as it's just a redirect */}
         <Stack.Screen name="index" options={{ headerShown: false }} />
-
-        {/* 404 / Not Found */}
         <Stack.Screen name="+not-found" />
       </Stack>
     </ThemeProvider>

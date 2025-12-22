@@ -1,11 +1,9 @@
 import React, { useCallback, useState } from "react";
-import { StyleSheet, View, RefreshControl, Alert, ScrollView } from "react-native";
+import { View, RefreshControl, Alert, ScrollView } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useSession } from "@/ctx";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { useThemeColor } from "@/hooks/use-theme-color";
-import { Layout } from "@/constants/theme";
 import { Button } from "@/components/ui/button";
 import { useFocusEffect } from "expo-router";
 
@@ -23,23 +21,14 @@ export default function HomeScreen() {
   const [areas, setAreas] = useState<Area[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const cardColor = useThemeColor({}, "card");
-  const borderColor = useThemeColor({}, "border");
-  const primaryColor = useThemeColor({}, "primary");
-
   const fetchData = async () => {
     setLoading(true);
     try {
       const { data, error } = await client.api.areas.get();
-
       if (error) {
         console.error("API Error:", error);
         return;
       }
-
-      // Debug: Log the data to see exactly what the backend returns
-      console.log("Fetched Areas Data:", JSON.stringify(data, null, 2));
-
       if (data && Array.isArray(data)) {
         setAreas(data);
       } else if (data && (data as any).areas) {
@@ -81,78 +70,74 @@ export default function HomeScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.header}>
+    <ThemedView className="flex-1 pt-[60px]">
+      <View className="px-5 pb-5 flex-row justify-between items-center">
         <View>
-          <ThemedText type="subtitle" style={{ color: primaryColor }}>
+          <ThemedText type="subtitle" className="text-primary">
             Welcome back,
           </ThemedText>
           <ThemedText type="title">{user?.name || "User"}</ThemedText>
         </View>
-        <Button title="Log Out" onPress={signOut} variant="outline" style={{ height: 40, borderRadius: 20 }} />
+        <Button title="Log Out" onPress={signOut} variant="outline" className="h-10 rounded-full" />
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
       >
-        <View style={styles.sectionHeader}>
+        <View className="flex-row justify-between items-baseline mb-4">
           <ThemedText type="subtitle">My Automations</ThemedText>
-          <ThemedText style={{ color: "#888" }}>{areas.length} active</ThemedText>
+          <ThemedText className="text-[#888]">{areas.length} active</ThemedText>
         </View>
 
         {areas.length === 0 && !loading ? (
-          <View style={[styles.emptyState, { borderColor, backgroundColor: cardColor }]}>
-            <IconSymbol name="plus.circle.fill" size={48} color={primaryColor} />
-            <ThemedText style={{ marginTop: 10, textAlign: "center" }}>You haven&apos;t created any AREAs yet.</ThemedText>
+          <View className="p-10 rounded-2xl border border-dashed border-border items-center justify-center bg-card">
+            <IconSymbol name="plus.circle.fill" size={48} color="#7C3AED" />
+            <ThemedText className="mt-2.5 text-center">You haven&apos;t created any AREAs yet.</ThemedText>
           </View>
         ) : (
-          <View style={styles.list}>
+          <View className="gap-4">
             {areas.map((area) => {
-              // Safety check: if area is malformed, skip rendering detailed info or render fallback
               if (!area || !area.id) return null;
-
               const actionService = area.action?.serviceName;
               const reactionService = area.reaction?.serviceName;
 
               return (
-                <View key={area.id} style={[styles.card, { backgroundColor: cardColor, borderColor }]}>
-                  <View style={styles.cardHeader}>
-                    <View style={styles.iconRow}>
-                      <View style={[styles.serviceIcon, { backgroundColor: primaryColor + "20" }]}>
-                        <ThemedText style={{ fontWeight: "bold", color: primaryColor }}>
-                          {getServiceInitial(actionService)}
-                        </ThemedText>
+                <View key={area.id} className="p-4 rounded-2xl border border-border bg-card shadow-sm">
+                  <View className="flex-row justify-between mb-3">
+                    <View className="flex-row items-center gap-2">
+                      <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/20">
+                        <ThemedText className="font-bold text-primary">{getServiceInitial(actionService)}</ThemedText>
                       </View>
                       <IconSymbol name="chevron.right" size={16} color="#999" />
-                      <View style={[styles.serviceIcon, { backgroundColor: primaryColor + "20" }]}>
-                        <ThemedText style={{ fontWeight: "bold", color: primaryColor }}>
-                          {getServiceInitial(reactionService)}
-                        </ThemedText>
+                      <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/20">
+                        <ThemedText className="font-bold text-primary">{getServiceInitial(reactionService)}</ThemedText>
                       </View>
                     </View>
                     <Button
                       title="Delete"
                       variant="destructive"
                       onPress={() => handleDelete(area.id)}
-                      style={{ height: 32, paddingHorizontal: 12, borderRadius: 8 }}
+                      className="h-8 px-3 rounded-lg"
                     />
                   </View>
 
-                  <ThemedText type="defaultSemiBold" style={styles.areaName}>
+                  <ThemedText type="defaultSemiBold" className="text-lg">
                     {area.name || "Untitled Area"}
                   </ThemedText>
-                  {area.description ? <ThemedText style={styles.areaDesc}>{area.description}</ThemedText> : null}
+                  {area.description ? (
+                    <ThemedText className="text-sm text-[#888] mt-1">{area.description}</ThemedText>
+                  ) : null}
 
-                  <View style={styles.divider} />
+                  <View className="h-[1px] bg-[#eee] my-3" />
 
-                  <View style={styles.logicRow}>
-                    <ThemedText style={styles.logicText}>
-                      <ThemedText style={{ fontWeight: "bold" }}>IF </ThemedText>
+                  <View className="gap-1">
+                    <ThemedText className="text-sm opacity-80">
+                      <ThemedText className="font-bold">IF </ThemedText>
                       {area.action?.actionName || "Unknown Trigger"}
                     </ThemedText>
-                    <ThemedText style={styles.logicText}>
-                      <ThemedText style={{ fontWeight: "bold" }}>THEN </ThemedText>
+                    <ThemedText className="text-sm opacity-80">
+                      <ThemedText className="font-bold">THEN </ThemedText>
                       {area.reaction?.reactionName || "Unknown Effect"}
                     </ThemedText>
                   </View>
@@ -165,62 +150,3 @@ export default function HomeScreen() {
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 60 },
-  header: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center"
-  },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "baseline",
-    marginBottom: 15
-  },
-  list: { gap: 15 },
-  emptyState: {
-    padding: 40,
-    borderRadius: Layout.radius,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    borderStyle: "dashed"
-  },
-  card: {
-    padding: 16,
-    borderRadius: Layout.radius,
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12
-  },
-  iconRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8
-  },
-  serviceIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center"
-  },
-  areaName: { fontSize: 18 },
-  areaDesc: { fontSize: 14, color: "#888", marginTop: 4 },
-  divider: { height: 1, backgroundColor: "#eee", marginVertical: 12 },
-  logicRow: { gap: 4 },
-  logicText: { fontSize: 14, opacity: 0.8 }
-});

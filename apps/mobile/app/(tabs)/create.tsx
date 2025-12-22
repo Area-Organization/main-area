@@ -1,12 +1,11 @@
 import React, { useState, useCallback } from "react";
-import { StyleSheet, ScrollView, TouchableOpacity, View, Alert, ActivityIndicator } from "react-native";
+import { ScrollView, TouchableOpacity, View, Alert, ActivityIndicator } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useServices, Service } from "@/hooks/use-services";
 import { useRouter, useFocusEffect } from "expo-router";
 import { ParamInputs } from "@/components/param-inputs";
 import { useSession } from "@/ctx";
-import { Layout } from "@/constants/theme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useThemeColor } from "@/hooks/use-theme-color";
@@ -20,19 +19,16 @@ export default function CreateAreaScreen() {
   const { services, refresh: refreshServices, loading: loadingServices } = useServices();
   const [step, setStep] = useState<Step>("SELECT_ACTION_SERVICE");
 
-  // Colors
   const cardColor = useThemeColor({}, "card");
   const borderColor = useThemeColor({}, "border");
   const primaryColor = useThemeColor({}, "primary");
   const mutedColor = useThemeColor({}, "muted");
 
-  // Selection State
   const [actionService, setActionService] = useState<Service | null>(null);
   const [selectedAction, setSelectedAction] = useState<any>(null);
   const [reactionService, setReactionService] = useState<Service | null>(null);
   const [selectedReaction, setSelectedReaction] = useState<any>(null);
 
-  // Configuration State
   const [areaName, setAreaName] = useState("");
   const [areaDescription, setAreaDescription] = useState("");
   const [actionParams, setActionParams] = useState<Record<string, any>>({});
@@ -42,7 +38,6 @@ export default function CreateAreaScreen() {
   const [connections, setConnections] = useState<any[]>([]);
   const [loadingConnections, setLoadingConnections] = useState(true);
 
-  // Refresh data whenever the screen comes into focus
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
@@ -50,10 +45,7 @@ export default function CreateAreaScreen() {
       const fetchData = async () => {
         setLoadingConnections(true);
         try {
-          // 1. Refresh Services list
           await refreshServices();
-
-          // 2. Refresh Connections
           const { data } = await client.api.connections.get();
           if (isActive && data?.connections) {
             setConnections(data.connections);
@@ -148,7 +140,6 @@ export default function CreateAreaScreen() {
           text: "OK",
           onPress: () => {
             resetForm();
-            // Navigate back to home
             router.navigate("/(tabs)");
           }
         }
@@ -161,10 +152,14 @@ export default function CreateAreaScreen() {
   };
 
   const renderOption = (label: string, sub: string, onPress: () => void) => (
-    <TouchableOpacity style={[styles.card, { backgroundColor: cardColor, borderColor }]} onPress={onPress}>
-      <View style={{ flex: 1 }}>
+    <TouchableOpacity
+      className="p-4 rounded-lg border flex-row items-center justify-between"
+      style={{ backgroundColor: cardColor, borderColor }}
+      onPress={onPress}
+    >
+      <View className="flex-1">
         <ThemedText type="defaultSemiBold">{label}</ThemedText>
-        <ThemedText style={{ fontSize: 12, opacity: 0.6 }}>{sub}</ThemedText>
+        <ThemedText className="text-xs opacity-60">{sub}</ThemedText>
       </View>
       <IconSymbol name="chevron.right" size={20} color={mutedColor} />
     </TouchableOpacity>
@@ -172,37 +167,36 @@ export default function CreateAreaScreen() {
 
   if (loadingConnections || loadingServices) {
     return (
-      <ThemedView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <ThemedView className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" color={primaryColor} />
-        <ThemedText style={{ marginTop: 20 }}>Loading services...</ThemedText>
+        <ThemedText className="mt-5">Loading services...</ThemedText>
       </ThemedView>
     );
   }
 
-  // Filter lists safely
   const actionServices = services.filter((s) => s.actions && s.actions.length > 0);
   const reactionServices = services.filter((s) => s.reactions && s.reactions.length > 0);
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.header}>
+    <ThemedView className="flex-1 pt-15">
+      <View className="px-5 flex-row justify-between items-center mb-2.5">
         <ThemedText type="title">Create</ThemedText>
         {step !== "SELECT_ACTION_SERVICE" && (
-          <Button title="Reset" variant="secondary" onPress={resetForm} style={{ height: 36, paddingHorizontal: 12 }} />
+          <Button title="Reset" variant="secondary" onPress={resetForm} className="h-9 px-3" />
         )}
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 50 }}>
         {step === "SELECT_ACTION_SERVICE" && (
           <>
-            <ThemedText type="subtitle" style={styles.stepTitle}>
+            <ThemedText type="subtitle" className="mb-4">
               1. Select Trigger Service
             </ThemedText>
             {actionServices.length === 0 ? (
-              <ThemedText style={{ fontStyle: "italic", opacity: 0.6 }}>No services with actions available.</ThemedText>
+              <ThemedText className="italic opacity-60">No services with actions available.</ThemedText>
             ) : (
               actionServices.map((s, i) => (
-                <View key={i} style={{ marginBottom: 8 }}>
+                <View key={i} className="mb-2">
                   {renderOption(s.name, s.description, () => handleServiceSelect(s, "action"))}
                 </View>
               ))
@@ -212,11 +206,11 @@ export default function CreateAreaScreen() {
 
         {step === "SELECT_ACTION" && actionService && (
           <>
-            <ThemedText type="subtitle" style={styles.stepTitle}>
+            <ThemedText type="subtitle" className="mb-4">
               2. Select Trigger
             </ThemedText>
             {actionService.actions.map((a: any, i: number) => (
-              <View key={i} style={{ marginBottom: 8 }}>
+              <View key={i} className="mb-2">
                 {renderOption(a.name, a.description, () => handleItemSelect(a, "action"))}
               </View>
             ))}
@@ -225,11 +219,11 @@ export default function CreateAreaScreen() {
 
         {step === "SELECT_REACTION_SERVICE" && (
           <>
-            <ThemedText type="subtitle" style={styles.stepTitle}>
+            <ThemedText type="subtitle" className="mb-4">
               3. Select Action Service
             </ThemedText>
             {reactionServices.map((s, i) => (
-              <View key={i} style={{ marginBottom: 8 }}>
+              <View key={i} className="mb-2">
                 {renderOption(s.name, s.description, () => handleServiceSelect(s, "reaction"))}
               </View>
             ))}
@@ -238,11 +232,11 @@ export default function CreateAreaScreen() {
 
         {step === "SELECT_REACTION" && reactionService && (
           <>
-            <ThemedText type="subtitle" style={styles.stepTitle}>
+            <ThemedText type="subtitle" className="mb-4">
               4. Select Action
             </ThemedText>
             {reactionService.reactions.map((r: any, i: number) => (
-              <View key={i} style={{ marginBottom: 8 }}>
+              <View key={i} className="mb-2">
                 {renderOption(r.name, r.description, () => handleItemSelect(r, "reaction"))}
               </View>
             ))}
@@ -250,16 +244,16 @@ export default function CreateAreaScreen() {
         )}
 
         {step === "CONFIGURE" && selectedAction && selectedReaction && (
-          <View style={{ gap: 20 }}>
-            <View style={[styles.card, { backgroundColor: cardColor, borderColor, padding: 20 }]}>
+          <View className="gap-5">
+            <View className="p-5 rounded-lg border" style={{ backgroundColor: cardColor, borderColor }}>
               <ThemedText type="defaultSemiBold">Area Details</ThemedText>
-              <View style={{ gap: 10, marginTop: 10 }}>
+              <View className="gap-2.5 mt-2.5">
                 <Input placeholder="Name" value={areaName} onChangeText={setAreaName} />
                 <Input placeholder="Description" value={areaDescription} onChangeText={setAreaDescription} />
               </View>
             </View>
 
-            <View style={[styles.card, { backgroundColor: cardColor, borderColor, padding: 20 }]}>
+            <View className="p-5 rounded-lg border" style={{ backgroundColor: cardColor, borderColor }}>
               <ThemedText type="defaultSemiBold" style={{ color: primaryColor }}>
                 IF: {selectedAction.name}
               </ThemedText>
@@ -270,7 +264,7 @@ export default function CreateAreaScreen() {
               />
             </View>
 
-            <View style={[styles.card, { backgroundColor: cardColor, borderColor, padding: 20 }]}>
+            <View className="p-5 rounded-lg border" style={{ backgroundColor: cardColor, borderColor }}>
               <ThemedText type="defaultSemiBold" style={{ color: primaryColor }}>
                 THEN: {selectedReaction.name}
               </ThemedText>
@@ -288,24 +282,3 @@ export default function CreateAreaScreen() {
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 60 },
-  header: {
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10
-  },
-  scroll: { padding: 20, paddingBottom: 50 },
-  stepTitle: { marginBottom: 15 },
-  card: {
-    padding: 16,
-    borderRadius: Layout.radius,
-    borderWidth: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between"
-  }
-});
