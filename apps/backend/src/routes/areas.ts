@@ -3,6 +3,7 @@ import { authMiddleware } from "../middlewares/better-auth"
 import { prisma } from "../database/prisma"
 import { serviceRegistry } from "../services/registry"
 import {
+  AreaDeletedResponse,
   AreaErrorResponse,
   AreaResponse,
   AreasListResponse,
@@ -518,6 +519,57 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
         tags: ["Areas"],
         summary: "Update an AREA",
         description: "Updates an existing automation area"
+      }
+    }
+  )
+  .delete(
+    "/:id",
+    async ({ params, user, set }) => {
+      try {
+        const area = await prisma.area.findFirst({
+          where: {
+            id: params.id,
+            userId: user.id
+          }
+        })
+        if (!area) {
+          set.status = 404
+          return {
+            error: "Not Found",
+            message: "AREA not found",
+            statusCode: 404
+          }
+        }
+        await prisma.area.delete({
+          where: { id: params.id }
+        })
+        return {
+          message: "AREA deleted successfully",
+          enabled: false
+        }
+      } catch (error) {
+        set.status = 500
+        return {
+          error: "Internal Server Error",
+          message: "Failed to delete AREA",
+          statusCode: 500
+        }
+      }
+    },
+    {
+      auth: true,
+      params: t.Object({
+        id: t.String()
+      }),
+      response: {
+        200: AreaDeletedResponse,
+        404: AreaErrorResponse,
+        500: AreaErrorResponse
+      },
+      detail: {
+        tags: ["Areas"],
+        summary: "Delete an AREA",
+        description: "Permanently deletes an automation area"
       }
     }
   )
