@@ -44,40 +44,24 @@ export const createIssueReaction: IReaction = {
   
   async execute(params, context: IContext): Promise<void> {
     const { owner, repo, title, body, labels, assignees } = params
-    const { tokens, actionData } = context
+    const { tokens } = context
+
     if (!tokens?.accessToken) {
       throw new Error("GitHub access token not found")
     }
-    let processedTitle = title
-    let processedBody = body || ""
-    if (actionData) {
-      const replacements: Record<string, any> = {
-        '{{title}}': actionData.title,
-        '{{author}}': actionData.author,
-        '{{url}}': actionData.url,
-        '{{issueNumber}}': actionData.issueNumber,
-        '{{body}}': actionData.body,
-        '{{repoName}}': actionData.repoName,
-        '{{newStars}}': actionData.newStars,
-        '{{currentCount}}': actionData.currentCount
-      }
-      for (const [placeholder, value] of Object.entries(replacements)) {
-        if (value !== undefined) {
-          processedTitle = processedTitle.replace(new RegExp(placeholder, 'g'), String(value))
-          processedBody = processedBody.replace(new RegExp(placeholder, 'g'), String(value))
-        }
-      }
-    }
+
     const issueData: any = {
-      title: processedTitle,
-      body: processedBody
+      title: title,
+      body: body || ""
     }
+
     if (labels) {
       issueData.labels = labels.split(',').map((l: string) => l.trim()).filter(Boolean)
     }
     if (assignees) {
       issueData.assignees = assignees.split(',').map((a: string) => a.trim()).filter(Boolean)
     }
+
     try {
       const response = await fetch(
         `https://api.github.com/repos/${owner}/${repo}/issues`,
@@ -92,10 +76,12 @@ export const createIssueReaction: IReaction = {
           body: JSON.stringify(issueData)
         }
       )
+
       if (!response.ok) {
         const error = await response.json() as { message?: string }
         throw new Error(`Failed to create issue: ${error.message || response.statusText}`)
       }
+
       const createdIssue = await response.json() as { html_url: string }
       console.log(`✓ Issue created: ${createdIssue.html_url}`)
     } catch (error) {
