@@ -179,6 +179,9 @@ export default function CreateAreaScreen() {
   const actionServices = services.filter((s) => s.actions && s.actions.length > 0);
   const reactionServices = services.filter((s) => s.reactions && s.reactions.length > 0);
 
+  // Dynamic variable generation based on backend data
+  const availableVariables = selectedAction?.variables?.map((v: any) => `{{${v.name}}}`) || [];
+
   return (
     <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
       <View className="px-5 flex-row justify-between items-center mb-2.5">
@@ -188,7 +191,7 @@ export default function CreateAreaScreen() {
         )}
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 50 }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 50 }} keyboardShouldPersistTaps="handled">
         {step === "SELECT_ACTION_SERVICE" && (
           <>
             <ThemedText type="subtitle" className="mb-4">
@@ -274,6 +277,7 @@ export default function CreateAreaScreen() {
                 params={selectedReaction.params}
                 values={reactionParams}
                 onChange={(k, v) => setReactionParams((prev) => ({ ...prev, [k]: v }))}
+                availableVariables={availableVariables}
               />
             </View>
 

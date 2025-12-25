@@ -182,7 +182,7 @@ export default function ServicesScreen() {
                   </View>
                 </View>
 
-                <View className="w-28">
+                <View className="w-32">
                   {isConnected ? (
                     <Button
                       title={isActing ? "..." : "Disconnect"}
