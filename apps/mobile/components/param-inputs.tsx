@@ -5,11 +5,16 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+interface Variable {
+  name: string;
+  description: string;
+}
+
 interface ParamInputsProps {
   params: Record<string, any>;
   values: Record<string, any>;
   onChange: (key: string, value: any) => void;
-  availableVariables?: string[];
+  availableVariables?: Variable[];
 }
 
 export function ParamInputs({ params, values, onChange, availableVariables }: ParamInputsProps) {
@@ -37,17 +42,18 @@ export function ParamInputs({ params, values, onChange, availableVariables }: Pa
     setModalVisible(true);
   };
 
-  const insertVariable = (variable: string) => {
+  const insertVariable = (variableName: string) => {
+    const token = `{{${variableName}}}`;
     if (targetField) {
       const currentValue = values[targetField] || "";
       // Default to end of string if no selection recorded
       const cursor = selectionMap[targetField] ?? currentValue.length;
 
-      const newValue = currentValue.slice(0, cursor) + variable + currentValue.slice(cursor);
+      const newValue = currentValue.slice(0, cursor) + token + currentValue.slice(cursor);
       onChange(targetField, newValue);
 
       // Advance predicted cursor position
-      setSelectionMap((prev) => ({ ...prev, [targetField]: cursor + variable.length }));
+      setSelectionMap((prev) => ({ ...prev, [targetField]: cursor + token.length }));
     }
     setModalVisible(false);
   };
@@ -133,20 +139,22 @@ export function ParamInputs({ params, values, onChange, availableVariables }: Pa
             {/* Variable List */}
             <FlatList
               data={availableVariables}
-              keyExtractor={(item) => item}
+              keyExtractor={(item) => item.name}
               contentContainerStyle={{ padding: 16, paddingBottom: 30 }}
               ItemSeparatorComponent={() => <View className="h-2" />}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  onPress={() => insertVariable(item)}
+                  onPress={() => insertVariable(item.name)}
                   className="flex-row items-center p-4 rounded-xl border border-gray-100 dark:border-zinc-700 bg-white dark:bg-zinc-800 active:bg-gray-50 dark:active:bg-zinc-700"
                 >
                   <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3">
                     <ThemedText className="text-primary font-bold text-sm">{"{ }"}</ThemedText>
                   </View>
-                  <View className="flex-1">
-                    <ThemedText type="defaultSemiBold">{item}</ThemedText>
-                    {/* If you wanted to parse description from the string, you'd need the object map here */}
+                  <View className="flex-1 gap-0.5">
+                    <ThemedText type="defaultSemiBold">{`{{${item.name}}}`}</ThemedText>
+                    <ThemedText className="text-xs text-gray-500 dark:text-gray-400" numberOfLines={2}>
+                      {item.description}
+                    </ThemedText>
                   </View>
                   <IconSymbol name="plus.circle.fill" size={20} color={primaryColor} />
                 </TouchableOpacity>

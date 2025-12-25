@@ -179,8 +179,8 @@ export default function CreateAreaScreen() {
   const actionServices = services.filter((s) => s.actions && s.actions.length > 0);
   const reactionServices = services.filter((s) => s.reactions && s.reactions.length > 0);
 
-  // Dynamic variable generation based on backend data
-  const availableVariables = selectedAction?.variables?.map((v: any) => `{{${v.name}}}`) || [];
+  // Pass variables directly without pre-formatting as strings
+  const availableVariables = selectedAction?.variables || [];
 
   return (
     <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
