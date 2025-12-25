@@ -6,9 +6,11 @@ import { authClient } from "@/lib/auth";
 import { useRouter } from "expo-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/ctx";
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { signIn } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -22,7 +24,8 @@ export default function RegisterScreen() {
       if (error) {
         Alert.alert("Registration Failed", error.message);
       } else {
-        Alert.alert("Success", "Account created!", [{ text: "Login", onPress: () => router.replace("/(auth)/login") }]);
+        await signIn();
+        router.replace("/(tabs)");
       }
     } catch (err: any) {
       Alert.alert("Error", err.message);

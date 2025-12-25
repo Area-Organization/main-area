@@ -17,7 +17,7 @@ export function ThemedText({
   const getBaseClass = () => {
     switch (type) {
       case "title":
-        return "text-4xl font-bold leading-8";
+        return "text-4xl font-bold leading-tight";
       case "defaultSemiBold":
         return "text-base leading-6 font-semibold";
       case "subtitle":
