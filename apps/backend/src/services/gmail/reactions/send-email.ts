@@ -29,7 +29,12 @@ export const sendEmailReaction: IReaction = {
       description: "Reply-to email address (optional)"
     }
   },
-  
+
+  /**
+   * Note: All params (`to`, `subject`, `body`, `replyTo`) are pre-interpolated
+   * by the HookManager before this function executes. Any template variables
+   * like `{{variableName}}` have already been resolved by that point.
+   */
   async execute(params, context: IContext): Promise<void> {
     const { to, subject, body, replyTo } = params
     const { tokens } = context

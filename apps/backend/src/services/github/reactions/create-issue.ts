@@ -41,7 +41,12 @@ export const createIssueReaction: IReaction = {
       description: "Comma-separated list of GitHub usernames to assign"
     }
   },
-  
+
+  /**
+   * Note: `params` are pre-interpolated by the HookManager.
+   * Any template variables like `{{variableName}}` have already
+   * been resolved before this function executes.
+   */
   async execute(params, context: IContext): Promise<void> {
     const { owner, repo, title, body, labels, assignees } = params
     const { tokens } = context
