@@ -4,33 +4,34 @@
 
 @layer base {
   :root {
-    --background: #FFFFFF;
-    --foreground: #09090B;
-    --card: #FFFFFF;
-    --card-foreground: #09090B;
-    --primary: #7C3AED;
-    --primary-foreground: #FFFFFF;
-    --muted: #F4F4F5;
-    --muted-foreground: #71717A;
-    --destructive: #EF4444;
-    --destructive-foreground: #FFFFFF;
-    --border: #E4E4E7;
-    --input: #E4E4E7;
+    /* Deep Violet & Slate Premium Palette */
+    --background: #0f172a; /* Slate 900 */
+    --foreground: #f8fafc; /* Slate 50 */
+
+    --card: rgba(30, 41, 59, 0.9); /* Slate 800 with 90% opacity */
+    --card-foreground: #f8fafc;
+
+    --primary: #8b5cf6; /* Violet 500 */
+    --primary-glow: #7c3aed; /* Violet 600 */
+    --primary-foreground: #ffffff;
+
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    --border: rgba(255, 255, 255, 0.1);
+    --input: #1e293b;
     --radius: 16px;
   }
+}
 
-  .dark {
-    --background: #09090B;
-    --foreground: #FAFAFA;
-    --card: #18181B;
-    --card-foreground: #FAFAFA;
-    --primary: #8B5CF6;
-    --primary-foreground: #FFFFFF;
-    --muted: #27272A;
-    --muted-foreground: #A1A1AA;
-    --destructive: #7F1D1D;
-    --destructive-foreground: #FFFFFF;
-    --border: #27272A;
-    --input: #27272A;
+@layer utilities {
+  .glass {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
   }
 }
