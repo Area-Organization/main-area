@@ -1,15 +1,329 @@
 import React, { useCallback, useState } from "react";
-import { View, RefreshControl, Alert, ScrollView, Switch } from "react-native";
+import { View, RefreshControl, Alert, ScrollView, Pressable, Text, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useSession } from "@/ctx";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Button } from "@/components/ui/button";
 import { useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import type { AreaType, AreaStatsResponseType } from "@area/types";
+import * as Haptics from "expo-haptics";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  interpolate,
+  interpolateColor,
+  FadeInDown,
+  Extrapolation,
+  FadeInRight
+} from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import { MaterialIcons } from "@expo/vector-icons";
 
+// --- Constants & Types ---
+const BUTTON_WIDTH = 80;
+
+// --- 1. Custom Switch Component ---
+interface CustomSwitchProps {
+  value: boolean;
+  onValueChange: (val: boolean) => void;
+  primaryColor: string;
+}
+
+function CustomSwitch({ value, onValueChange, primaryColor }: CustomSwitchProps) {
+  const offset = useSharedValue(value ? 22 : 2);
+
+  const toggleSwitch = () => {
+    scheduleOnRN(Haptics.impactAsync, Haptics.ImpactFeedbackStyle.Medium);
+    onValueChange(!value);
+  };
+
+  React.useEffect(() => {
+    offset.value = withSpring(value ? 22 : 2, {
+      mass: 0.8,
+      damping: 15,
+      stiffness: 120
+    });
+  }, [value]);
+
+  const trackStyle = useAnimatedStyle(() => {
+    const backgroundColor = interpolateColor(
+      offset.value,
+      [2, 22],
+      ["#3f3f46", primaryColor] // zinc-700 to primary
+    );
+
+    const shadowOpacity = interpolate(offset.value, [2, 22], [0, 0.4]);
+
+    return {
+      backgroundColor,
+      shadowColor: primaryColor,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity,
+      shadowRadius: 8,
+      elevation: value ? 5 : 0
+    };
+  });
+
+  const knobStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: offset.value }]
+  }));
+
+  return (
+    <Pressable onPress={toggleSwitch} hitSlop={10}>
+      <Animated.View
+        style={[
+          {
+            width: 50,
+            height: 30,
+            borderRadius: 15,
+            justifyContent: "center"
+          },
+          trackStyle
+        ]}
+      >
+        <Animated.View
+          style={[
+            {
+              width: 26,
+              height: 26,
+              borderRadius: 13,
+              backgroundColor: "white",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 2.5,
+              elevation: 2
+            },
+            knobStyle
+          ]}
+        />
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+// --- 2. Automation Card Component ---
+interface AutomationCardProps {
+  item: AreaType;
+  index: number;
+  onDelete: (id: string) => void;
+  onToggle: (id: string, current: boolean) => void;
+  onEdit: (id: string) => void;
+  primaryColor: string;
+}
+
+function AutomationCard({ item, index, onDelete, onToggle, onEdit, primaryColor }: AutomationCardProps) {
+  const translateX = useSharedValue(0);
+  const context = useSharedValue(0);
+  const isSwiping = useSharedValue(false);
+
+  const getServiceInitial = (name?: string) => (name ? name[0].toUpperCase() : "?");
+
+  const pan = Gesture.Pan()
+    .activeOffsetX([-20, 20]) // Prevent interference with vertical scroll
+    .onStart(() => {
+      context.value = translateX.value;
+      isSwiping.value = true;
+      scheduleOnRN(Haptics.selectionAsync);
+    })
+    .onUpdate((event) => {
+      translateX.value = event.translationX + context.value;
+    })
+    .onEnd(() => {
+      isSwiping.value = false;
+      if (translateX.value > BUTTON_WIDTH / 2) {
+        // Swipe Right -> Snap to Open Edit
+        translateX.value = withSpring(BUTTON_WIDTH, { velocity: 10, overshootClamping: true });
+      } else if (translateX.value < -BUTTON_WIDTH / 2) {
+        // Swipe Left -> Snap to Open Delete
+        translateX.value = withSpring(-BUTTON_WIDTH, { velocity: 10, overshootClamping: true });
+      } else {
+        // Return to center
+        translateX.value = withSpring(0);
+      }
+    });
+
+  const rStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }]
+  }));
+
+  const leftActionStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateX.value, [0, BUTTON_WIDTH], [0, 1], Extrapolation.CLAMP),
+    transform: [{ scale: interpolate(translateX.value, [0, BUTTON_WIDTH], [0.8, 1], Extrapolation.CLAMP) }],
+    zIndex: -1
+  }));
+
+  const rightActionStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateX.value, [-BUTTON_WIDTH, 0], [1, 0], Extrapolation.CLAMP),
+    transform: [{ scale: interpolate(translateX.value, [-BUTTON_WIDTH, 0], [1, 0.8], Extrapolation.CLAMP) }],
+    zIndex: -1
+  }));
+
+  const handleEditPress = () => {
+    scheduleOnRN(onEdit, item.id);
+    translateX.value = withSpring(0);
+  };
+
+  const handleDeletePress = () => {
+    scheduleOnRN(onDelete, item.id);
+    translateX.value = withSpring(0);
+  };
+
+  const cardBackgroundColor = useThemeColor({}, "card");
+  const borderColor = useThemeColor({}, "border");
+
+  return (
+    <Animated.View entering={FadeInDown.delay(index * 100).springify()} className="mb-4 relative">
+      {/* Background Layer for Actions */}
+      <View style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: "hidden", flexDirection: "row" }]}>
+        {/* Edit Action (Left side, Blue) */}
+        <Animated.View
+          style={[
+            { width: BUTTON_WIDTH, backgroundColor: "#3b82f6", justifyContent: "center", alignItems: "center" },
+            leftActionStyle
+          ]}
+        >
+          <Pressable
+            onPress={handleEditPress}
+            style={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}
+          >
+            <MaterialIcons name="edit" size={24} color="white" />
+            <Text style={{ color: "white", fontSize: 10, fontWeight: "bold", marginTop: 4 }}>EDIT</Text>
+          </Pressable>
+        </Animated.View>
+
+        <View style={{ flex: 1 }} />
+
+        {/* Delete Action (Right side, Red) */}
+        <Animated.View
+          style={[
+            { width: BUTTON_WIDTH, backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center" },
+            rightActionStyle
+          ]}
+        >
+          <Pressable
+            onPress={handleDeletePress}
+            style={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}
+          >
+            <MaterialIcons name="delete" size={24} color="white" />
+            <Text style={{ color: "white", fontSize: 10, fontWeight: "bold", marginTop: 4 }}>DELETE</Text>
+          </Pressable>
+        </Animated.View>
+      </View>
+
+      <GestureHandlerRootView>
+        <GestureDetector gesture={pan}>
+          <Animated.View
+            style={[
+              rStyle,
+              {
+                backgroundColor: cardBackgroundColor,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: borderColor,
+                padding: 16,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 5,
+                elevation: 2
+              }
+            ]}
+          >
+            <View className="flex-row justify-between mb-3">
+              <View className="flex-row items-center gap-2">
+                <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10">
+                  <ThemedText className="font-bold text-primary">
+                    {getServiceInitial(item.action?.serviceName)}
+                  </ThemedText>
+                </View>
+                <MaterialIcons name="chevron-right" size={16} color="#999" />
+                <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10">
+                  <ThemedText className="font-bold text-primary">
+                    {getServiceInitial(item.reaction?.serviceName)}
+                  </ThemedText>
+                </View>
+              </View>
+
+              <CustomSwitch
+                value={item.enabled}
+                onValueChange={(val) => onToggle(item.id, item.enabled)}
+                primaryColor={primaryColor}
+              />
+            </View>
+
+            <ThemedText type="defaultSemiBold" className="text-lg">
+              {item.name || "Untitled Area"}
+            </ThemedText>
+            {item.description ? (
+              <ThemedText className="text-sm opacity-60 mt-1" numberOfLines={1}>
+                {item.description}
+              </ThemedText>
+            ) : null}
+
+            <View className="h-[1px] bg-border my-3 opacity-50" />
+
+            <View className="gap-1">
+              <ThemedText className="text-sm opacity-80" numberOfLines={1}>
+                <ThemedText className="font-bold text-primary">IF </ThemedText>
+                {item.action?.actionName}
+              </ThemedText>
+              <ThemedText className="text-sm opacity-80" numberOfLines={1}>
+                <ThemedText className="font-bold text-primary">THEN </ThemedText>
+                {item.reaction?.reactionName}
+              </ThemedText>
+            </View>
+          </Animated.View>
+        </GestureDetector>
+      </GestureHandlerRootView>
+    </Animated.View>
+  );
+}
+
+// --- 3. Glass Stat Card Component ---
+function GlassStatCard({
+  value,
+  label,
+  subLabel,
+  delay = 0,
+  color
+}: {
+  value: number | string;
+  label?: string;
+  subLabel: string;
+  delay?: number;
+  color: string;
+}) {
+  const isDark = useThemeColor({}, "background") === "#09090B"; // Simple check
+
+  return (
+    <Animated.View
+      entering={FadeInRight.delay(delay).springify().damping(12)}
+      style={{
+        backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.03)",
+        borderWidth: 1,
+        borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+        borderRadius: 20,
+        padding: 16,
+        minWidth: 120,
+        marginRight: 10,
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      <ThemedText type="title" style={{ color: color, fontSize: 26, marginBottom: 2 }}>
+        {value}
+      </ThemedText>
+      <ThemedText className="text-xs opacity-60 font-bold uppercase tracking-wider">{subLabel}</ThemedText>
+    </Animated.View>
+  );
+}
+
+// --- Main Home Screen ---
 export default function HomeScreen() {
   const { client, signOut, user } = useSession();
   const [areas, setAreas] = useState<AreaType[]>([]);
@@ -17,14 +331,12 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const insets = useSafeAreaInsets();
 
-  const cardBackgroundColor = useThemeColor({}, "card");
-  const borderColor = useThemeColor({}, "border");
   const primaryColor = useThemeColor({}, "primary");
+  const borderColor = useThemeColor({}, "border");
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Parallel fetch for speed
       const [areasReq, statsReq] = await Promise.all([client.api.areas.get(), client.api.areas.stats.overview.get()]);
 
       if (areasReq.data) {
@@ -47,19 +359,16 @@ export default function HomeScreen() {
   );
 
   const handleToggle = async (id: string, currentStatus: boolean) => {
-    // Optimistic UI Update
+    // Optimistic UI
     setAreas((prev) => prev.map((a) => (a.id === id ? { ...a, enabled: !currentStatus } : a)));
 
     try {
       const { error } = await client.api.areas({ id }).toggle.post();
-      if (error) {
-        throw new Error("Failed to toggle");
-      }
-      // Refresh stats to update "Active" count
+      if (error) throw new Error("Failed to toggle");
+
       const statsReq = await client.api.areas.stats.overview.get();
       if (statsReq.data) setStats(statsReq.data);
     } catch (e) {
-      // Revert on failure
       setAreas((prev) => prev.map((a) => (a.id === id ? { ...a, enabled: currentStatus } : a)));
       Alert.alert("Error", "Failed to update area status");
     }
@@ -83,14 +392,17 @@ export default function HomeScreen() {
     ]);
   };
 
-  const getServiceInitial = (serviceName?: string) => {
-    return serviceName ? serviceName[0].toUpperCase() : "?";
+  const handleEdit = (id: string) => {
+    // Navigate to create screen with params or specific edit screen
+    // For now, we'll just alert as the edit route wasn't explicitly provided,
+    // but ideally: router.push(`/(tabs)/create?editId=${id}`);
+    Alert.alert("Edit", "Edit functionality coming soon!");
   };
 
   return (
     <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
       {/* Header */}
-      <View className="px-5 pb-5 flex-row justify-between items-center">
+      <View className="px-5 pb-5 flex-row justify-between items-center z-10">
         <View>
           <ThemedText type="subtitle" className="text-primary">
             Welcome back,
@@ -101,121 +413,54 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Stats Section */}
+        {/* Horizontal Stats Section */}
         {stats && (
-          <View className="flex-row gap-3 mb-6">
-            <View
-              className="flex-1 p-4 rounded-2xl border items-center"
-              style={{ backgroundColor: cardBackgroundColor, borderColor }}
+          <View className="mb-6">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 20 }}
             >
-              <ThemedText type="title" style={{ color: primaryColor }}>
-                {stats.activeAreas}
-              </ThemedText>
-              <ThemedText className="text-xs opacity-60">Active</ThemedText>
-            </View>
-            <View
-              className="flex-1 p-4 rounded-2xl border items-center"
-              style={{ backgroundColor: cardBackgroundColor, borderColor }}
-            >
-              <ThemedText type="title" style={{ color: primaryColor }}>
-                {stats.totalTriggers}
-              </ThemedText>
-              <ThemedText className="text-xs opacity-60">Triggers</ThemedText>
-            </View>
-            <View
-              className="flex-1 p-4 rounded-2xl border items-center"
-              style={{ backgroundColor: cardBackgroundColor, borderColor }}
-            >
-              <ThemedText type="title" style={{ color: primaryColor }}>
-                {stats.totalAreas}
-              </ThemedText>
-              <ThemedText className="text-xs opacity-60">Total</ThemedText>
-            </View>
+              <GlassStatCard value={stats.activeAreas} subLabel="Active" color="#10b981" delay={0} />
+              <GlassStatCard value={stats.totalTriggers} subLabel="Triggers" color={primaryColor} delay={100} />
+              <GlassStatCard value={stats.totalAreas} subLabel="Total" color="#f59e0b" delay={200} />
+            </ScrollView>
           </View>
         )}
 
-        <View className="flex-row justify-between items-baseline mb-4">
-          <ThemedText type="subtitle">My Automations</ThemedText>
+        {/* List Section */}
+        <View className="px-5">
+          <ThemedText type="subtitle" className="mb-4">
+            My Automations
+          </ThemedText>
+
+          {areas.length === 0 && !loading ? (
+            <Animated.View
+              entering={FadeInDown.duration(600)}
+              className="p-10 rounded-3xl border border-dashed items-center justify-center"
+              style={{ borderColor: borderColor, backgroundColor: "rgba(150,150,150,0.05)" }}
+            >
+              <MaterialIcons name="add-circle-outline" size={48} color={primaryColor} />
+              <ThemedText className="mt-4 text-center opacity-60">You haven&apos;t created any AREAs yet.</ThemedText>
+            </Animated.View>
+          ) : (
+            areas.map((area, index) => (
+              <AutomationCard
+                key={area.id}
+                item={area}
+                index={index}
+                onDelete={handleDelete}
+                onToggle={handleToggle}
+                onEdit={handleEdit}
+                primaryColor={primaryColor}
+              />
+            ))
+          )}
         </View>
-
-        {areas.length === 0 && !loading ? (
-          <View
-            className="p-10 rounded-2xl border border-dashed items-center justify-center"
-            style={{ borderColor, backgroundColor: cardBackgroundColor }}
-          >
-            <IconSymbol name="plus.circle.fill" size={48} color={primaryColor} />
-            <ThemedText className="mt-2.5 text-center">You haven&apos;t created any AREAs yet.</ThemedText>
-          </View>
-        ) : (
-          <View className="gap-4">
-            {areas.map((area) => {
-              const actionService = area.action?.serviceName;
-              const reactionService = area.reaction?.serviceName;
-              const isEnabled = area.enabled;
-
-              return (
-                <View
-                  key={area.id}
-                  className="p-4 rounded-2xl border shadow-sm"
-                  style={{
-                    backgroundColor: cardBackgroundColor,
-                    borderColor,
-                    opacity: isEnabled ? 1 : 0.6
-                  }}
-                >
-                  <View className="flex-row justify-between mb-3">
-                    <View className="flex-row items-center gap-2">
-                      <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/20">
-                        <ThemedText className="font-bold text-primary">{getServiceInitial(actionService)}</ThemedText>
-                      </View>
-                      <IconSymbol name="chevron.right" size={16} color="#999" />
-                      <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/20">
-                        <ThemedText className="font-bold text-primary">{getServiceInitial(reactionService)}</ThemedText>
-                      </View>
-                    </View>
-
-                    <Switch
-                      value={isEnabled}
-                      onValueChange={() => handleToggle(area.id, isEnabled)}
-                      trackColor={{ true: primaryColor, false: "#767577" }}
-                    />
-                  </View>
-
-                  <ThemedText type="defaultSemiBold" className="text-lg">
-                    {area.name || "Untitled Area"}
-                  </ThemedText>
-                  {area.description ? (
-                    <ThemedText className="text-sm text-[#888] mt-1">{area.description}</ThemedText>
-                  ) : null}
-
-                  <View className="h-[1px] bg-[#eee] my-3" />
-
-                  <View className="flex-row justify-between items-end">
-                    <View className="gap-1 flex-1">
-                      <ThemedText className="text-sm opacity-80" numberOfLines={1}>
-                        <ThemedText className="font-bold">IF </ThemedText>
-                        {area.action?.actionName}
-                      </ThemedText>
-                      <ThemedText className="text-sm opacity-80" numberOfLines={1}>
-                        <ThemedText className="font-bold">THEN </ThemedText>
-                        {area.reaction?.reactionName}
-                      </ThemedText>
-                    </View>
-                    <Button
-                      title="Delete"
-                      variant="destructive"
-                      onPress={() => handleDelete(area.id)}
-                      className="h-8 px-3 rounded-lg ml-2"
-                    />
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
       </ScrollView>
     </ThemedView>
   );
