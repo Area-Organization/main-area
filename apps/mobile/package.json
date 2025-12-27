@@ -3,7 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "bun --env-file=../../.env expo start --tunnel",
+    "start": "bun --env-file=../../.env expo start --tunnel --port 8082",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "bun --env-file=../../.env expo start --android",
     "ios": "bun --env-file=../../.env expo start --ios",
