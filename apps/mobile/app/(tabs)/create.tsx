@@ -362,7 +362,30 @@ export default function CreateAreaWizard() {
     setSubStep("CONFIG");
   };
 
+  const validateStep = () => {
+    if (subStep !== "CONFIG") return true;
+
+    const item = wizardStep === 1 ? selectedAction : selectedReaction;
+    const params = wizardStep === 1 ? actionParams : reactionParams;
+
+    if (!item || !item.params) return true;
+
+    for (const [key, config] of Object.entries(item.params as Record<string, any>)) {
+      if (config.required) {
+        const value = params[key];
+        const isEmptyString = typeof value === "string" && value.trim().length === 0;
+        if (value === undefined || value === null || isEmptyString) {
+          Alert.alert("Missing Input", `The "${config.label || key}" field is required.`);
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
   const goNextStep = () => {
+    if (!validateStep()) return;
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (wizardStep === 1) {
       setWizardStep(2);
