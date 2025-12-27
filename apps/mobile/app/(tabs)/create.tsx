@@ -466,6 +466,19 @@ export default function CreateAreaWizard() {
 
   const renderServiceGrid = (servicesList: Service[], type: "action" | "reaction") => (
     <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1">
+      {wizardStep > 1 && (
+        <View className="px-5 py-2 flex-row items-center gap-2">
+          <TouchableOpacity onPress={goBackSubStep}>
+            <IconSymbol
+              name="chevron.right"
+              size={24}
+              color={mutedColor}
+              style={{ transform: [{ rotate: "180deg" }] }}
+            />
+          </TouchableOpacity>
+          <ThemedText type="subtitle">{type === "reaction" ? "Select Reaction Service" : "Select Service"}</ThemedText>
+        </View>
+      )}
       <ScrollView contentContainerStyle={{ padding: 20, flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
         {servicesList.length === 0 ? (
           <ThemedText className="opacity-60 mt-10 w-full text-center">No matching services found.</ThemedText>
