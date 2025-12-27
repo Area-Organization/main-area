@@ -1,5 +1,14 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { ScrollView, TouchableOpacity, View, Alert, ActivityIndicator, Dimensions, StyleSheet } from "react-native";
+import {
+  ScrollView,
+  TouchableOpacity,
+  View,
+  Alert,
+  ActivityIndicator,
+  Dimensions,
+  StyleSheet,
+  BackHandler
+} from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useServices, Service } from "@/hooks/use-services";
@@ -396,6 +405,10 @@ export default function CreateAreaWizard() {
   };
 
   const goBackSubStep = () => {
+    if (wizardStep === 3) {
+      setWizardStep(2);
+      return;
+    }
     if (subStep === "CONFIG") setSubStep("EVENT");
     else if (subStep === "EVENT") {
       setSubStep("SERVICE");
@@ -408,6 +421,23 @@ export default function CreateAreaWizard() {
       }
     }
   };
+
+  // Handle hardware back button on Android
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        // If we are deeper than the start, handle internally
+        if (wizardStep > 1 || subStep !== "SERVICE") {
+          goBackSubStep();
+          return true; // prevent default behavior
+        }
+        return false; // let default behavior happen (go back/exit)
+      };
+
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () => subscription.remove();
+    }, [wizardStep, subStep])
+  );
 
   // --- Final Submit Logic ---
   const handleCreate = async () => {
@@ -635,7 +665,7 @@ export default function CreateAreaWizard() {
             setAreaDescription={setAreaDescription}
             submitting={submitting}
             handleCreate={handleCreate}
-            onBack={() => setWizardStep(2)}
+            onBack={goBackSubStep}
             pulseProgress={pulseProgress}
           />
         )}
