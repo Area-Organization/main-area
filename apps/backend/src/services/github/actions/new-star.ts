@@ -17,6 +17,13 @@ export const newStarAction: IAction = {
       description: "Name of the repository to monitor"
     }
   },
+  variables: [
+    { name: "previousCount", description: "Star count before trigger" },
+    { name: "currentCount", description: "Current star count" },
+    { name: "newStars", description: "Number of new stars gained" },
+    { name: "repoName", description: "Full repository name" },
+    { name: "repoUrl", description: "Link to the repository" }
+  ],
   
   async check(params, context: IContext): Promise<boolean> {
     const { owner, repo } = params
