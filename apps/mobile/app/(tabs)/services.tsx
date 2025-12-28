@@ -11,6 +11,8 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useToast } from "@/components/ui/toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // We use the inferred type from the API response for connections
 type Connection = {
@@ -26,6 +28,7 @@ export default function ServicesScreen() {
   const [loadingConnections, setLoadingConnections] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  const toast = useToast();
   const insets = useSafeAreaInsets();
   const cardColor = useThemeColor({}, "card");
   const borderColor = useThemeColor({}, "border");
@@ -61,7 +64,7 @@ export default function ServicesScreen() {
       });
 
       if (error) {
-        Alert.alert("Error", String(error.value));
+        toast.error(String(error.value));
         return;
       }
       if (!data) return;
@@ -72,14 +75,14 @@ export default function ServicesScreen() {
         const url = new URL(result.url);
         const status = url.searchParams.get("status");
         if (status === "success") {
-          Alert.alert("Success", `Connected to ${serviceName}`);
+          toast.success(`Connected to ${serviceName}`);
           fetchData(); // Refresh list to show "Disconnect" button
         } else {
-          Alert.alert("Failed", "Connection not established");
+          toast.error("Connection not established");
         }
       }
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(null);
     }
@@ -98,18 +101,16 @@ export default function ServicesScreen() {
 
             if (error) {
               if (error.status === 409) {
-                Alert.alert(
-                  "Cannot Disconnect",
-                  "This service is currently used by one or more of your AREAs. Please delete those AREAs first."
-                );
+                toast.error("Service is in use by active AREAs. Delete them first.");
               } else {
-                Alert.alert("Error", "Failed to disconnect service.");
+                toast.error("Failed to disconnect service.");
               }
             } else {
+              toast.success(`${serviceName} disconnected`);
               fetchData(); // Refresh list to show "Connect" button
             }
           } catch (e) {
-            Alert.alert("Error", "An unexpected error occurred.");
+            toast.error("An unexpected error occurred.");
           } finally {
             setActionLoading(null);
           }
@@ -119,6 +120,39 @@ export default function ServicesScreen() {
   };
 
   const isLoading = loadingServices || loadingConnections;
+
+  if (isLoading && services.length === 0) {
+    return (
+      <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
+        <View className="px-5 mb-2">
+          <ThemedText type="title">Services</ThemedText>
+          <ThemedText className="opacity-60 text-sm">Connect your accounts to enable automations.</ThemedText>
+        </View>
+        <View className="p-5 gap-4">
+          {/* Skeleton Loading State */}
+          {[1, 2, 3].map((i) => (
+            <View key={i} className="p-5 rounded-2xl border" style={{ backgroundColor: cardColor, borderColor }}>
+              <View className="flex-row justify-between items-start mb-3">
+                <View className="flex-1 mr-4 gap-2">
+                  <Skeleton width={120} height={24} />
+                  <Skeleton width="90%" height={16} />
+                </View>
+                <Skeleton width={40} height={40} borderRadius={12} />
+              </View>
+              <View className="h-[1px] bg-border opacity-50 my-3" />
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row gap-3">
+                  <Skeleton width={60} height={16} />
+                  <Skeleton width={60} height={16} />
+                </View>
+                <Skeleton width={100} height={36} borderRadius={12} />
+              </View>
+            </View>
+          ))}
+        </View>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>

@@ -22,6 +22,7 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useToast } from "@/components/ui/toast";
 
 // --- Constants & Types ---
 const BUTTON_WIDTH = 80;
@@ -330,6 +331,7 @@ export default function HomeScreen() {
   const [stats, setStats] = useState<AreaStatsResponseType | null>(null);
   const [loading, setLoading] = useState(false);
   const insets = useSafeAreaInsets();
+  const toast = useToast();
 
   const primaryColor = useThemeColor({}, "primary");
   const borderColor = useThemeColor({}, "border");
@@ -370,7 +372,7 @@ export default function HomeScreen() {
       if (statsReq.data) setStats(statsReq.data);
     } catch (e) {
       setAreas((prev) => prev.map((a) => (a.id === id ? { ...a, enabled: currentStatus } : a)));
-      Alert.alert("Error", "Failed to update area status");
+      toast.error("Failed to update status");
     }
   };
 
@@ -383,9 +385,10 @@ export default function HomeScreen() {
         onPress: async () => {
           try {
             await client.api.areas({ id }).delete();
+            toast.success("Area deleted");
             fetchData();
           } catch (e) {
-            Alert.alert("Error", "Failed to delete area");
+            toast.error("Failed to delete area");
           }
         }
       }
@@ -393,10 +396,7 @@ export default function HomeScreen() {
   };
 
   const handleEdit = (id: string) => {
-    // Navigate to create screen with params or specific edit screen
-    // For now, we'll just alert as the edit route wasn't explicitly provided,
-    // but ideally: router.push(`/(tabs)/create?editId=${id}`);
-    Alert.alert("Edit", "Edit functionality coming soon!");
+    toast.success("Edit coming soon!");
   };
 
   return (

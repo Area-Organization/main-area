@@ -3,7 +3,6 @@ import {
   ScrollView,
   TouchableOpacity,
   View,
-  Alert,
   ActivityIndicator,
   Dimensions,
   StyleSheet,
@@ -38,6 +37,7 @@ import Animated, {
 } from "react-native-reanimated";
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 import * as Haptics from "expo-haptics";
+import { useToast } from "@/components/ui/toast";
 
 const { width } = Dimensions.get("window");
 
@@ -274,6 +274,7 @@ export default function CreateAreaWizard() {
   const { client } = useSession();
   const { services, refresh: refreshServices, loading: loadingServices } = useServices();
   const insets = useSafeAreaInsets();
+  const toast = useToast();
 
   // Theme Colors
   const primaryColor = useThemeColor({}, "primary");
@@ -351,10 +352,7 @@ export default function CreateAreaWizard() {
   const handleServiceSelect = (service: Service, type: "action" | "reaction") => {
     const connection = connections.find((c) => c.serviceName === service.name);
     if (!connection) {
-      Alert.alert("Connect First", `Please connect to ${service.name} in the Services tab.`, [
-        { text: "Cancel", style: "cancel" },
-        { text: "Go to Services", onPress: () => router.navigate("/(tabs)/services") }
-      ]);
+      toast.error(`Please connect ${service.name} in Services first.`);
       return;
     }
 
@@ -384,7 +382,7 @@ export default function CreateAreaWizard() {
         const value = params[key];
         const isEmptyString = typeof value === "string" && value.trim().length === 0;
         if (value === undefined || value === null || isEmptyString) {
-          Alert.alert("Missing Input", `The "${config.label || key}" field is required.`);
+          toast.error(`The "${config.label || key}" field is required.`);
           return false;
         }
       }
@@ -442,7 +440,7 @@ export default function CreateAreaWizard() {
   // --- Final Submit Logic ---
   const handleCreate = async () => {
     if (!areaName.trim()) {
-      Alert.alert("Name Required", "Please name your Area.");
+      toast.error("Please name your Area.");
       return;
     }
 
@@ -483,11 +481,12 @@ export default function CreateAreaWizard() {
         setSubmitting(false);
         resetForm();
         router.navigate("/(tabs)");
+        toast.success("Area created successfully!");
       }, 2000);
     } catch (err: any) {
       cancelAnimation(pulseProgress);
       pulseProgress.value = 0;
-      Alert.alert("Error", err.message || "Failed to create.");
+      toast.error(err.message || "Failed to create.");
       setSubmitting(false);
     }
   };
