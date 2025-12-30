@@ -1,6 +1,7 @@
 import React from "react";
-import { TouchableOpacity, Text, ActivityIndicator, ViewStyle } from "react-native";
-import { Layout } from "@/constants/theme";
+import { Text, ActivityIndicator, ViewStyle, Pressable } from "react-native";
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 
 type ButtonProps = {
   onPress: () => void;
@@ -12,7 +13,11 @@ type ButtonProps = {
   className?: string;
 };
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export function Button({ onPress, title, variant = "primary", disabled, loading, style, className }: ButtonProps) {
+  const scale = useSharedValue(1);
+
   let bgClass = "bg-primary";
   let textClass = "text-primary-foreground";
   let borderClass = "";
@@ -34,18 +39,40 @@ export function Button({ onPress, title, variant = "primary", disabled, loading,
     textClass = "text-muted-foreground";
   }
 
+  const springConfig = {
+    mass: 0.2,
+    damping: 20,
+    stiffness: 400
+  };
+
+  const handlePressIn = () => {
+    if (disabled || loading) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    scale.value = withSpring(0.97, springConfig);
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, springConfig);
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }]
+  }));
+
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       disabled={disabled || loading}
+      style={[animatedStyle, style]}
       className={`h-[50px] flex-row items-center justify-center px-5 rounded-2xl ${bgClass} ${borderClass} ${className || ""}`}
-      style={style}
     >
       {loading ? (
         <ActivityIndicator color={variant === "outline" || variant === "secondary" ? "#000" : "#FFF"} />
       ) : (
         <Text className={`text-base font-semibold ${textClass}`}>{title}</Text>
       )}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
