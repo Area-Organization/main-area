@@ -4,7 +4,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useSession } from "@/ctx";
 import { Button } from "@/components/ui/button";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import type { AreaType, AreaStatsResponseType } from "@area/types";
@@ -23,6 +23,8 @@ import { scheduleOnRN } from "react-native-worklets";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useToast } from "@/components/ui/toast";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { EmptyState } from "@/components/empty-state";
 
 // --- Constants & Types ---
 const BUTTON_WIDTH = 80;
@@ -51,11 +53,7 @@ function CustomSwitch({ value, onValueChange, primaryColor }: CustomSwitchProps)
   }, [value]);
 
   const trackStyle = useAnimatedStyle(() => {
-    const backgroundColor = interpolateColor(
-      offset.value,
-      [2, 22],
-      ["#3f3f46", primaryColor] // zinc-700 to primary
-    );
+    const backgroundColor = interpolateColor(offset.value, [2, 22], ["#3f3f46", primaryColor]);
 
     const shadowOpacity = interpolate(offset.value, [2, 22], [0, 0.4]);
 
@@ -75,17 +73,7 @@ function CustomSwitch({ value, onValueChange, primaryColor }: CustomSwitchProps)
 
   return (
     <Pressable onPress={toggleSwitch} hitSlop={10}>
-      <Animated.View
-        style={[
-          {
-            width: 50,
-            height: 30,
-            borderRadius: 15,
-            justifyContent: "center"
-          },
-          trackStyle
-        ]}
-      >
+      <Animated.View style={[{ width: 50, height: 30, borderRadius: 15, justifyContent: "center" }, trackStyle]}>
         <Animated.View
           style={[
             {
@@ -125,7 +113,7 @@ function AutomationCard({ item, index, onDelete, onToggle, onEdit, primaryColor 
   const getServiceInitial = (name?: string) => (name ? name[0].toUpperCase() : "?");
 
   const pan = Gesture.Pan()
-    .activeOffsetX([-20, 20]) // Prevent interference with vertical scroll
+    .activeOffsetX([-20, 20])
     .onStart(() => {
       context.value = translateX.value;
       isSwiping.value = true;
@@ -137,13 +125,10 @@ function AutomationCard({ item, index, onDelete, onToggle, onEdit, primaryColor 
     .onEnd(() => {
       isSwiping.value = false;
       if (translateX.value > BUTTON_WIDTH / 2) {
-        // Swipe Right -> Snap to Open Edit
         translateX.value = withSpring(BUTTON_WIDTH, { velocity: 10, overshootClamping: true });
       } else if (translateX.value < -BUTTON_WIDTH / 2) {
-        // Swipe Left -> Snap to Open Delete
         translateX.value = withSpring(-BUTTON_WIDTH, { velocity: 10, overshootClamping: true });
       } else {
-        // Return to center
         translateX.value = withSpring(0);
       }
     });
@@ -179,9 +164,7 @@ function AutomationCard({ item, index, onDelete, onToggle, onEdit, primaryColor 
 
   return (
     <Animated.View entering={FadeInDown.delay(index * 100).springify()} className="mb-4 relative">
-      {/* Background Layer for Actions */}
       <View style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: "hidden", flexDirection: "row" }]}>
-        {/* Edit Action (Left side, Blue) */}
         <Animated.View
           style={[
             { width: BUTTON_WIDTH, backgroundColor: "#3b82f6", justifyContent: "center", alignItems: "center" },
@@ -199,7 +182,6 @@ function AutomationCard({ item, index, onDelete, onToggle, onEdit, primaryColor 
 
         <View style={{ flex: 1 }} />
 
-        {/* Delete Action (Right side, Red) */}
         <Animated.View
           style={[
             { width: BUTTON_WIDTH, backgroundColor: "#ef4444", justifyContent: "center", alignItems: "center" },
@@ -299,7 +281,7 @@ function GlassStatCard({
   delay?: number;
   color: string;
 }) {
-  const isDark = useThemeColor({}, "background") === "#09090B"; // Simple check
+  const isDark = useThemeColor({}, "background") === "#09090B";
 
   return (
     <Animated.View
@@ -332,9 +314,9 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const insets = useSafeAreaInsets();
   const toast = useToast();
+  const router = useRouter();
 
   const primaryColor = useThemeColor({}, "primary");
-  const borderColor = useThemeColor({}, "border");
 
   const fetchData = async () => {
     setLoading(true);
@@ -361,7 +343,6 @@ export default function HomeScreen() {
   );
 
   const handleToggle = async (id: string, currentStatus: boolean) => {
-    // Optimistic UI
     setAreas((prev) => prev.map((a) => (a.id === id ? { ...a, enabled: !currentStatus } : a)));
 
     try {
@@ -413,12 +394,12 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 100, flexGrow: 1 }}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
         showsVerticalScrollIndicator={false}
       >
         {/* Horizontal Stats Section */}
-        {stats && (
+        {stats && areas.length > 0 && (
           <View className="mb-6">
             <ScrollView
               horizontal
@@ -433,20 +414,19 @@ export default function HomeScreen() {
         )}
 
         {/* List Section */}
-        <View className="px-5">
+        <View className="px-5 flex-1">
           <ThemedText type="subtitle" className="mb-4">
             My Automations
           </ThemedText>
 
           {areas.length === 0 && !loading ? (
-            <Animated.View
-              entering={FadeInDown.duration(600)}
-              className="p-10 rounded-3xl border border-dashed items-center justify-center"
-              style={{ borderColor: borderColor, backgroundColor: "rgba(150,150,150,0.05)" }}
-            >
-              <MaterialIcons name="add-circle-outline" size={48} color={primaryColor} />
-              <ThemedText className="mt-4 text-center opacity-60">You haven&apos;t created any AREAs yet.</ThemedText>
-            </Animated.View>
+            <EmptyState
+              title="No AREAs Created Yet"
+              description="Connect your services and create your first automation to see the magic happen."
+              icon={<IconSymbol name="plus.circle.fill" size={80} color={primaryColor} />}
+              actionLabel="Create your first AREA"
+              onAction={() => router.push("/(tabs)/create")}
+            />
           ) : (
             areas.map((area, index) => (
               <AutomationCard
