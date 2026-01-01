@@ -17,10 +17,10 @@ import Animated, {
   interpolateColor,
   FadeInDown,
   Extrapolation,
-  FadeInRight
+  FadeInRight,
+  runOnJS
 } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets";
-import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useToast } from "@/components/ui/toast";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -40,7 +40,7 @@ function CustomSwitch({ value, onValueChange, primaryColor }: CustomSwitchProps)
   const offset = useSharedValue(value ? 22 : 2);
 
   const toggleSwitch = () => {
-    scheduleOnRN(Haptics.impactAsync, Haptics.ImpactFeedbackStyle.Medium);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onValueChange(!value);
   };
 
@@ -117,7 +117,7 @@ function AutomationCard({ item, index, onDelete, onToggle, onEdit, primaryColor 
     .onStart(() => {
       context.value = translateX.value;
       isSwiping.value = true;
-      scheduleOnRN(Haptics.selectionAsync);
+      runOnJS(Haptics.selectionAsync)();
     })
     .onUpdate((event) => {
       translateX.value = event.translationX + context.value;
@@ -150,12 +150,12 @@ function AutomationCard({ item, index, onDelete, onToggle, onEdit, primaryColor 
   }));
 
   const handleEditPress = () => {
-    scheduleOnRN(onEdit, item.id);
+    onEdit(item.id);
     translateX.value = withSpring(0);
   };
 
   const handleDeletePress = () => {
-    scheduleOnRN(onDelete, item.id);
+    onDelete(item.id);
     translateX.value = withSpring(0);
   };
 
@@ -198,71 +198,69 @@ function AutomationCard({ item, index, onDelete, onToggle, onEdit, primaryColor 
         </Animated.View>
       </View>
 
-      <GestureHandlerRootView>
-        <GestureDetector gesture={pan}>
-          <Animated.View
-            style={[
-              rStyle,
-              {
-                backgroundColor: cardBackgroundColor,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: borderColor,
-                padding: 16,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 5,
-                elevation: 2
-              }
-            ]}
-          >
-            <View className="flex-row justify-between mb-3">
-              <View className="flex-row items-center gap-2">
-                <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10">
-                  <ThemedText className="font-bold text-primary">
-                    {getServiceInitial(item.action?.serviceName)}
-                  </ThemedText>
-                </View>
-                <MaterialIcons name="chevron-right" size={16} color="#999" />
-                <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10">
-                  <ThemedText className="font-bold text-primary">
-                    {getServiceInitial(item.reaction?.serviceName)}
-                  </ThemedText>
-                </View>
+      <GestureDetector gesture={pan}>
+        <Animated.View
+          style={[
+            rStyle,
+            {
+              backgroundColor: cardBackgroundColor,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: borderColor,
+              padding: 16,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.05,
+              shadowRadius: 5,
+              elevation: 2
+            }
+          ]}
+        >
+          <View className="flex-row justify-between mb-3">
+            <View className="flex-row items-center gap-2">
+              <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10">
+                <ThemedText className="font-bold text-primary">
+                  {getServiceInitial(item.action?.serviceName)}
+                </ThemedText>
               </View>
-
-              <CustomSwitch
-                value={item.enabled}
-                onValueChange={(val) => onToggle(item.id, item.enabled)}
-                primaryColor={primaryColor}
-              />
+              <MaterialIcons name="chevron-right" size={16} color="#999" />
+              <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10">
+                <ThemedText className="font-bold text-primary">
+                  {getServiceInitial(item.reaction?.serviceName)}
+                </ThemedText>
+              </View>
             </View>
 
-            <ThemedText type="defaultSemiBold" className="text-lg">
-              {item.name || "Untitled Area"}
+            <CustomSwitch
+              value={item.enabled}
+              onValueChange={(val) => onToggle(item.id, item.enabled)}
+              primaryColor={primaryColor}
+            />
+          </View>
+
+          <ThemedText type="defaultSemiBold" className="text-lg">
+            {item.name || "Untitled Area"}
+          </ThemedText>
+          {item.description ? (
+            <ThemedText className="text-sm opacity-60 mt-1" numberOfLines={1}>
+              {item.description}
             </ThemedText>
-            {item.description ? (
-              <ThemedText className="text-sm opacity-60 mt-1" numberOfLines={1}>
-                {item.description}
-              </ThemedText>
-            ) : null}
+          ) : null}
 
-            <View className="h-[1px] bg-border my-3 opacity-50" />
+          <View className="h-[1px] bg-border my-3 opacity-50" />
 
-            <View className="gap-1">
-              <ThemedText className="text-sm opacity-80" numberOfLines={1}>
-                <ThemedText className="font-bold text-primary">IF </ThemedText>
-                {item.action?.actionName}
-              </ThemedText>
-              <ThemedText className="text-sm opacity-80" numberOfLines={1}>
-                <ThemedText className="font-bold text-primary">THEN </ThemedText>
-                {item.reaction?.reactionName}
-              </ThemedText>
-            </View>
-          </Animated.View>
-        </GestureDetector>
-      </GestureHandlerRootView>
+          <View className="gap-1">
+            <ThemedText className="text-sm opacity-80" numberOfLines={1}>
+              <ThemedText className="font-bold text-primary">IF </ThemedText>
+              {item.action?.actionName}
+            </ThemedText>
+            <ThemedText className="text-sm opacity-80" numberOfLines={1}>
+              <ThemedText className="font-bold text-primary">THEN </ThemedText>
+              {item.reaction?.reactionName}
+            </ThemedText>
+          </View>
+        </Animated.View>
+      </GestureDetector>
     </Animated.View>
   );
 }
