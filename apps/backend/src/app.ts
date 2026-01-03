@@ -10,14 +10,22 @@ import { betterAuth } from "better-auth/minimal"
 import { OpenAPI } from "./plugins/better-api"
 
 export const app = new Elysia()
-  .use(cors())
-  .use(openapi({
-    exclude: { staticFile: false },
-    documentation: {
-      paths: await OpenAPI.getPaths(),
-      components: await OpenAPI.components
-    }
-  }))
+  .use(
+    cors({
+      origin: "http://localhost:8081",
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization"]
+    })
+  )
+  .use(
+    openapi({
+      exclude: { staticFile: false },
+      documentation: {
+        paths: await OpenAPI.getPaths(),
+        components: await OpenAPI.components
+      }
+    })
+  )
   .mount(authHandler)
   .use(aboutRoute)
   .use(authMiddleware)

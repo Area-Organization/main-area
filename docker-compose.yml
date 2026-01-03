@@ -29,7 +29,7 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - FRONTEND_URL=${FRONTEND_URL}
-      - BACKEND_API_URL=${BACKEND_API_URL}
+      - PUBLIC_BACKEND_API_URL=${PUBLIC_BACKEND_API_URL}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
       - GMAIL_CLIENT_ID=${GMAIL_CLIENT_ID}
@@ -49,7 +49,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        BACKEND_API_URL: ${BACKEND_API_URL}
+        PUBLIC_BACKEND_API_URL: ${PUBLIC_BACKEND_API_URL}
     ports:
       - "8081:8081"
     depends_on:
