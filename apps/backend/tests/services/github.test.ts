@@ -1,0 +1,212 @@
+import { describe, expect, it, mock, beforeEach, afterEach } from "bun:test"
+import { newIssueAction } from "../../src/services/github/actions/new-issue"
+import { newStarAction } from "../../src/services/github/actions/new-star"
+import { createIssueReaction } from "../../src/services/github/reactions/create-issue"
+import type { IContext } from "../../src/interfaces/service"
+
+// Mock global fetch
+const originalFetch = global.fetch
+const mockFetch = mock()
+
+describe("GitHub Service", () => {
+  beforeEach(() => {
+    global.fetch = mockFetch as any
+    mockFetch.mockReset()
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
+  })
+
+  describe("Action: new_issue", () => {
+    const context: IContext = {
+      userId: "user_123",
+      tokens: { accessToken: "gh_token" },
+      metadata: {}
+    }
+    const params = { owner: "test-owner", repo: "test-repo" }
+
+    it("returns false if no issues are found", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => []
+      })
+
+      const result = await newIssueAction.check(params, context)
+      expect(result).toBe(false)
+    })
+
+    it("initializes metadata if it's the first run (returns false)", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => [{ id: 101, number: 1, title: "First Issue" }]
+      })
+
+      const ctx: IContext = { ...context, metadata: {} }
+      const result = await newIssueAction.check(params, ctx)
+
+      expect(result).toBe(false)
+      expect(ctx.metadata?.lastIssueId).toBe(101)
+    })
+
+    it("returns true and updates context when a new issue is detected", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => [
+          {
+            id: 202,
+            number: 5,
+            title: "New Bug",
+            body: "Fix it",
+            html_url: "http://github.com/...",
+            user: { login: "dev" },
+            created_at: "2023-01-01"
+          }
+        ]
+      })
+
+      const ctx: IContext = { ...context, metadata: { lastIssueId: 101 } }
+      const result = await newIssueAction.check(params, ctx)
+
+      expect(result).toBe(true)
+      expect(ctx.metadata?.lastIssueId).toBe(202)
+      expect(ctx.actionData).toEqual({
+        issueNumber: 5,
+        title: "New Bug",
+        body: "Fix it",
+        url: "http://github.com/...",
+        author: "dev",
+        createdAt: "2023-01-01"
+      })
+    })
+
+    it("returns false if the latest issue ID matches stored metadata", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => [{ id: 101 }]
+      })
+
+      const ctx: IContext = { ...context, metadata: { lastIssueId: 101 } }
+      const result = await newIssueAction.check(params, ctx)
+
+      expect(result).toBe(false)
+    })
+
+    it("handles API errors gracefully", async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 })
+      const result = await newIssueAction.check(params, context)
+      expect(result).toBe(false)
+    })
+  })
+
+  describe("Action: new_star", () => {
+    const context: IContext = {
+      userId: "user_123",
+      tokens: { accessToken: "gh_token" },
+      metadata: {}
+    }
+    const params = { owner: "test-owner", repo: "test-repo" }
+
+    it("initializes metadata on first run", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ stargazers_count: 10, full_name: "test/repo" })
+      })
+
+      const ctx: IContext = { ...context, metadata: {} }
+      const result = await newStarAction.check(params, ctx)
+
+      expect(result).toBe(false)
+      expect(ctx.metadata?.starCount).toBe(10)
+    })
+
+    it("returns true when star count increases", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          stargazers_count: 15,
+          full_name: "test/repo",
+          html_url: "http://gh.com/test/repo"
+        })
+      })
+
+      const ctx: IContext = { ...context, metadata: { starCount: 10 } }
+      const result = await newStarAction.check(params, ctx)
+
+      expect(result).toBe(true)
+      expect(ctx.metadata?.starCount).toBe(15)
+      expect(ctx.actionData).toMatchObject({
+        previousCount: 10,
+        currentCount: 15,
+        newStars: 5
+      })
+    })
+
+    it("returns false if star count is same or lower", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ stargazers_count: 10 })
+      })
+
+      const ctx: IContext = { ...context, metadata: { starCount: 10 } }
+      const result = await newStarAction.check(params, ctx)
+
+      expect(result).toBe(false)
+    })
+  })
+
+  describe("Reaction: create_issue", () => {
+    const context: IContext = {
+      userId: "user_123",
+      tokens: { accessToken: "gh_token" }
+    }
+    const params = {
+      owner: "owner",
+      repo: "repo",
+      title: "Auto Issue",
+      body: "Generated by AREA",
+      labels: "bug, auto",
+      assignees: "user1"
+    }
+
+    it("throws error if access token is missing", async () => {
+      const ctx: IContext = { ...context, tokens: {} }
+      expect(createIssueReaction.execute(params, ctx)).rejects.toThrow("GitHub access token not found")
+    })
+
+    it("sends POST request with correct body", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ html_url: "http://issue/1" })
+      })
+
+      await createIssueReaction.execute(params, context)
+
+      expect(mockFetch).toHaveBeenCalledTimes(1)
+
+      const [url, options] = mockFetch.mock.calls[0]!
+
+      expect(url).toBe("https://api.github.com/repos/owner/repo/issues")
+      expect(options.method).toBe("POST")
+      expect(options.headers["Authorization"]).toBe("Bearer gh_token")
+
+      const body = JSON.parse(options.body)
+      expect(body).toEqual({
+        title: "Auto Issue",
+        body: "Generated by AREA",
+        labels: ["bug", "auto"],
+        assignees: ["user1"]
+      })
+    })
+
+    it("handles failure response from GitHub", async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        statusText: "Unauthorized",
+        json: async () => ({ message: "Bad credentials" })
+      })
+
+      expect(createIssueReaction.execute(params, context)).rejects.toThrow("Failed to create issue")
+    })
+  })
+})
