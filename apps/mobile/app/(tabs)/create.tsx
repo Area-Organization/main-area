@@ -234,18 +234,27 @@ function ConnectionStep({
               Finalize Connection
             </ThemedText>
             <View className="bg-card border border-border rounded-xl p-4 gap-4">
-              <Input
-                placeholder="Name your Area (e.g. Sync Tweets to Discord)"
-                value={areaName}
-                onChangeText={setAreaName}
-                style={{ backgroundColor: "transparent" }}
-              />
-              <Input
-                placeholder="Description (Optional)"
-                value={areaDescription}
-                onChangeText={setAreaDescription}
-                style={{ backgroundColor: "transparent" }}
-              />
+              <View className="gap-1.5">
+                <ThemedText type="defaultSemiBold">
+                  Name your Area <ThemedText className="text-red-500">*</ThemedText>
+                </ThemedText>
+                <Input
+                  placeholder="e.g. Sync Tweets to Discord"
+                  value={areaName}
+                  onChangeText={setAreaName}
+                  style={{ backgroundColor: "transparent" }}
+                />
+              </View>
+
+              <View className="gap-1.5">
+                <ThemedText type="defaultSemiBold">Description</ThemedText>
+                <Input
+                  placeholder="Optional"
+                  value={areaDescription}
+                  onChangeText={setAreaDescription}
+                  style={{ backgroundColor: "transparent" }}
+                />
+              </View>
             </View>
           </View>
 
