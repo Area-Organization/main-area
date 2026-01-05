@@ -1,7 +1,7 @@
 import type { IAction, IContext } from "../../../interfaces/service"
 
 export const newStarAction: IAction = {
-  name: "new_star",
+  name: "New star",
   description: "Triggered when a repository receives a new star",
   params: {
     owner: {

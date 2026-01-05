@@ -1,7 +1,7 @@
 import type { IAction, IContext } from "../../../interfaces/service"
 
 export const newIssueAction: IAction = {
-  name: "new_issue",
+  name: "New issue",
   description: "Triggered when a new issue is created in a repository",
   params: {
     owner: {

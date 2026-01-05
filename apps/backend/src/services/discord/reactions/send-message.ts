@@ -1,7 +1,7 @@
 import type { IReaction, IContext } from "../../../interfaces/service"
 
 export const sendMessageReaction: IReaction = {
-  name: "send_message",
+  name: "Send message",
   description: "Sends a message to a specific Discord channel",
   params: {
     channelId: {

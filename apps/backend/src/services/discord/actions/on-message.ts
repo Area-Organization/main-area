@@ -1,7 +1,7 @@
 import type { IAction, IContext } from "../../../interfaces/service"
 
 export const onMessageAction: IAction = {
-  name: "on_message",
+  name: "On message",
   description: "Triggered when a new message is posted in a specific channel",
   params: {
     channelId: {
