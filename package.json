@@ -18,5 +18,9 @@
   },
   "peerDependencies": {
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@thisux/sveltednd": "^0.0.20",
+    "@xyflow/svelte": "^1.5.0"
   }
 }
