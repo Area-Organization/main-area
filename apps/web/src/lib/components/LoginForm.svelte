@@ -7,6 +7,11 @@
   import { Input } from "$lib/components/ui/input/index.js";
   import { Checkbox } from "$lib/components/ui/checkbox/index.js";
   import PasswordInput from "./PasswordInput.svelte";
+  import { page } from "$app/state";
+
+  const redirectTo = page.url.searchParams.get("redirectTo")
+    ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
+    : null;
 
   const form = superForm(
     { email: "", password: "", rememberMe: false },
@@ -80,7 +85,7 @@
     <div class="mt-10 flex flex-col justify-center items-center gap-2">
       <p class="text-muted-foreground text-sm">
         No account?
-        <a href="/register" class="underline"> Register</a>
+        <a href={`/register${redirectTo ? `?redirectTo=${redirectTo}` : ""}`} class="underline"> Register</a>
       </p>
       <Form.Button class="flex-1">Login</Form.Button>
     </div>
