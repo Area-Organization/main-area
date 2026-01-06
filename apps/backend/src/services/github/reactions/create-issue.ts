@@ -1,7 +1,7 @@
 import type { IReaction, IContext } from "../../../interfaces/service"
 
 export const createIssueReaction: IReaction = {
-  name: "create_issue",
+  name: "Create issue",
   description: "Creates a new issue in a GitHub repository",
   params: {
     owner: {

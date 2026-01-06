@@ -1,6 +1,8 @@
 import { type IService } from "../interfaces/service"
 import { githubService } from "./github"
 import { gmailService } from "./gmail"
+import { discordService } from "./discord"
+import { trelloService } from "./trello"
 
 class ServiceRegistry {
   private services: Map<string, IService> = new Map()
@@ -8,6 +10,8 @@ class ServiceRegistry {
   constructor() {
     this.register(githubService)
     this.register(gmailService)
+    this.register(discordService)
+    this.register(trelloService)
   }
   
   register(service: IService): void {

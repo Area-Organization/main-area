@@ -1,7 +1,7 @@
 import type { IReaction, IContext } from "../../../interfaces/service"
 
 export const sendEmailReaction: IReaction = {
-  name: "send_email",
+  name: "Send email",
   description: "Sends an email via Gmail",
   params: {
     to: {

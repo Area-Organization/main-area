@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { authClient } from "@/lib/auth";
 import { client, type AreaClient } from "@/lib/api";
+import { initApiUrl } from "@/lib/url-store";
 
 type SessionContextType = {
   signIn: () => Promise<void>;
@@ -16,7 +17,7 @@ const SessionContext = createContext<SessionContextType>({
   signOut: () => null,
   session: null,
   user: null,
-  isLoading: false,
+  isLoading: true,
   client
 });
 
@@ -30,20 +31,25 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchSession = async () => {
-    setIsLoading(true);
     try {
       const { data } = await authClient.getSession();
       setSession(data?.session || null);
       setUser(data?.user || null);
     } catch (e) {
       console.error("Failed to fetch session", e);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchSession();
+    const init = async () => {
+      // 1. Load URL from storage
+      await initApiUrl();
+      // 2. Fetch session (now using the correct URL)
+      await fetchSession();
+      // 3. Ready
+      setIsLoading(false);
+    };
+    init();
   }, []);
 
   const signOut = async () => {

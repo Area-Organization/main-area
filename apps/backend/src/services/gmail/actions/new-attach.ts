@@ -1,7 +1,7 @@
 import type { IAction, IContext } from "../../../interfaces/service"
 
 export const newEmailWithAttachmentAction: IAction = {
-  name: "new_email_with_attachment",
+  name: "New email with attachment",
   description: "Triggered when a new email with attachment is received",
   params: {
     fileExtension: {

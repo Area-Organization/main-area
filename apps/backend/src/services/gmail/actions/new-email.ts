@@ -1,7 +1,7 @@
 import type { IAction, IContext } from "../../../interfaces/service"
 
 export const newEmailAction: IAction = {
-  name: "new_email",
+  name: "New email",
   description: "Triggered when a new email is received",
   params: {
     from: {
