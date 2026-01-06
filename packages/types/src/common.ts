@@ -4,7 +4,14 @@ import { t, type Static } from "elysia";
 // DATA TRANSFER OBJECTS (DTOs) - Schemas
 // ==========================================
 
-// Parameter Schema (For frontend rendering)
+export const AuthFieldSchema = t.Object({
+  key: t.String({ description: "The key used when sending data to the backend (e.g., 'accessToken')" }),
+  label: t.String({ description: "User-friendly label for the input field (e.g., 'Bot Token')" }),
+  type: t.Union([t.Literal("string"), t.Literal("password")]),
+  required: t.Boolean(),
+  description: t.Optional(t.String({ description: "Help text or placeholder for the user" }))
+});
+
 export const ParameterSchema = t.Object({
   type: t.Union([
     t.Literal("string"),
@@ -54,6 +61,7 @@ export const ServiceSchema = t.Object({
   description: t.String(),
   requiresAuth: t.Boolean(),
   authType: t.Optional(t.Union([t.Literal("oauth2"), t.Literal("api_key"), t.Literal("none")])),
+  authFields: t.Optional(t.Array(AuthFieldSchema)),
   oauth: t.Optional(
     t.Object({
       authorizationUrl: t.String(),
@@ -68,6 +76,7 @@ export const ServiceSchema = t.Object({
 });
 
 // Static types inferred from Schemas (Shared Contract)
+export type AuthFieldDTO = Static<typeof AuthFieldSchema>;
 export type ParameterDTO = Static<typeof ParameterSchema>;
 export type ActionDTO = Static<typeof ActionSchema>;
 export type ReactionDTO = Static<typeof ReactionSchema>;
