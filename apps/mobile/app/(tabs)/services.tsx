@@ -64,15 +64,17 @@ const ServiceTile = ({
     ? {
         borderColor: brandColor,
         shadowColor: brandColor,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-        elevation: 8,
-        borderWidth: 2
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.7,
+        shadowRadius: 20,
+        elevation: 20,
+        borderWidth: 2,
+        backgroundColor: cardColor
       }
     : {
         borderColor: borderColor,
-        borderWidth: 1
+        borderWidth: 1,
+        backgroundColor: cardColor
       };
 
   return (
@@ -82,7 +84,7 @@ const ServiceTile = ({
         disabled={loading}
         activeOpacity={0.7}
         className="aspect-square rounded-3xl p-4 items-center justify-center relative border"
-        style={[{ backgroundColor: cardColor }, dynamicStyle]}
+        style={dynamicStyle}
       >
         {isConnected && (
           <View
@@ -267,7 +269,6 @@ export default function ServicesScreen() {
   const handleApiKeySubmit = async (values: Record<string, string>) => {
     if (!selectedService) return;
 
-    // Simple validation
     const missingField = selectedService.authFields?.find((f) => f.required && !values[f.key]);
     if (missingField) {
       toast.error(`${missingField.label} is required`);
@@ -276,8 +277,6 @@ export default function ServicesScreen() {
 
     setActionLoading(selectedService.name);
     try {
-      // Construct payload based on inputs
-      // Discord specifically expects 'accessToken' for the bot token
       const payload: any = {
         serviceName: selectedService.name,
         accessToken: values["accessToken"],
