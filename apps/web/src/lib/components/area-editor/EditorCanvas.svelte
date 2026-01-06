@@ -1,7 +1,4 @@
 <script lang="ts">
-  import { setContext } from "svelte";
-  import type { DndItem } from "@/types";
-  import { toast } from "svelte-sonner";
   import { droppable, type DragDropState } from "@thisux/sveltednd";
   import {
     type Node,
@@ -14,14 +11,16 @@
     type Edge
   } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
-  import ActionNode from "./ActionNode.svelte";
-  import ReactionNode from "./ReactionNode.svelte";
-  import Button from "./ui/button/button.svelte";
-  import { client } from "@/api";
+  import ActionNode from "../ActionNode.svelte";
+  import ReactionNode from "../ReactionNode.svelte";
+  import { setContext } from "svelte";
+  import type { DndItem } from "@/types";
+  import { toast } from "svelte-sonner";
+  import type { Snippet } from 'svelte';
+
+  let { children, nodes = $bindable(), edges = $bindable() }: { children: Snippet; [key: string]: any } = $props();
 
   const { screenToFlowPosition } = useSvelteFlow();
-  let nodes = $state.raw<Node[]>([]);
-  let edges = $state.raw<Edge[]>([]);
 
   setContext("flow-edges", {
     get value() {
@@ -29,16 +28,15 @@
     }
   });
 
-  let mouseCoords = { clientX: 0, clientY: 0 };
-  let isDeleting = false;
-
-  let actionNb = $derived(nodes.filter((n) => n.type === "action").length);
-  let reactionNb = $derived(nodes.filter((n) => n.type === "reaction").length);
-
   const nodeTypes = {
     action: ActionNode,
     reaction: ReactionNode
   };
+
+  let mouseCoords = { clientX: 0, clientY: 0 };
+  let isDeleting = false;
+
+  let actionNb = $derived(nodes.filter((n: Node) => n.type === "action").length);
 
   function handleDragOver(event: DragEvent) {
     mouseCoords = { clientX: event.clientX, clientY: event.clientY };
@@ -47,7 +45,7 @@
   function handleNodesDelete({ nodes: deleted }: { nodes: Node[] }) {
     isDeleting = true;
     setTimeout(() => (isDeleting = false), 100);
-    nodes = nodes.filter((n) => !deleted.some((d) => d.id === n.id));
+    nodes = nodes.filter((n: Node) => !deleted.some((d) => d.id === n.id));
   }
 
   function handleDrop(state: DragDropState<DndItem>) {
@@ -82,18 +80,21 @@
   }
 </script>
 
-<div
-  role="button"
-  tabindex="0"
-  class="w-full h-full"
-  use:droppable={{ container: "list", callbacks: { onDrop: handleDrop } }}
-  ondragover={handleDragOver}
->
-  <SvelteFlow bind:nodes bind:edges {nodeTypes} fitView ondelete={handleNodesDelete}>
-    <Controls />
-    <Background gap={16} size={1} variant={BackgroundVariant.Dots} class="bg-card!" />
-    <MiniMap />
-  </SvelteFlow>
+<div class="rounded-2xl overflow-hidden relative h-full w-full">
+  <div
+    role="button"
+    tabindex="0"
+    class="w-full h-full"
+    use:droppable={{ container: "list", callbacks: { onDrop: handleDrop } }}
+    ondragover={handleDragOver}
+  >
+    <SvelteFlow bind:nodes bind:edges {nodeTypes} fitView ondelete={handleNodesDelete}>
+      <Controls />
+      <Background gap={16} size={1} variant={BackgroundVariant.Dots} class="bg-card!" />
+      <MiniMap />
+    </SvelteFlow>
+  </div>
+  {@render children?.()}
 </div>
 
 <style>

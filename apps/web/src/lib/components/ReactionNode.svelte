@@ -1,22 +1,20 @@
 <script lang="ts">
-  import { getContext } from "svelte";
   import * as Card from "$lib/components/ui/card/index.js";
-  import type { ActionDTO } from "@area/types";
+  import type { ReactionDTO } from "@area/types";
   import { draggable } from "@thisux/sveltednd";
-  import { Handle, Position, type NodeProps, useSvelteFlow, type Edge } from "@xyflow/svelte";
-  import { Check, ChevronsLeftRight, Copy, X } from "lucide-svelte";
-  import { toast } from "svelte-sonner";
+  import { Handle, type NodeProps, Position, useSvelteFlow } from "@xyflow/svelte";
+  import { X } from "lucide-svelte";
   import Input from "./ui/input/input.svelte";
+  import Check from "@lucide/svelte/icons/check";
 
   interface Props extends NodeProps {
     data: {
-      info: ActionDTO;
+      info: ReactionDTO;
       [key: string]: unknown;
     };
   }
 
   let { data, id, type, ...restProps }: Props = $props();
-  const { deleteElements, updateNodeData } = useSvelteFlow();
 
   let params = $derived(Object.entries(data?.info.params ?? {}));
   let paramValues = $state<Record<string, string>>({});
@@ -35,6 +33,8 @@
     return true;
   }
 
+  const { deleteElements, updateNodeData } = useSvelteFlow();
+
   $effect(() => {
     const isValid = validateParams();
 
@@ -48,10 +48,6 @@
     updateNodeData(id, { valid: isValid, paramValues });
   });
 
-  const edgesCtx = getContext<{ value: Edge[] }>("flow-edges");
-
-  let isConnected = $derived(edgesCtx.value.some((edge) => edge.source === id));
-
   function handleDelete() {
     deleteElements({ nodes: [{ id }] });
   }
@@ -59,7 +55,7 @@
 
 {#if data.info}
   <div use:draggable={{ container: "node", dragData: { id, type } }}>
-    <Card.Root class="gap-3 w-md">
+    <Card.Root class={`gap-2 w-md transition-all`}>
       <Card.Header class="flex flex-row justify-between items-center">
         <div class="flex gap-2 items-center">
           <Check
@@ -73,7 +69,7 @@
             e.stopPropagation();
             handleDelete();
           }}
-          class="nodrag text-muted-foreground hover:text-red-500 cursor-pointer transition-colors"
+          class="nodrag text-muted-foreground hover:text-destructive cursor-pointer transition-colors"
           title="Delete node"
         >
           <X size={20} />
@@ -103,33 +99,6 @@
           {/each}
         </div>
 
-        {#if isConnected}
-          <div class="flex flex-col mt-3 gap-2">
-            <h3 class="text-md font-bold">Variables</h3>
-            {#each data.info.variables as variable, i}
-              <div class="border border-muted-foreground/20 rounded-2xl p-3 flex justify-between items-center gap-2">
-                <div class="flex gap-5 items-center">
-                  <ChevronsLeftRight size={20} class="text-accent-foreground" />
-                  <div class="flex flex-col">
-                    <h4 class="">{variable.name}</h4>
-                    <p class="text-muted-foreground text-wrap max-w-50">{variable.description}</p>
-                  </div>
-                </div>
-                <button
-                  class="nodrag text-foreground-muted hover:text-foreground cursor-pointer"
-                  onmousedown={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText("{{".concat(variable.name).concat("}}"));
-                    toast.info("Variable copied!");
-                  }}
-                >
-                  <Copy class="text-muted-foreground hover:text-foreground" size={20} />
-                </button>
-              </div>
-            {/each}
-          </div>
-        {/if}
-
         <div
           role="button"
           tabindex="-1"
@@ -142,13 +111,8 @@
             e.preventDefault();
             e.stopPropagation();
           }}
-          style="position: absolute; right: 0; top: 50%; transform: translate(50%, -50%);"
         >
-          <Handle
-            type="source"
-            position={Position.Right}
-            style="width: 12px; height: 12px; position: static; transform: none;"
-          />
+          <Handle type="target" position={Position.Left} style="width: 12px; height: 12px;" />
         </div>
       </Card.Content>
     </Card.Root>
