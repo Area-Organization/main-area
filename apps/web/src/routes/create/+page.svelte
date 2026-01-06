@@ -12,6 +12,7 @@
   import { getServices } from "@/api/getServices";
   import { getServiceConnections } from "@/api/getServiceConnections";
   import type { UserConnectionSchemaType, ServiceDTO } from "@area/types";
+  import { goto } from "$app/navigation";
 
   type NodeData = {
     info: { name: string };
@@ -116,6 +117,7 @@
     } else {
       toast.success("Area created!");
       isDialogOpen = false;
+      goto("/")
     }
   }
 </script>
