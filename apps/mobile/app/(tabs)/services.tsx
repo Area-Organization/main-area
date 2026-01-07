@@ -1,8 +1,18 @@
 import React, { useCallback, useState } from "react";
-import { Alert, View, FlatList, RefreshControl, TouchableOpacity } from "react-native";
+import {
+  Alert,
+  View,
+  FlatList,
+  RefreshControl,
+  TouchableOpacity,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
+} from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { useServices } from "@/hooks/use-services";
+import { useServices, Service } from "@/hooks/use-services";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { useSession } from "@/ctx";
@@ -11,8 +21,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useToast } from "@/components/ui/toast";
-import { Image } from "expo-image";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 type Connection = {
   id: string;
@@ -24,11 +35,12 @@ type Connection = {
 const BRAND_COLORS: Record<string, string> = {
   discord: "#5865F2",
   spotify: "#1DB954",
-  github: "#181717", // Handle dark mode visibility via border
+  github: "#181717",
   twitch: "#9146FF",
   gmail: "#e94538",
   slack: "#4A154B",
-  notion: "#000000"
+  notion: "#000000",
+  trello: "#0079BF"
 };
 
 const ServiceTile = ({
@@ -37,7 +49,7 @@ const ServiceTile = ({
   onPress,
   loading
 }: {
-  item: any;
+  item: Service;
   isConnected: boolean;
   onPress: () => void;
   loading: boolean;
@@ -48,21 +60,21 @@ const ServiceTile = ({
 
   const brandColor = BRAND_COLORS[item.name.toLowerCase()] || primaryColor;
 
-  // Dynamic glow/border style based on connection status and brand color
-  // We use inline styles here because Tailwind doesn't support dynamic class construction at runtime
   const dynamicStyle = isConnected
     ? {
         borderColor: brandColor,
         shadowColor: brandColor,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-        elevation: 8,
-        borderWidth: 2
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.7,
+        shadowRadius: 20,
+        elevation: 20,
+        borderWidth: 2,
+        backgroundColor: cardColor
       }
     : {
         borderColor: borderColor,
-        borderWidth: 1
+        borderWidth: 1,
+        backgroundColor: cardColor
       };
 
   return (
@@ -72,9 +84,8 @@ const ServiceTile = ({
         disabled={loading}
         activeOpacity={0.7}
         className="aspect-square rounded-3xl p-4 items-center justify-center relative border"
-        style={[{ backgroundColor: cardColor }, dynamicStyle]}
+        style={dynamicStyle}
       >
-        {/* Connected Badge */}
         {isConnected && (
           <View
             className="absolute top-3 right-3 w-5 h-5 rounded-full items-center justify-center z-10"
@@ -84,28 +95,17 @@ const ServiceTile = ({
           </View>
         )}
 
-        {/* Icon */}
         <View className="flex-1 justify-center items-center mb-2">
-          {item.icon ? (
-            <Image
-              source={{ uri: item.icon }}
-              style={{ width: 52, height: 52 }}
-              contentFit="contain"
-              transition={200}
-            />
-          ) : (
-            <View
-              className="w-16 h-16 rounded-2xl items-center justify-center"
-              style={{ backgroundColor: isConnected ? brandColor + "20" : "#8881" }}
-            >
-              <ThemedText className="text-3xl font-black" style={{ color: isConnected ? brandColor : "#888" }}>
-                {item.name[0].toUpperCase()}
-              </ThemedText>
-            </View>
-          )}
+          <View
+            className="w-16 h-16 rounded-2xl items-center justify-center"
+            style={{ backgroundColor: isConnected ? brandColor + "20" : "#8881" }}
+          >
+            <ThemedText className="text-3xl font-black" style={{ color: isConnected ? brandColor : "#888" }}>
+              {item.name[0].toUpperCase()}
+            </ThemedText>
+          </View>
         </View>
 
-        {/* Text Info */}
         <View className="h-10 justify-start items-center">
           <ThemedText type="defaultSemiBold" className="capitalize text-center">
             {item.name}
@@ -115,7 +115,6 @@ const ServiceTile = ({
           </ThemedText>
         </View>
 
-        {/* Loading State Overlay */}
         {loading && (
           <View
             className="absolute inset-0 rounded-3xl items-center justify-center opacity-90"
@@ -131,12 +130,84 @@ const ServiceTile = ({
   );
 };
 
+const ApiKeyModal = ({
+  visible,
+  service,
+  onClose,
+  onSubmit,
+  loading
+}: {
+  visible: boolean;
+  service: Service | null;
+  onClose: () => void;
+  onSubmit: (values: Record<string, string>) => void;
+  loading: boolean;
+}) => {
+  const [values, setValues] = useState<Record<string, string>>({});
+  const cardColor = useThemeColor({}, "card");
+
+  React.useEffect(() => {
+    setValues({});
+  }, [service]);
+
+  if (!service) return null;
+
+  const handleSubmit = () => {
+    onSubmit(values);
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1 justify-end bg-black/60"
+      >
+        <View className="rounded-t-3xl p-6 gap-6" style={{ backgroundColor: cardColor }}>
+          <View className="flex-row justify-between items-center">
+            <ThemedText type="subtitle">Connect {service.name}</ThemedText>
+            <TouchableOpacity onPress={onClose}>
+              <IconSymbol name="xmark.circle.fill" size={24} color="#999" />
+            </TouchableOpacity>
+          </View>
+
+          <ThemedText className="opacity-60 text-sm">
+            {service.description || "Enter the required credentials to connect this service."}
+          </ThemedText>
+
+          <ScrollView className="max-h-[300px]">
+            {service.authFields?.map((field) => (
+              <View key={field.key} className="mb-4">
+                <ThemedText type="defaultSemiBold" className="mb-2">
+                  {field.label} {field.required && <ThemedText className="text-red-500">*</ThemedText>}
+                </ThemedText>
+                <Input
+                  placeholder={field.description || `Enter ${field.label}`}
+                  value={values[field.key] || ""}
+                  onChangeText={(text) => setValues((prev) => ({ ...prev, [field.key]: text }))}
+                  secureTextEntry={field.type === "password"}
+                  autoCapitalize="none"
+                />
+              </View>
+            ))}
+          </ScrollView>
+
+          <Button title={loading ? "Connecting..." : "Connect Service"} onPress={handleSubmit} loading={loading} />
+          <View className="h-4" />
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+};
+
 export default function ServicesScreen() {
   const { client } = useSession();
   const { services, refresh: refreshServices, loading: loadingServices } = useServices();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loadingConnections, setLoadingConnections] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const toast = useToast();
   const insets = useSafeAreaInsets();
@@ -162,7 +233,7 @@ export default function ServicesScreen() {
     }, [])
   );
 
-  const handleConnect = async (serviceName: string) => {
+  const handleOAuthConnect = async (serviceName: string) => {
     setActionLoading(serviceName);
     try {
       const callbackUrl = Linking.createURL("oauth-callback");
@@ -171,7 +242,7 @@ export default function ServicesScreen() {
       });
 
       if (error) {
-        toast.error(String(error.value));
+        toast.error(typeof error.value === "string" ? error.value : (error.value as any).message || "OAuth Error");
         return;
       }
       if (!data) return;
@@ -190,6 +261,39 @@ export default function ServicesScreen() {
       }
     } catch (error: any) {
       toast.error(error.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleApiKeySubmit = async (values: Record<string, string>) => {
+    if (!selectedService) return;
+
+    const missingField = selectedService.authFields?.find((f) => f.required && !values[f.key]);
+    if (missingField) {
+      toast.error(`${missingField.label} is required`);
+      return;
+    }
+
+    setActionLoading(selectedService.name);
+    try {
+      const payload: any = {
+        serviceName: selectedService.name,
+        accessToken: values["accessToken"],
+        metadata: values
+      };
+
+      const { error } = await client.api.connections.post(payload);
+
+      if (error) {
+        toast.error(typeof error.value === "object" ? (error.value as any).message : "Failed to connect");
+      } else {
+        toast.success(`Connected to ${selectedService.name}`);
+        setModalVisible(false);
+        fetchData();
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Connection failed");
     } finally {
       setActionLoading(null);
     }
@@ -221,11 +325,18 @@ export default function ServicesScreen() {
     ]);
   };
 
-  const handleTilePress = (item: any, connection: Connection | undefined) => {
+  const handleTilePress = (item: Service, connection: Connection | undefined) => {
     if (connection) {
       handleDisconnect(connection.id, item.name);
     } else {
-      handleConnect(item.name);
+      if (item.authType === "oauth2") {
+        handleOAuthConnect(item.name);
+      } else if (item.authType === "api_key") {
+        setSelectedService(item);
+        setModalVisible(true);
+      } else {
+        toast.success("No authentication required for this service");
+      }
     }
   };
 
@@ -263,6 +374,14 @@ export default function ServicesScreen() {
             </View>
           ) : null
         }
+      />
+
+      <ApiKeyModal
+        visible={modalVisible}
+        service={selectedService}
+        onClose={() => setModalVisible(false)}
+        onSubmit={handleApiKeySubmit}
+        loading={!!actionLoading}
       />
     </ThemedView>
   );
