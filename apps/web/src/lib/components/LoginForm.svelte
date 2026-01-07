@@ -26,7 +26,7 @@
             email: form.data.email,
             password: form.data.password,
             rememberMe: form.data.rememberMe,
-            callbackURL: "/profile"
+            callbackURL: redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
           });
 
           if (error) {

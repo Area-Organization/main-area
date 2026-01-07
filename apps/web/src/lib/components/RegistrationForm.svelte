@@ -6,6 +6,11 @@
   import { typebox } from "sveltekit-superforms/adapters";
   import { superForm } from "sveltekit-superforms";
   import { authClient } from "@/auth-client";
+  import { page } from "$app/state";
+
+  const redirectTo = page.url.searchParams.get("redirectTo")
+    ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
+    : null;
 
   const form = superForm(
     { name: "", email: "", password: "", confirmPassword: "" },
@@ -25,7 +30,7 @@
             name: form.data.name,
             email: form.data.email,
             password: form.data.password,
-            callbackURL: "/profile"
+            callbackURL: redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
           });
 
           if (error) {
@@ -85,7 +90,7 @@
     <div class="mt-10 flex flex-col justify-center items-center gap-2">
       <p>
         Already have an account?
-        <a href="/login" class="underline"> Login</a>
+        <a href={`/login${redirectTo ? `?redirectTo=${redirectTo}` : ""}`} class="underline"> Login</a>
       </p>
       <Form.Button class="flex-1">Register</Form.Button>
     </div>
