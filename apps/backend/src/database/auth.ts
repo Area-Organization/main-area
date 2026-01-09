@@ -12,10 +12,16 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false
   },
+  socialProviders: {
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!
+    },
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!
+    }
+  },
   plugins: [openAPI(), expo(), bearer()],
-  trustedOrigins: [
-    process.env.FRONTEND_URL || "http://localhost:5173", // Web client
-    "exp://", // Allow Expo Go
-    "area://", // The app scheme (app.json)
-  ]
+  trustedOrigins: [process.env.FRONTEND_URL || "http://localhost:5173", "exp://", "area://"]
 })

@@ -42,11 +42,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const init = async () => {
-      // 1. Load URL from storage
       await initApiUrl();
-      // 2. Fetch session (now using the correct URL)
       await fetchSession();
-      // 3. Ready
       setIsLoading(false);
     };
     init();

@@ -8,7 +8,7 @@ const createAuth = (url: string) =>
     baseURL: url,
     plugins: [
       expoClient({
-        scheme: "auth",
+        scheme: "area",
         storage: SecureStore
       })
     ]
