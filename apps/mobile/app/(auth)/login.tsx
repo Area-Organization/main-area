@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View, TouchableOpacity, Dimensions } from "react-native";
+import { View, TouchableOpacity, Dimensions, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import * as Linking from "expo-linking";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { authClient } from "@/lib/auth";
@@ -15,14 +16,15 @@ import Animated, {
   SlideInLeft,
   FadeIn
 } from "react-native-reanimated";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { UrlConfigModal } from "@/components/url-config-modal";
+import { useToast } from "@/components/ui/toast";
 
 const { width } = Dimensions.get("window");
 
 const AnimatedLetter = ({ letter, index }: { letter: string; index: number }) => {
   const primary = useThemeColor({}, "primary");
-  // Reduced random range for a tighter "snap"
   const startX = (Math.random() - 0.5) * width * 0.5;
   const startY = (Math.random() - 0.5) * 100;
 
@@ -32,7 +34,6 @@ const AnimatedLetter = ({ letter, index }: { letter: string; index: number }) =>
 
   useEffect(() => {
     const delay = index * 40;
-
     const springConfig = { damping: 50, stiffness: 300 };
 
     translateX.value = withDelay(delay, withSpring(0, springConfig));
@@ -57,9 +58,13 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [loading, setLoading] = useState(false);
+  const [configVisible, setConfigVisible] = useState(false);
+
   const router = useRouter();
   const { signIn } = useSession();
+  const toast = useToast();
   const iconColor = useThemeColor({}, "icon");
+  const borderColor = useThemeColor({}, "border");
 
   const handleLogin = async () => {
     setErrors({});
@@ -91,69 +96,131 @@ export default function LoginScreen() {
     }
   };
 
+  const handleSocialLogin = async (provider: "github" | "google") => {
+    try {
+      const callbackURL = Linking.createURL("/oauth-callback");
+
+      const { error } = await authClient.signIn.social({
+        provider: provider,
+        callbackURL: callbackURL
+      });
+
+      if (error) {
+        toast.error(error.message || `Failed to sign in with ${provider}`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Social login failed");
+    }
+  };
+
   return (
-    <ThemedView className="flex-1 px-8 justify-center overflow-hidden">
-      <View className="mb-12 items-center z-10">
-        <View className="flex-row">
-          {["A", "R", "E", "A"].map((l, i) => (
-            <AnimatedLetter key={i} letter={l} index={i} />
-          ))}
-        </View>
-        {/* Faster fade in for subtitle */}
-        <Animated.View entering={FadeIn.delay(300).duration(400)}>
-          <ThemedText className="opacity-50 mt-2 text-center">Automation Platform</ThemedText>
-        </Animated.View>
-      </View>
+    <ThemedView className="flex-1">
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="px-8 overflow-hidden">
+            {/* Config Button */}
+            <TouchableOpacity
+              onPress={() => setConfigVisible(true)}
+              className="absolute top-0 right-6 z-50 p-2 rounded-full bg-muted/50"
+            >
+              <MaterialIcons name="settings" size={24} color={iconColor} />
+            </TouchableOpacity>
 
-      <Animated.View
-        entering={SlideInLeft.duration(400)}
-        className="gap-4"
-      >
-        <ThemedText type="defaultSemiBold" className="mb-2">
-          Welcome Back
-        </ThemedText>
+            <View className="mb-10 items-center z-10">
+              <View className="flex-row">
+                {["A", "R", "E", "A"].map((l, i) => (
+                  <AnimatedLetter key={i} letter={l} index={i} />
+                ))}
+              </View>
+              <Animated.View entering={FadeIn.delay(300).duration(400)}>
+                <ThemedText className="opacity-50 mt-2 text-center">Automation Platform</ThemedText>
+              </Animated.View>
+            </View>
 
-        {errors.general && <ThemedText className="text-red-500 mb-2 text-center text-sm">{errors.general}</ThemedText>}
+            <Animated.View entering={SlideInLeft.duration(400)} className="gap-4">
+              <ThemedText type="defaultSemiBold" className="mb-2">
+                Welcome Back
+              </ThemedText>
+              {errors.general && (
+                <ThemedText className="text-red-500 mb-2 text-center text-sm">{errors.general}</ThemedText>
+              )}
 
-        <Input
-          placeholder="Email address"
-          value={email}
-          onChangeText={(text) => {
-            setEmail(text);
-            setErrors((e) => ({ ...e, email: undefined }));
-          }}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          icon={<MaterialIcons name="email" size={20} color={iconColor} />}
-          error={errors.email}
-        />
+              <Input
+                placeholder="Email address"
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setErrors((e) => ({ ...e, email: undefined }));
+                }}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                icon={<MaterialIcons name="email" size={20} color={iconColor} />}
+                error={errors.email}
+              />
 
-        <Input
-          placeholder="Password"
-          value={password}
-          onChangeText={(text) => {
-            setPassword(text);
-            setErrors((e) => ({ ...e, password: undefined }));
-          }}
-          secureTextEntry
-          icon={<MaterialIcons name="lock" size={20} color={iconColor} />}
-          error={errors.password}
-        />
+              <Input
+                placeholder="Password"
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setErrors((e) => ({ ...e, password: undefined }));
+                }}
+                secureTextEntry
+                icon={<MaterialIcons name="lock" size={20} color={iconColor} />}
+                error={errors.password}
+              />
 
-        <Button
-          title={loading ? "Signing in..." : "Sign In"}
-          onPress={handleLogin}
-          loading={loading}
-          className="mt-2"
-        />
-      </Animated.View>
+              <Button
+                title={loading ? "Signing in..." : "Sign In"}
+                onPress={handleLogin}
+                loading={loading}
+                className="mt-2"
+              />
 
-      <Animated.View entering={SlideInLeft.delay(50).duration(400)} className="flex-row justify-center gap-2 mt-10">
-        <ThemedText>Don&apos;t have an account?</ThemedText>
-        <TouchableOpacity onPress={() => router.replace("/(auth)/register")}>
-          <ThemedText type="link">Create account</ThemedText>
-        </TouchableOpacity>
-      </Animated.View>
+              {/* Social Login Section */}
+              <View className="flex-row items-center gap-4 my-2">
+                <View className="flex-1 h-[1px] bg-border" />
+                <ThemedText className="text-xs opacity-50">OR CONTINUE WITH</ThemedText>
+                <View className="flex-1 h-[1px] bg-border" />
+              </View>
+
+              <View className="flex-row gap-4">
+                <TouchableOpacity
+                  onPress={() => handleSocialLogin("github")}
+                  className="flex-1 h-[50px] flex-row items-center justify-center rounded-2xl border bg-card"
+                  style={{ borderColor }}
+                >
+                  <FontAwesome name="github" size={24} color={iconColor} />
+                  <ThemedText className="ml-2 font-semibold">GitHub</ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => handleSocialLogin("google")}
+                  className="flex-1 h-[50px] flex-row items-center justify-center rounded-2xl border bg-card"
+                  style={{ borderColor }}
+                >
+                  <FontAwesome name="google" size={22} color={iconColor} />
+                  <ThemedText className="ml-2 font-semibold">Google</ThemedText>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+
+            <Animated.View
+              entering={SlideInLeft.delay(50).duration(400)}
+              className="flex-row justify-center gap-2 mt-8"
+            >
+              <ThemedText>Don&apos;t have an account?</ThemedText>
+              <TouchableOpacity onPress={() => router.replace("/(auth)/register")}>
+                <ThemedText type="link">Create account</ThemedText>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+      <UrlConfigModal visible={configVisible} onClose={() => setConfigVisible(false)} />
     </ThemedView>
   );
 }

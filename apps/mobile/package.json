@@ -9,7 +9,9 @@
     "ios": "bun --env-file=../../.env expo start --ios",
     "web": "bun --env-file=../../.env expo start --web",
     "lint": "expo lint",
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "chmod +x node_modules/react-native/sdks/hermesc/linux64-bin/hermesc",
+    "build:preview": "bun run --env-file=../../.env -- eas build --local --profile preview --platform android"
   },
   "dependencies": {
     "@area/backend": "workspace:*",

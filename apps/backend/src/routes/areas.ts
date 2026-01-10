@@ -166,7 +166,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
         set.status = 500
         return {
           error: "Internal Server Error",
-          message: "Failed to create AREA",
+          message: `${error}`,
           statusCode: 500
         }
       }

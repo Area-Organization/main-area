@@ -1,4 +1,4 @@
-import "../global.css"; // Import NativeWind styles
+import "../global.css";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import { SessionProvider, useSession } from "@/ctx";
@@ -9,7 +9,6 @@ import { ToastProvider } from "@/components/ui/toast";
 import { OfflineNotice } from "@/components/offline-notice";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-// This component handles the redirection logic
 function RootLayoutNav() {
   const { session, isLoading } = useSession();
   const segments = useSegments();
@@ -18,12 +17,13 @@ function RootLayoutNav() {
 
   useEffect(() => {
     const inAuthGroup = segments[0] === "(auth)";
+    const isCallbackRoute = segments[0] === "oauth-callback";
 
     if (isLoading) {
       return;
     }
 
-    if (!session && !inAuthGroup) {
+    if (!session && !inAuthGroup && !isCallbackRoute) {
       router.replace("/(auth)/login");
     } else if (session && inAuthGroup) {
       router.replace("/(tabs)");
@@ -42,12 +42,12 @@ function RootLayoutNav() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <ToastProvider>
-          {/* Global Offline Curtain */}
           <OfflineNotice />
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="oauth-callback" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </ToastProvider>
