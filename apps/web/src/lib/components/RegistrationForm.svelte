@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Form from "$lib/components/ui/form/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
-  import { registrationSchema } from "@/schemas/auth.shemas";
+  import { registrationSchema } from "@/schemas/auth.schemas";
   import PasswordInput from "./PasswordInput.svelte";
   import { typebox } from "sveltekit-superforms/adapters";
   import { superForm } from "sveltekit-superforms";
