@@ -1,5 +1,8 @@
 import { describe, expect, it } from "bun:test"
-import { serviceRegistry } from "../../src/services/registry"
+import { ServiceRegistry } from "../../src/services/ServiceRegistry"
+
+// Instantiate a fresh registry for testing logic
+const serviceRegistry = new ServiceRegistry()
 
 describe("Service Registry", () => {
   it("initializes with default services (GitHub, Gmail)", () => {
@@ -26,10 +29,9 @@ describe("Service Registry", () => {
   })
 
   it("retrieves a valid action from a service", () => {
-    // Testing specific action existence (new_issue in github)
-    const action = serviceRegistry.getAction("github", "new_issue")
+    const action = serviceRegistry.getAction("github", "New issue")
     expect(action).toBeDefined()
-    expect(action?.name).toBe("new_issue")
+    expect(action?.name).toBe("New issue")
   })
 
   it("returns undefined for invalid action in valid service", () => {
@@ -43,10 +45,9 @@ describe("Service Registry", () => {
   })
 
   it("retrieves a valid reaction from a service", () => {
-    // Testing specific reaction existence (send_email in gmail)
-    const reaction = serviceRegistry.getReaction("gmail", "send_email")
+    const reaction = serviceRegistry.getReaction("gmail", "Send email")
     expect(reaction).toBeDefined()
-    expect(reaction?.name).toBe("send_email")
+    expect(reaction?.name).toBe("Send email")
   })
 
   it("returns undefined for invalid reaction", () => {
