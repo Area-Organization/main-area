@@ -6,33 +6,43 @@ title: Architecture & Schéma de Données
 
 ## Structure des Dossiers
 
-Le backend est organisé de manière modulaire pour séparer les préoccupations :
+Le backend suit une architecture modulaire :
 
+```text
 apps/backend/
 ├── prisma/
-│ └── schema.prisma # Schéma de la base de données
+│   └── schema.prisma       # Définition des modèles de données
 ├── src/
-│ ├── database/ # Configuration de Prisma et de l'authentification
-│ ├── hooks/ # Logique du déclencheur d'AREA (HookManager)
-│ ├── interfaces/ # Interfaces TypeScript (IService, IAction, IReaction)
-│ ├── middlewares/ # Middlewares Elysia (ex: vérification de session)
-│ ├── plugins/ # Plugins Elysia (ex: configuration OpenAPI)
-│ ├── routes/ # Définition des endpoints de l'API
-│ ├── services/ # Logique des services externes (GitHub, Gmail, etc.)
-│ │ ├── github/
-│ │ ├── gmail/
-│ │ └── registry.ts # Enregistrement de tous les services disponibles
-│ ├── app.ts # Fichier principal d'initialisation de l'application Elysia
-│ └── index.ts # Point d'entrée du serveur
-└── package.json
+│   ├── database/           # Client Prisma et configuration Better Auth
+│   ├── hooks/              # Moteur de polling (manager.ts)
+│   ├── interfaces/         # Définitions TypeScript des Services (IAction, IReaction)
+│   ├── middlewares/        # Vérification d'authentification (session/token)
+│   ├── plugins/            # Plugins Elysia (Swagger, Better Auth handler)
+│   ├── routes/             # Contrôleurs API (areas, connect, about)
+│   ├── services/           # Implémentation des services tiers
+│   │   ├── discord/
+│   │   ├── github/
+│   │   ├── gmail/
+│   │   ├── spotify/
+│   │   ├── trello/
+│   │   └── registry.ts     # Singleton centralisant tous les services
+│   ├── utils/              # Utilitaires (ex: interpolator.ts)
+│   ├── app.ts              # Configuration de l'application Elysia
+│   └── index.ts            # Point d'entrée
+└── tests/                  # Tests unitaires et d'intégration
+```
 
 ## Schéma de la Base de Données (Prisma)
 
-Le fichier `prisma/schema.prisma` définit la structure des données. Voici les modèles principaux :
+Les modèles principaux définis dans `schema.prisma` sont :
 
--   `User`: Représente un utilisateur avec ses informations de base (email, nom).
--   `Session` & `Account`: Utilisés par **Better Auth** pour gérer les sessions actives et les comptes liés (OAuth).
--   `UserConnection`: Modèle central qui lie un `User` à un service externe (`serviceName`). Il stocke les jetons (`accessToken`, `refreshToken`) nécessaires pour interagir avec l'API du service.
--   `Area`: Représente une automatisation créée par un utilisateur. Elle contient un nom, une description et un statut (`enabled`). Elle est liée à une action et une réaction.
--   `AreaAction`: Définit le déclencheur d'une `Area`. Elle est liée à une `UserConnection` et contient les paramètres spécifiques à l'action (ex: le nom du dépôt GitHub à surveiller).
--   `AreaReaction`: Définit la conséquence d'une `Area`. Similaire à `AreaAction`, elle est liée à une `UserConnection` et stocke les paramètres de la réaction.
+- **User**: L'utilisateur central.
+- **Session / Account**: Gérés par Better Auth pour les sessions actives et les liaisons OAuth.
+- **UserConnection**: Stocke les crédentials (`accessToken`, `refreshToken`, `metadata`) pour un service spécifique (ex: "spotify") lié à un utilisateur. C'est ce qui permet au backend d'agir au nom de l'utilisateur.
+- **Area**: Représente une automatisation active. Contient le compteur de déclenchements (`triggerCount`) et la date de dernière exécution (`lastTriggered`).
+- **AreaAction**: Configuration du déclencheur (stocke les paramètres spécifiques comme `repoName`).
+- **AreaReaction**: Configuration de la conséquence (stocke les paramètres comme `playlistId`).
+
+## Types Partagés
+
+Le backend dépend du package interne `@area/types` (situé dans `packages/types`) pour assurer que les DTOs (Data Transfer Objects) envoyés par l'API correspondent exactement à ce que les clients attendent.

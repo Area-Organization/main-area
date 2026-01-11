@@ -4,33 +4,18 @@ title: Introduction au Client Mobile
 
 # Introduction au Client Mobile
 
-L'application mobile offre une expérience native pour gérer ses AREAs en déplacement. Elle est développée avec React Native et le framework Expo pour simplifier le développement et le déploiement.
+L'application mobile permet de créer et gérer ses automatisations AREA depuis un smartphone. Elle met l'accent sur une expérience utilisateur fluide et animée.
 
 ## Technologies Clés
 
--   **Framework**: [React Native](https://reactnative.dev/) avec [Expo](https://expo.dev/)
--   **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) - Un système de navigation basé sur les fichiers, similaire à Next.js ou SvelteKit.
--   **Client API**: [Eden Treaty](https://elysiajs.com/plugins/eden.html) - Comme pour le web, il assure une communication typée avec le backend. Le client est configuré dans `lib/api.ts`.
--   **Authentification**: [Better Auth](https://better-auth.dev/) avec son client React (`createAuthClient`) et son plugin Expo (`expoClient`). La gestion de session est centralisée dans `ctx.tsx`.
--   **Stockage Sécurisé**: `expo-secure-store` est utilisé pour stocker de manière sécurisée les jetons de session.
+- **Framework**: React Native (via Expo SDK 52).
+- **Langage**: TypeScript.
+- **Styling**: **NativeWind** (TailwindCSS pour React Native).
+- **Animations**: **React Native Reanimated 4** pour les interactions complexes (drag, swipe, wizard).
+- **Navigation**: Expo Router (basé sur les fichiers).
+- **API Client**: `@elysiajs/eden` (Client type-safe généré depuis le backend).
+- **Authentification**: Better Auth (Client React + plugin Expo + SecureStore).
 
-## Structure des Dossiers
+## Configuration Dynamique
 
-La structure est dictée par Expo Router :
-
-apps/mobile/
-├── app/
-│ ├── (auth)/ # Groupe de routes pour l'authentification (login, register)
-│ ├── (tabs)/ # Groupe de routes pour la navigation par onglets
-│ │ ├── _layout.tsx # Définition des onglets (Home, Create, Services)
-│ │ ├── index.tsx # Écran d'accueil (Dashboard)
-│ │ ├── create.tsx # Écran de création d'AREA
-│ │ └── services.tsx # Écran de gestion des services
-│ ├── _layout.tsx # Layout principal de l'application (gère la redirection)
-│ └── oauth-callback.tsx # Page de redirection après le flux OAuth
-├── components/ # Composants React réutilisables
-├── constants/ # Constantes (thème, couleurs)
-├── ctx.tsx # Contexte React pour la gestion de session (SessionProvider)
-└── lib/
-├── api.ts # Initialisation du client Eden Treaty
-└── auth.ts # Initialisation du client Better Auth
+Pour faciliter le développement et les tests sur appareil physique, l'application inclut un composant `UrlConfigModal`. Il permet de changer l'URL de l'API backend à la volée (stocké dans `AsyncStorage`), évitant de recompiler l'application pour changer d'environnement (localhost vs IP locale).
