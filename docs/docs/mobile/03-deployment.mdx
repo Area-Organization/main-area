@@ -1,0 +1,35 @@
+---
+title: Build & Distribution
+---
+
+# Build et Distribution Android
+
+Le projet utilise **EAS Build** (Expo Application Services) pour générer les binaires natifs (APK/AAB).
+
+## Stratégie Docker
+
+Le fichier `Dockerfile` présent dans `apps/mobile` n'est pas utilisé pour exécuter l'application mobile (car React Native tourne sur le périphérique utilisateur), mais pour **servir l'APK généré**.
+
+Le conteneur utilise une image légère (Alpine Linux) pour copier l'APK pré-construit (`client.apk`) vers un volume partagé, permettant ainsi de le rendre accessible (par exemple via un serveur web Nginx ou pour le téléchargement direct dans un pipeline CI/CD).
+
+```dockerfile
+# Extrait du Dockerfile Mobile
+FROM alpine:latest
+WORKDIR /app
+COPY client.apk /app/client.apk
+# Copie vers le volume partagé au démarrage
+CMD cp /app/client.apk /dist/client.apk && tail -f /dev/null
+```
+
+## Générer l'APK
+
+Pour générer l'APK en local (sans utiliser la file d'attente Cloud d'Expo), la commande suivante est configurée :
+
+```bash
+bun run build:preview
+```
+
+Cette commande exécute en interne :
+`eas build --local --profile preview --platform android`
+
+L'APK résultant peut ensuite être renommé en `client.apk` pour être utilisé par le Dockerfile.

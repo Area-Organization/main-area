@@ -32,6 +32,13 @@ apps/backend/
 └── tests/                  # Tests unitaires et d'intégration
 ```
 
+## Bibliothèques Clés
+
+Outre les technologies principales, le backend s'appuie sur des librairies spécifiques pour assurer la robustesse et la sécurité des types :
+
+- **@sinclair/typebox**: Utilisé pour la validation des données à l'exécution et la génération de schémas JSON. Il garantit que les données entrantes (body, query params) respectent le format attendu.
+- **@elysiajs/eden**: Permet de générer un client API type-safe pour les frontends (Web et Mobile). Cela assure une cohérence totale ("End-to-End Type Safety") : si le backend change une route, le frontend ne compile plus tant qu'il n'est pas mis à jour.
+
 ## Schéma de la Base de Données (Prisma)
 
 Les modèles principaux définis dans `schema.prisma` sont :

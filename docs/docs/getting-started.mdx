@@ -1,0 +1,104 @@
+---
+title: Installation & Démarrage
+sidebar_position: 2
+---
+
+# Installation et Démarrage
+
+Cette section explique comment installer, configurer et lancer le projet AREA complet (Monorepo).
+
+## Prérequis
+
+- **Runtime**: [Bun](https://bun.sh/) (v1.1+)
+- **Containerization**: Docker & Docker Compose
+- **Base de données**: PostgreSQL (si lancé hors Docker)
+
+## Installation
+
+Le projet est structuré comme un **Bun Workspaces** monorepo. Installez les dépendances à la racine :
+
+```bash
+# À la racine du projet (main-area/)
+bun install
+```
+
+Cette commande installera les dépendances pour le backend, le web, le mobile et les paquets partagés.
+
+## Configuration (.env)
+
+Créez un fichier `.env` à la racine du monorepo (`main-area/.env`). Voici les variables requises basées sur la configuration du backend :
+
+```ini
+# --- Base de Données ---
+# Format: postgresql://user:password@host:port/db_name
+DATABASE_URL="postgresql://user:password@localhost:5432/area_db"
+
+# --- URLs de l'Application ---
+# Utilisé pour les callbacks OAuth et les CORS
+PUBLIC_BACKEND_API_URL="http://localhost:8080"
+FRONTEND_URL="http://localhost:8081"
+
+# --- Authentification (Better Auth) ---
+# Obtenez ces clés via les consoles développeurs respectives
+GITHUB_CLIENT_ID="your_github_client_id"
+GITHUB_CLIENT_SECRET="your_github_client_secret"
+
+GOOGLE_CLIENT_ID="your_google_client_id"
+GOOGLE_CLIENT_SECRET="your_google_client_secret"
+
+# --- Services Tiers (AREA) ---
+# Gmail (OAuth2 Client)
+GMAIL_CLIENT_ID="your_gmail_client_id"
+GMAIL_CLIENT_SECRET="your_gmail_client_secret"
+
+# Spotify (OAuth2 Client)
+SPOTIFY_CLIENT_ID="your_spotify_client_id"
+SPOTIFY_CLIENT_SECRET="your_spotify_client_secret"
+
+# Trello (API Key)
+# Les utilisateurs fourniront leur propre token via l'interface,
+# mais l'API Key globale de l'application est requise ici.
+TRELLO_API_KEY="your_trello_api_key"
+```
+
+## Lancement
+
+### 1. Base de Données
+
+Avant de lancer le serveur, assurez-vous que le schéma de la base de données est à jour via Prisma :
+
+```bash
+# Génère le client Prisma et pousse le schéma vers la DB
+bun db:push
+```
+
+### 2. Mode Développement
+
+Vous pouvez lancer tous les services en parallèle ou individuellement.
+
+**Lancement global :**
+
+```bash
+bun dev
+```
+
+**Lancement individuel :**
+
+```bash
+# Backend (Port 8080)
+bun run --filter '@area/backend' dev
+
+# Client Web (Port 8081)
+bun run --filter '@area/web' dev
+
+# Client Mobile (Expo)
+bun run --filter 'mobile' start
+```
+
+### 3. Tests
+
+Pour exécuter la suite de tests (Unitaires et Intégration) :
+
+```bash
+bun test
+```
