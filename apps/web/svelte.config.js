@@ -1,18 +1,21 @@
-import adapter from 'svelte-adapter-bun';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import adapter from "svelte-adapter-bun";
+import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	// Consult https://svelte.dev/docs/kit/integrations
-	// for more information about preprocessors
-	preprocess: vitePreprocess(),
-	kit: {
-		alias: {
-			"@/*": "./src/lib/*",
-			"@area/types": "../../packages/types/src/index.ts"
-		},
-		adapter: adapter()
-	}
+  // Consult https://svelte.dev/docs/kit/integrations
+  // for more information about preprocessors
+  preprocess: vitePreprocess(),
+  kit: {
+    env: {
+      dir: "../../"
+    },
+    alias: {
+      "@/*": "./src/lib/*",
+      "@area/types": "../../packages/types/src/index.ts"
+    },
+    adapter: adapter()
+  }
 };
 
 export default config;

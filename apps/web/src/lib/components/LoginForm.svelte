@@ -1,7 +1,7 @@
 <script lang="ts">
   import { defaultValues, superForm } from "sveltekit-superforms";
   import { typebox } from "sveltekit-superforms/adapters";
-  import { loginSchema } from "@/schemas/auth.shemas";
+  import { loginSchema } from "@/schemas/auth.schemas";
   import { authClient } from "@/auth-client";
   import * as Form from "$lib/components/ui/form/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
