@@ -2,12 +2,15 @@ FROM alpine:latest
 
 WORKDIR /app
 
-# We copy the pre-built APK from our local machine into the container
-COPY client.apk /app/client.apk
+# Install curl (Alpine needs this to download files)
+RUN apk add --no-cache curl
 
-# We then create the directory where the shared volume will be mounted
+# Download the APK from your release URL
+# Replace the URL below with your actual GitHub Release asset link
+RUN curl -L -o client.apk "https://github.com/Area-Organization/main-area/releases/download/v1.0.0/client.apk"
+
+# Create the directory for the shared volume
 RUN mkdir -p /dist
 
-# When the container starts, we copy the file to the shared volume
-# Then keep the container running so Docker Compose doesn't think it crashed
+# Copy downloaded file to volume and keep container alive
 CMD cp /app/client.apk /dist/client.apk && tail -f /dev/null
