@@ -15,6 +15,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - area-net
 
   server:
     build:
@@ -35,7 +37,9 @@ services:
       - GMAIL_CLIENT_ID=${GMAIL_CLIENT_ID}
       - GMAIL_CLIENT_SECRET=${GMAIL_CLIENT_SECRET}
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
-    command: sh -c "cd apps/backend && bunx prisma db push && bun run src/index.ts"
+    command: sh -c "sleep 5 && cd apps/backend && bunx prisma db push && bun run src/index.ts"
+    networks:
+      - area-net
 
   client_mobile:
     build:
@@ -43,6 +47,8 @@ services:
       dockerfile: Dockerfile
     volumes:
       - apk-share:/dist
+    networks:
+      - area-net
 
   client_web:
     build:
@@ -57,7 +63,13 @@ services:
       - client_mobile
     volumes:
       - apk-share:/app/apps/web/static/apk
+    networks:
+      - area-net
 
 volumes:
   db-data:
   apk-share:
+
+networks:
+  area-net:
+    driver: bridge
