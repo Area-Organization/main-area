@@ -1,14 +1,14 @@
 <script>
-	import { Eye, EyeClosed } from 'lucide-svelte';
+	import { Eye, EyeClosed, Proportions } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import Input from './ui/input/input.svelte';
 
 	let visible = $state(false);
-	let { value = $bindable() } = $props();
+	let { value = $bindable(), ...others } = $props();
 </script>
 
 <div class="relative">
-	<Input type={visible ? 'text' : 'password'} bind:value class="pr-9" />
+	<Input type={visible ? 'text' : 'password'} bind:value class="pr-9" id={others?.id} placeholder={others?.placeholder} />
 	<Button
 		variant="ghost"
 		size="icon"
