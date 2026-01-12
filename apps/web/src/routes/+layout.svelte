@@ -2,6 +2,7 @@
   import "./layout.css";
   import favicon from "$lib/assets/favicon.svg";
   import Header from "@/components/Header.svelte";
+  import { Toaster } from "@/components/ui/sonner";
 
   let { children } = $props();
 </script>
@@ -15,4 +16,5 @@
   <div class="flex-1 flex justify-center items-center w-full">
     {@render children()}
   </div>
+  <Toaster />
 </div>
