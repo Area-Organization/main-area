@@ -4,6 +4,9 @@ import { gmailService } from "./gmail"
 import { discordService } from "./discord"
 import { trelloService } from "./trello"
 import { spotifyService } from "./spotify"
+import { youtubeService } from "./youtube"
+import { googleDriveService } from "./drive"
+import { notionService } from "./notion"
 
 export class ServiceRegistry {
   private services: Map<string, IService> = new Map()
@@ -14,6 +17,9 @@ export class ServiceRegistry {
     this.register(discordService)
     this.register(trelloService)
     this.register(spotifyService)
+    this.register(youtubeService)
+    this.register(googleDriveService)
+    this.register(notionService)
   }
 
   register(service: IService): void {
