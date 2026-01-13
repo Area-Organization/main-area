@@ -6,13 +6,12 @@ import { authHandler } from "./plugins/better-auth"
 import { authMiddleware } from "./middlewares/better-auth"
 import { areasRoutes } from "./routes/areas"
 import { connectRoutes } from "./routes/connect"
-import { betterAuth } from "better-auth/minimal"
 import { OpenAPI } from "./plugins/better-api"
 
 export const app = new Elysia()
   .use(
     cors({
-      origin: "http://localhost:8081",
+      origin: process.env.FRONTEND_URL || "http://localhost:8081",
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization"]
     })
