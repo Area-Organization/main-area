@@ -9,6 +9,7 @@
   import { page } from "$app/state";
   import * as Card from "$lib/components/ui/card/index.js";
   import { goto } from "$app/navigation";
+  import OAuthButtons from "./OAuthButtons.svelte";
 
   const redirectTo = page.url.searchParams.get("redirectTo")
     ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
@@ -99,8 +100,10 @@
           Already have an account?
           <a href={`/login${redirectTo ? `?redirectTo=${redirectTo}` : ""}`} class="underline"> Login</a>
         </p>
-        <Form.Button class="flex-1">Register</Form.Button>
+        <Form.Button class="flex-1 w-full">Register</Form.Button>
       </div>
+
+      <OAuthButtons />
     </form>
   </Card.Content>
 </Card.Root>

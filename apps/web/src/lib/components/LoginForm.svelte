@@ -8,6 +8,7 @@
   import { Input } from "$lib/components/ui/input/index.js";
   import { Checkbox } from "$lib/components/ui/checkbox/index.js";
   import PasswordInput from "./PasswordInput.svelte";
+  import OAuthButtons from "./OAuthButtons.svelte";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
 
@@ -93,8 +94,10 @@
           No account?
           <a href={`/register${redirectTo ? `?redirectTo=${redirectTo}` : ""}`} class="underline"> Register</a>
         </p>
-        <Form.Button class="flex-1">Login</Form.Button>
+        <Form.Button class="flex-1 w-full">Login</Form.Button>
       </div>
+
+      <OAuthButtons />
     </form>
   </Card.Content>
 </Card.Root>
