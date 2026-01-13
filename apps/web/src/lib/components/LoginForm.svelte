@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { defaultValues, superForm } from "sveltekit-superforms";
+  import { superForm } from "sveltekit-superforms";
   import * as Card from "$lib/components/ui/card/index.js";
   import { typebox } from "sveltekit-superforms/adapters";
   import { loginSchema } from "@/schemas/auth.schemas";
@@ -9,6 +9,7 @@
   import { Checkbox } from "$lib/components/ui/checkbox/index.js";
   import PasswordInput from "./PasswordInput.svelte";
   import { page } from "$app/state";
+  import { goto } from "$app/navigation";
 
   const redirectTo = page.url.searchParams.get("redirectTo")
     ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
@@ -34,6 +35,8 @@
             console.error("Login failed:", error);
             return;
           }
+
+          goto(redirectTo ? decodeURIComponent(redirectTo) : "/");
         } catch (error) {
           console.error("Login error:", error);
         }

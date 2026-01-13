@@ -8,6 +8,7 @@
   import { authClient } from "@/auth-client";
   import { page } from "$app/state";
   import * as Card from "$lib/components/ui/card/index.js";
+  import { goto } from "$app/navigation";
 
   const redirectTo = page.url.searchParams.get("redirectTo")
     ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
@@ -38,7 +39,8 @@
             console.error("Registration failed:", error);
             return;
           }
-          console.log("Registration successful:", data);
+
+          goto(redirectTo ? decodeURIComponent(redirectTo) : "/");
         } catch (error) {
           console.error("Registration error:", error);
         }
