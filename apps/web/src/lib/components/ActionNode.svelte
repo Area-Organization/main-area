@@ -1,54 +1,45 @@
 <script lang="ts">
   import { getContext } from "svelte";
   import * as Card from "$lib/components/ui/card/index.js";
-  import type { ActionDTO } from "@area/types";
   import { draggable } from "@thisux/sveltednd";
-  import { Handle, Position, type NodeProps, useSvelteFlow, type Edge } from "@xyflow/svelte";
-  import { Check, ChevronsLeftRight, Copy, X } from "lucide-svelte";
+  import { Position, type NodeProps, useSvelteFlow, type Edge } from "@xyflow/svelte";
+  import { ChevronsLeftRight, Copy } from "lucide-svelte";
   import { toast } from "svelte-sonner";
-  import Input from "./ui/input/input.svelte";
   import ParamsInput from "./ParamsInput.svelte";
-  import { validateNodeParams } from "@/area-utils";
   import NodeHeader from "./NodeHeader.svelte";
   import ResizedHandle from "./ResizedHandle.svelte";
+  import type { ActionNodeData } from "@/types";
+  import { validateNode } from "@/area-utils";
 
   interface Props extends NodeProps {
-    data: {
-      info: ActionDTO;
-      [key: string]: unknown;
-      params?: { [x: string]: any };
-    };
+    data: ActionNodeData;
   }
 
-  let { data, id, type, ...restProps }: Props = $props();
+  let { data, id, type }: Props = $props();
   const { deleteElements, updateNodeData } = useSvelteFlow();
+  const edgesCtx = getContext<{ value: Edge[] }>("flow-edges");
 
   let params = $derived(Object.entries(data?.info.params ?? {}));
   let paramValues = $state<Record<string, string>>({});
+
+  let isConnected = $derived(
+    edgesCtx.value.some((edge) => {
+      return edge.source === id;
+    })
+  );
+
   $effect(() => {
+    const incoming = data.paramValues ?? {};
     for (const [key] of params) {
       if (paramValues[key] === undefined) {
-        paramValues[key] = data.params?.[key] ? data.params?.[key] : "";
+        paramValues[key] = incoming[key] ?? "";
       }
     }
   });
 
   $effect(() => {
-    const isValid = validateNodeParams(params, paramValues);
-
-    const currentValues = JSON.stringify(data.paramValues || {});
-    const newValues = JSON.stringify(paramValues);
-
-    if (data.valid === isValid && currentValues === newValues) {
-      return;
-    }
-
-    updateNodeData(id, { valid: isValid, paramValues });
+    validateNode(params, paramValues, data, id, updateNodeData, edgesCtx);
   });
-
-  const edgesCtx = getContext<{ value: Edge[] }>("flow-edges");
-
-  let isConnected = $derived(edgesCtx.value.some((edge) => edge.source === id));
 
   function handleDelete() {
     deleteElements({ nodes: [{ id }] });
@@ -58,11 +49,11 @@
 {#if data.info}
   <div use:draggable={{ container: "node", dragData: { id, type } }}>
     <Card.Root class="gap-3 w-md">
-      <NodeHeader {params} {paramValues} {handleDelete} name={data.info.name} />
+      <NodeHeader isValid={data.valid ?? false} {handleDelete} name={data.info.name} />
       <Card.Content>
         <div class="flex flex-col gap-5">
           {#each params as [key, param]}
-            <ParamsInput {param} {key} value={paramValues[key]} />
+            <ParamsInput {param} {key} bind:value={paramValues[key]} />
           {/each}
         </div>
 

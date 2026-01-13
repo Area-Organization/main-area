@@ -1,22 +1,16 @@
 <script lang="ts">
   import { SvelteFlowProvider, type Node, type Edge } from "@xyflow/svelte";
+  import type { ActionNodeData, ReactionNodeData } from "@/types";
   import "@xyflow/svelte/dist/style.css";
   import { toast } from "svelte-sonner";
-
   import ServiceSidebar from "@/components/area-editor/ServiceSidebar.svelte";
   import EditorCanvas from "@/components/area-editor/EditorCanvas.svelte";
   import CreateAreaDialog from "@/components/area-editor/CreateAreaDialog.svelte";
-
   import { client } from "@/api";
   import { goto } from "$app/navigation";
   import type { PageProps } from "./$types";
   import { untrack } from "svelte";
   import { validateArea } from "@/area-utils";
-
-  type NodeData = {
-    info: { name: string };
-    paramValues?: Record<string, unknown>;
-  };
 
   let { data }: PageProps = $props();
   let curArea = $derived(data.curArea.area);
@@ -47,9 +41,9 @@
         type: "action",
         position: { x: 0, y: 0 },
         data: {
-          label: `node`,
+          label: "action",
           info: actionInfo(),
-          params: curArea.action?.params
+          paramValues: curArea.action?.params
         },
         origin: [0.5, 0.0]
       } satisfies Node);
@@ -59,9 +53,9 @@
         type: "reaction",
         position: { x: 0, y: 0 },
         data: {
-          label: `node`,
+          label: "reaction",
           info: reactionInfo(),
-          params: curArea.reaction?.params
+          paramValues: curArea.reaction?.params
         },
         origin: [0.5, 0.0]
       } satisfies Node);
@@ -82,10 +76,16 @@
   let isDialogOpen = $state(false);
 
   async function modifyArea(name: string, desc: string) {
-    const actions = nodes.filter((n) => n.type == "action");
-    const reactions = nodes.filter((n) => n.type == "reaction");
-    const actionData = actions[0].data as NodeData;
-    const reactionData = reactions[0].data as NodeData;
+    const actionNode = nodes.find((n) => n.type === "action");
+    const reactionNode = nodes.find((n) => n.type === "reaction");
+
+    if (!actionNode || !reactionNode) {
+      toast.error("Missing nodes");
+      return;
+    }
+
+    const actionData = actionNode.data as ActionNodeData;
+    const reactionData = reactionNode.data as ReactionNodeData;
 
     const actionServiceName = services.find((s) => {
       return s.actions.find((a) => {

@@ -8,7 +8,7 @@
     value: string;
   }
 
-  let { key, param, value }: Props = $props();
+  let { key, param, value = $bindable() }: Props = $props();
 </script>
 
 <div class="flex flex-col gap-2">
@@ -25,7 +25,7 @@
       type={param.type === "string" ? "text" : param.type}
       placeholder={param.description}
       required={param.required}
-      bind:value={value}
+      bind:value
     />
   {/if}
 </div>
