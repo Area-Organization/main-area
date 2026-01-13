@@ -7,11 +7,16 @@
   import { Check, ChevronsLeftRight, Copy, X } from "lucide-svelte";
   import { toast } from "svelte-sonner";
   import Input from "./ui/input/input.svelte";
+  import ParamsInput from "./ParamsInput.svelte";
+  import { validateNodeParams } from "@/area-utils";
+  import NodeHeader from "./NodeHeader.svelte";
+  import ResizedHandle from "./ResizedHandle.svelte";
 
   interface Props extends NodeProps {
     data: {
       info: ActionDTO;
       [key: string]: unknown;
+      params?: { [x: string]: any };
     };
   }
 
@@ -23,20 +28,13 @@
   $effect(() => {
     for (const [key] of params) {
       if (paramValues[key] === undefined) {
-        paramValues[key] = "";
+        paramValues[key] = data.params?.[key] ? data.params?.[key] : "";
       }
     }
   });
 
-  function validateParams() {
-    for (const [key, value] of params) {
-      if (paramValues[key] === "" && value.required) return false;
-    }
-    return true;
-  }
-
   $effect(() => {
-    const isValid = validateParams();
+    const isValid = validateNodeParams(params, paramValues);
 
     const currentValues = JSON.stringify(data.paramValues || {});
     const newValues = JSON.stringify(paramValues);
@@ -60,46 +58,11 @@
 {#if data.info}
   <div use:draggable={{ container: "node", dragData: { id, type } }}>
     <Card.Root class="gap-3 w-md">
-      <Card.Header class="flex flex-row justify-between items-center">
-        <div class="flex gap-2 items-center">
-          <Check
-            size={20}
-            class={`transition-colors ${validateParams() ? "text-green-500" : "text-muted-foreground/20"}`}
-          />
-          <Card.Title class="uppercase">{data.info.name}</Card.Title>
-        </div>
-        <button
-          onmousedown={(e) => {
-            e.stopPropagation();
-            handleDelete();
-          }}
-          class="nodrag text-muted-foreground hover:text-red-500 cursor-pointer transition-colors"
-          title="Delete node"
-        >
-          <X size={20} />
-        </button>
-      </Card.Header>
+      <NodeHeader {params} {paramValues} {handleDelete} name={data.info.name} />
       <Card.Content>
         <div class="flex flex-col gap-5">
           {#each params as [key, param]}
-            <div class="flex flex-col gap-2">
-              <div class="flex justify-between items-center">
-                {param.label}
-                {#if param.required}
-                  <p class="text-red-400">Required</p>
-                {/if}
-              </div>
-              {#if param.type == "string"}
-                <Input
-                  id={key}
-                  name={key}
-                  type={param.type === "string" ? "text" : param.type}
-                  placeholder={param.description}
-                  required={param.required}
-                  bind:value={paramValues[key]}
-                />
-              {/if}
-            </div>
+            <ParamsInput {param} {key} value={paramValues[key]} />
           {/each}
         </div>
 
@@ -130,26 +93,7 @@
           </div>
         {/if}
 
-        <div
-          role="button"
-          tabindex="-1"
-          class="nodrag"
-          draggable={true}
-          onmousedown={(e) => e.stopPropagation()}
-          ontouchstart={(e) => e.stopPropagation()}
-          onpointerdown={(e) => e.stopPropagation()}
-          ondragstart={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          style="position: absolute; right: 0; top: 50%; transform: translate(50%, -50%);"
-        >
-          <Handle
-            type="source"
-            position={Position.Right}
-            style="width: 12px; height: 12px; position: static; transform: none;"
-          />
-        </div>
+        <ResizedHandle type="source" position={Position.Right} />
       </Card.Content>
     </Card.Root>
   </div>

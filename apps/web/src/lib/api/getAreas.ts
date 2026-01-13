@@ -17,3 +17,13 @@ export async function getAreas(params?: {
 
   return data;
 }
+
+export async function getAreaById(id: number | string) {
+  const { data, error } = await client.api.areas({ id }).get();
+
+  if (error) {
+    throw new Error(`Failed to fetch area with id ${id}: ${error.status}`);
+  }
+
+  return data;
+}

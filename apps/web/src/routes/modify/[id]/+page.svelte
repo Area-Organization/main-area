@@ -10,6 +10,7 @@
   import { client } from "@/api";
   import { goto } from "$app/navigation";
   import type { PageProps } from "./$types";
+  import { untrack } from "svelte";
   import { validateArea } from "@/area-utils";
 
   type NodeData = {
@@ -18,11 +19,60 @@
   };
 
   let { data }: PageProps = $props();
+  let curArea = $derived(data.curArea.area);
   let connections = $derived(data.connections.connections);
   let services = $derived(data.services);
 
   let nodes = $state.raw<Node[]>([]);
   let edges = $state.raw<Edge[]>([]);
+  let actionInfo = $derived(() => {
+    for (const service of services) {
+      const action = service.actions.find((a) => a.name === curArea.action?.actionName);
+      if (action) return action;
+    }
+    return undefined;
+  });
+  let reactionInfo = $derived(() => {
+    for (const service of services) {
+      const reaction = service.reactions.find((r) => r.name === curArea.reaction?.reactionName);
+      if (reaction) return reaction;
+    }
+    return undefined;
+  });
+
+  $effect(() => {
+    untrack(() => {
+      nodes.push({
+        id: `${Math.random()}`,
+        type: "action",
+        position: { x: 0, y: 0 },
+        data: {
+          label: `node`,
+          info: actionInfo(),
+          params: curArea.action?.params
+        },
+        origin: [0.5, 0.0]
+      } satisfies Node);
+
+      nodes.push({
+        id: `${Math.random()}`,
+        type: "reaction",
+        position: { x: 0, y: 0 },
+        data: {
+          label: `node`,
+          info: reactionInfo(),
+          params: curArea.reaction?.params
+        },
+        origin: [0.5, 0.0]
+      } satisfies Node);
+
+      edges.push({
+        id: `${Math.random()}`,
+        source: nodes[0].id,
+        target: nodes[1].id
+      });
+    });
+  });
 
   function getConnectionId(serviceName: string): string | undefined {
     const connection = connections.find((c) => c.serviceName === serviceName);
@@ -31,7 +81,7 @@
 
   let isDialogOpen = $state(false);
 
-  async function createArea(name: string, desc: string) {
+  async function modifyArea(name: string, desc: string) {
     const actions = nodes.filter((n) => n.type == "action");
     const reactions = nodes.filter((n) => n.type == "reaction");
     const actionData = actions[0].data as NodeData;
@@ -62,7 +112,7 @@
       return;
     }
 
-    const { error } = await client.api.areas.post({
+    const { error } = await client.api.areas({ id: curArea.id }).patch({
       name: name,
       description: desc,
       action: {
@@ -82,11 +132,11 @@
     if (error) {
       const errorMessage = (error.value as { message?: unknown })?.message
         ? String((error.value as { message: unknown }).message)
-        : "Failed to create Area :(";
+        : "Failed to modify Area :(";
 
       toast.error(errorMessage);
     } else {
-      toast.success("Area created!");
+      toast.success("Area modified!");
       isDialogOpen = false;
       goto("/");
     }
@@ -99,7 +149,16 @@
       <ServiceSidebar title="Actions" type="action" services={services ?? []} userConnections={connections} />
 
       <EditorCanvas bind:nodes bind:edges>
-        <CreateAreaDialog bind:open={isDialogOpen} disabled={!validateArea(nodes, edges)} onsubmit={createArea} />
+        <CreateAreaDialog
+          bind:open={isDialogOpen}
+          disabled={!validateArea(nodes, edges)}
+          onsubmit={modifyArea}
+          buttonText="Modify Area"
+          dialogTitle="Modify your Area"
+          validateButtonText="Modify"
+          baseName={curArea.name}
+          baseDesc={curArea.description}
+        />
       </EditorCanvas>
 
       <ServiceSidebar title="Reactions" type="reaction" services={services ?? []} userConnections={connections} />
