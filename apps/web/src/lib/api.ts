@@ -1,9 +1,11 @@
 import { treaty } from "@elysiajs/eden";
 import type { App } from "@area/backend/type";
 import { PUBLIC_BACKEND_API_URL } from "$env/static/public";
+import { dev } from "$app/environment";
 
-// export const client = treaty<App>(PUBLIC_BACKEND_API_URL || "http://localhost:8080", {
-export const client = treaty<App>("http://localhost:8080", { // For now we use the localhost since ngrok fucks with the origin headers
+const url = dev ? "http://localhost:8080" : PUBLIC_BACKEND_API_URL;
+
+export const client = treaty<App>(url, {
   fetch: {
     credentials: "include"
   }
