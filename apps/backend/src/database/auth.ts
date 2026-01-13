@@ -30,7 +30,7 @@ export const auth = betterAuth({
   },
   cookie: {
     // Allows the session cookie to be recognized by both app.epi-area.me and api.epi-area.me
-    domain: process.env.NODE_ENV === "production" ? "epi-area.me" : undefined,
+    domain: process.env.NODE_ENV === "production" ? ".epi-area.me" : undefined,
     extraAttributes: {
       sameSite: "Lax"
     }

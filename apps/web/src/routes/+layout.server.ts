@@ -3,17 +3,28 @@ import type { LayoutServerLoad } from "./$types";
 import { authClient } from "@/auth-client";
 
 export const load: LayoutServerLoad = async ({ request, url }) => {
+  const cookieHeader = request.headers.get("cookie") || "";
   let isAuthenticated = false;
+
+  // Log for debugging in Dokploy console
+  if (cookieHeader) {
+    console.log(`[Auth Check] Cookie found in request for: ${url.pathname}`);
+  } else {
+    console.log(`[Auth Check] No cookies found in request for: ${url.pathname}`);
+  }
+
   try {
     const { data: session } = await authClient.getSession({
       fetchOptions: {
         headers: {
-          cookie: request.headers.get("cookie") || ""
+          cookie: cookieHeader
         }
       }
     });
     isAuthenticated = !!session;
-  } catch (e) {}
+  } catch (e) {
+    console.error("[Auth Check] Error fetching session:", e);
+  }
 
   const publicRoutes = ["/login", "/register"];
   const path = url.pathname;
