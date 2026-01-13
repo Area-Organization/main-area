@@ -1,7 +1,7 @@
 import type { IAction, IContext } from "../../../interfaces/service"
 
 export const newIssueAction: IAction = {
-  name: "new_issue",
+  name: "New issue",
   description: "Triggered when a new issue is created in a repository",
   params: {
     owner: {
@@ -17,6 +17,14 @@ export const newIssueAction: IAction = {
       description: "Name of the repository to monitor"
     }
   },
+  variables: [
+    { name: "issueNumber", description: "The number of the issue" },
+    { name: "title", description: "The title of the issue" },
+    { name: "body", description: "The content/body of the issue" },
+    { name: "url", description: "Link to the issue" },
+    { name: "author", description: "Username of the creator" },
+    { name: "createdAt", description: "Date of creation" }
+  ],
 
   async check(params, context: IContext): Promise<boolean> {
     const { owner, repo } = params

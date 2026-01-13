@@ -1,6 +1,7 @@
 import { prisma } from "../database/prisma"
 import { serviceRegistry } from "../services/registry"
 import type { IContext } from "../interfaces/service"
+import { interpolate } from "../utils/interpolator"
 
 class HookManager {
   private intervalId: Timer | null = null
@@ -121,7 +122,11 @@ class HookManager {
         metadata: {}
       }
       try {
-        await reaction.execute(area.reaction.params as Record<string, any>, reactionContext)
+        const reactionParamsRaw = area.reaction.params as Record<string, any>
+        const processedParams = interpolate(reactionParamsRaw, actionContext.actionData || {})
+
+        await reaction.execute(processedParams, reactionContext)
+
         await prisma.area.update({
           where: { id: area.id },
           data: {

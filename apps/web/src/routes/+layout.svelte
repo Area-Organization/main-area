@@ -1,18 +1,20 @@
 <script lang="ts">
-	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
-	import Header from '@/components/Header.svelte';
+  import "./layout.css";
+  import favicon from "$lib/assets/favicon.svg";
+  import Header from "@/components/Header.svelte";
+  import { Toaster } from "@/components/ui/sonner";
 
-	let { children } = $props();
+  let { children } = $props();
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+  <link rel="icon" href={favicon} />
 </svelte:head>
 
 <div class="dark bg-background min-h-screen text-foreground flex flex-col h-screen">
-	<Header />
-	<div class="flex-1 flex justify-center items-center w-full">
-		{@render children()}
-	</div>
+  <Header />
+  <div class="flex-1 flex justify-center items-center w-full">
+    {@render children()}
+  </div>
+  <Toaster />
 </div>

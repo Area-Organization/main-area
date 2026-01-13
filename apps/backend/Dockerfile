@@ -4,11 +4,13 @@ WORKDIR /app
 
 COPY . .
 
-RUN bun install --no-save
-
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
+RUN bun install --no-save --ignore-scripts
+
 WORKDIR /app/apps/backend
-RUN bun run prisma generate
+
+RUN bunx prisma generate
 
 WORKDIR /app
 

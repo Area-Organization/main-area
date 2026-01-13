@@ -1,30 +1,16 @@
-FROM node:20-slim
+FROM alpine:latest
 
 WORKDIR /app
 
-RUN npm install -g bun
+# Install curl (Alpine needs this to download files)
+RUN apk add --no-cache curl
 
-COPY package.json bun.lock ./
-COPY packages ./packages
+# Download the APK from your release URL
+# Replace the URL below with your actual GitHub Release asset link
+RUN curl -L -o client.apk "https://github.com/Area-Organization/main-area/releases/download/v1.0.0/client.apk"
 
-COPY apps/backend/package.json ./apps/backend/package.json
-COPY apps/web/package.json ./apps/web/package.json
-COPY apps/mobile/package.json ./apps/mobile/package.json
+# Create the directory for the shared volume
+RUN mkdir -p /dist
 
-RUN bun install --no-save --ignore-scripts
-
-WORKDIR /app
-COPY apps/mobile ./apps/mobile
-
-WORKDIR /app/apps/mobile
-
-ENV EXPO_PUBLIC_API_URL="http://localhost:8080"
-
-RUN npx expo export -p web --output-dir dist
-
-RUN npm install -g serve
-
-ENV PORT=8082
-EXPOSE 8082
-
-CMD ["serve", "dist", "-p", "8082", "--single"]
+# Copy downloaded file to volume and keep container alive
+CMD cp /app/client.apk /dist/client.apk && tail -f /dev/null

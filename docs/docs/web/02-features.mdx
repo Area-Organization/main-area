@@ -2,31 +2,34 @@
 title: Fonctionnalités et Flux
 ---
 
-# Fonctionnalités et Flux Utilisateur
+# Fonctionnalités
 
-### Authentification
+### Éditeur de Flux (Drag & Drop)
 
--   **Inscription et Connexion**: Les utilisateurs peuvent créer un compte ou se connecter via les pages `/register` et `/login`. Ces pages utilisent `RegistrationForm.svelte` et `LoginForm.svelte`, qui gèrent la validation avec Superforms et appellent le `authClient` pour communiquer avec le backend.
--   **Gestion de Session**: `authClient.useSession()` est un store Svelte qui fournit l'état de la session utilisateur dans toute l'application.
+Contrairement à une approche formulaire classique, la page `/create` implémente un éditeur visuel complet :
 
-### Dashboard (`/`)
+- **Canvas Infini**: Basé sur Svelte Flow, l'utilisateur dispose d'un plan de travail.
+- **Sidebar**: Liste les services disponibles (Actions à gauche, Réactions à droite).
+- **Drag & Drop**: L'utilisateur glisse (`@thisux/sveltednd`) une Action et une Réaction sur le canvas.
+- **Configuration des Nœuds**:
+  - Les nœuds (`ActionNode.svelte`, `ReactionNode.svelte`) sont interactifs.
+  - Ils affichent des champs de formulaire pour les paramètres requis.
+  - Ils valident les données en temps réel.
+- **Liaison**: L'utilisateur connecte visuellement le nœud Action au nœud Réaction pour valider le flux.
+- **Variables**: Lorsqu'une Action est connectée, le nœud Réaction affiche les variables disponibles (`{{...}}`) pour faciliter le copier-coller.
 
--   La page d'accueil liste toutes les AREAs créées par l'utilisateur.
--   Elle utilise la fonction `getAreas()` (`src/lib/api/getAreas.ts`) pour récupérer les données.
--   Les utilisateurs peuvent voir le statut de chaque AREA (active/inactive) et la basculer.
+### Dashboard
 
-### Création d'AREA (`/create`)
+Le dashboard affiche les AREAs sous forme de grille de cartes.
 
--   Un assistant en plusieurs étapes guide l'utilisateur :
-    1.  Choix du service déclencheur (Action).
-    2.  Choix de l'action spécifique et configuration de ses paramètres.
-    3.  Choix du service de réaction.
-    4.  Choix de la réaction spécifique et configuration de ses paramètres.
-    5.  Finalisation avec un nom et une description.
--   Ce flux interactif utilise des boîtes de dialogue (`Dialog`) pour la configuration des paramètres de chaque action/réaction.
+- Indicateurs visuels de l'état (Actif/Inactif).
+- Détails sur le dernier déclenchement.
+- Possibilité de désactiver une AREA sans la supprimer.
 
-### Profil et Connexions (`/profile`)
+### Profil & Services
 
--   Cette page permet à l'utilisateur de gérer les connexions à des services tiers.
--   Elle affiche la liste de tous les services disponibles (via `getServices`) et indique lesquels sont déjà connectés (via `getServiceConnections`).
--   Pour connecter un service, l'utilisateur clique sur une carte, ce qui le redirige vers l'URL d'autorisation OAuth2 du service. Après autorisation, il est redirigé vers la page de profil avec la connexion établie.
+La page `/profile` permet de gérer les connexions aux services tiers.
+
+- Affiche l'état de connexion de chaque service (switch on/off).
+- Gère la redirection OAuth2 pour connecter un nouveau service.
+- Utilise les composants `ServiceCard` et `ServiceIcon` pour une présentation unifiée.

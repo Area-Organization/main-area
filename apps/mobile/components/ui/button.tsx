@@ -1,7 +1,7 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from "react-native";
-import { useThemeColor } from "@/hooks/use-theme-color";
-import { Layout } from "@/constants/theme";
+import { Text, ActivityIndicator, ViewStyle, Pressable } from "react-native";
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 
 type ButtonProps = {
   onPress: () => void;
@@ -10,63 +10,69 @@ type ButtonProps = {
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
+  className?: string;
 };
 
-export function Button({ onPress, title, variant = "primary", disabled, loading, style }: ButtonProps) {
-  const primaryColor = useThemeColor({}, "primary");
-  const primaryFg = useThemeColor({}, "primaryForeground");
-  const destructive = "#EF4444";
-  const muted = useThemeColor({}, "muted");
-  const border = useThemeColor({}, "border");
-  const text = useThemeColor({}, "text");
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-  let bg = primaryColor;
-  let fg = primaryFg;
-  let borderColor = "transparent";
-  let borderWidth = 0;
+export function Button({ onPress, title, variant = "primary", disabled, loading, style, className }: ButtonProps) {
+  const scale = useSharedValue(1);
+
+  let bgClass = "bg-primary";
+  let textClass = "text-primary-foreground";
+  let borderClass = "";
 
   if (variant === "secondary") {
-    bg = muted;
-    fg = text;
+    bgClass = "bg-muted";
+    textClass = "text-foreground";
   } else if (variant === "destructive") {
-    bg = destructive;
-    fg = "#FFF";
+    bgClass = "bg-destructive";
+    textClass = "text-white";
   } else if (variant === "outline") {
-    bg = "transparent";
-    fg = text;
-    borderColor = border;
-    borderWidth = 1;
+    bgClass = "bg-transparent";
+    textClass = "text-foreground";
+    borderClass = "border border-border";
   }
+
+  if (disabled) {
+    bgClass = "bg-muted";
+    textClass = "text-muted-foreground";
+  }
+
+  const springConfig = {
+    mass: 0.2,
+    damping: 20,
+    stiffness: 400
+  };
+
+  const handlePressIn = () => {
+    if (disabled || loading) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    scale.value = withSpring(0.97, springConfig);
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, springConfig);
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }]
+  }));
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       disabled={disabled || loading}
-      style={[
-        styles.button,
-        { backgroundColor: disabled ? muted : bg, borderColor, borderWidth, borderRadius: Layout.radius },
-        style
-      ]}
+      style={[animatedStyle, style]}
+      className={`h-[50px] flex-row items-center justify-center px-5 rounded-2xl ${bgClass} ${borderClass} ${className || ""}`}
     >
       {loading ? (
-        <ActivityIndicator color={fg} />
+        <ActivityIndicator color={variant === "outline" || variant === "secondary" ? "#000" : "#FFF"} />
       ) : (
-        <Text style={[styles.text, { color: disabled ? "#999" : fg }]}>{title}</Text>
+        <Text className={`text-base font-semibold ${textClass}`}>{title}</Text>
       )}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    height: 50,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 20
-  },
-  text: {
-    fontSize: 16,
-    fontWeight: "600"
-  }
-});

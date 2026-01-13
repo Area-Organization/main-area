@@ -1,36 +1,61 @@
 ---
-title: Services & Hooks
+title: Services & Moteur d'Automatisation
 ---
 
-# Gestion des Services et Exécution des Hooks
+# Services et Moteur d'Automatisation
 
-## Le Registre de Services (`ServiceRegistry`)
+## Services Supportés
 
-Le `ServiceRegistry` est une classe singleton qui centralise la définition de tous les services disponibles dans l'application.
+Le backend implémente actuellement les services suivants dans `src/services/` :
 
--   **Localisation**: `src/services/registry.ts`
--   **Fonctionnement**: Chaque service (ex: `githubService`, `gmailService`) est un objet qui implémente l'interface `IService`. Il est ensuite enregistré dans le `ServiceRegistry` au démarrage du serveur.
--   **Interface `IService`**:
-    -   `name`, `description`: Informations de base.
-    -   `requiresAuth`, `authType`, `oauth`: Configuration de l'authentification.
-    -   `actions`: Un tableau d'objets `IAction`.
-    -   `reactions`: Un tableau d'objets `IReaction`.
+1.  **GitHub**:
+    - _Actions_: `new_issue`, `new_star`.
+    - _Réaction_: `create_issue`.
+    - _Auth_: OAuth2.
+2.  **Gmail**:
+    - _Actions_: `new_email`, `new_email_with_attachment`.
+    - _Réaction_: `send_email`.
+    - _Auth_: OAuth2 (Google).
+3.  **Discord**:
+    - _Action_: `on_message` (Surveille un canal).
+    - _Réaction_: `send_message`.
+    - _Auth_: Bot Token (API Key).
+4.  **Spotify**:
+    - _Action_: `new_saved_track`.
+    - _Réaction_: `add_to_playlist`.
+    - _Auth_: OAuth2.
+5.  **Trello**:
+    - _Action_: `new_card_in_list`.
+    - _Réaction_: `create_card`.
+    - _Auth_: API Key + Token.
 
-### Interfaces `IAction` et `IReaction`
+## Interpolation de Variables
 
--   **`IAction`**: Étend la DTO `ActionDTO` et ajoute une fonction `check`.
-    -   `check(params, context)`: C'est la fonction clé. Elle est appelée périodiquement par le `HookManager`. Elle doit contenir la logique pour vérifier si le déclencheur est activé (ex: appeler l'API de GitHub pour voir s'il y a un nouveau commit). Elle doit retourner `true` si l'action est déclenchée, et `false` sinon.
--   **`IReaction`**: Étend la DTO `ReactionDTO` et ajoute une fonction `execute`.
-    -   `execute(params, context)`: Cette fonction est appelée lorsqu'une action est déclenchée. Elle contient la logique pour exécuter la conséquence (ex: appeler l'API de Discord pour poster un message).
+Le système permet de passer des données dynamiques de l'action vers la réaction grâce au module `src/utils/interpolator.ts`.
+Chaque action définit des `variables` disponibles.
 
-## Le Gestionnaire de Hooks (`HookManager`)
+**Exemple :**
+L'action GitHub `new_issue` expose les variables `{{title}}` et `{{url}}`.
+L'utilisateur peut configurer la réaction Discord avec le message :
 
-Le `HookManager` est le moteur qui fait fonctionner les automatisations.
+> "Nouvelle issue créée : `{{title}}`. Lien : `{{url}}`"
 
--   **Localisation**: `src/hooks/manager.ts`
--   **Fonctionnement**:
-    1.  Au démarrage (`hookManager.start()`), il lance un minuteur (`setInterval`).
-    2.  À chaque intervalle (par défaut, 60 secondes), il appelle `checkAllAreas`.
-    3.  `checkAllAreas` récupère toutes les AREAs qui sont activées (`enabled: true`) depuis la base de données.
-    4.  Pour chaque AREA, il exécute la fonction `check` de l'action correspondante.
-    5.  Si `check` retourne `true`, le `HookManager` exécute alors la fonction `execute` de la réaction associée, en lui passant les données potentiellement retournées par l'action (`actionData`).
+Lors de l'exécution, le `HookManager` remplacera ces placeholders par les vraies valeurs.
+
+## Le HookManager (`src/hooks/manager.ts`)
+
+C'est le cœur du système :
+
+1.  **Démarrage**: Appelé dans `index.ts`, il lance une boucle (`setInterval`) par défaut toutes les 60 secondes.
+2.  **Polling**:
+    - Récupère toutes les `AREA` actives (`enabled: true`).
+    - Pour chaque AREA, instancie le service d'action concerné.
+    - Appelle `action.check(params, context)`.
+3.  **Vérification (`check`)**:
+    - L'action compare l'état actuel de l'API externe avec les métadonnées stockées (`lastCheckedId`, `lastTimestamp`).
+    - Si une nouveauté est détectée, `check` retourne `true` et remplit `context.actionData`.
+    - Le `HookManager` met à jour les métadonnées en base de données.
+4.  **Exécution (`execute`)**:
+    - Si `check` est positif, le `HookManager` interpolate les paramètres de la réaction avec `actionData`.
+    - Il appelle `reaction.execute(processedParams, context)`.
+    - Il incrémente le compteur de déclenchements.

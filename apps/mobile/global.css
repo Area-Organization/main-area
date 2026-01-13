@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* --- Light Mode Defaults --- */
+    --background: #ffffff;
+    --foreground: #09090b;
+
+    --card: #ffffff;
+    --card-foreground: #09090b;
+
+    --primary: #7c3aed;
+    --primary-foreground: #ffffff;
+
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
+
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    --border: #e4e4e7;
+    --input: #e4e4e7;
+    --radius: 16px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: #0f172a; /* Slate 900 */
+      --foreground: #f8fafc; /* Slate 50 */
+
+      --card: #1e293b; /* Slate 800 */
+      --card-foreground: #f8fafc;
+
+      --primary: #8b5cf6; /* Violet 500 */
+      --primary-foreground: #ffffff;
+
+      --muted: #1e293b;
+      --muted-foreground: #94a3b8;
+
+      --destructive: #7f1d1d;
+      --destructive-foreground: #fef2f2;
+
+      --border: #27272a;
+      --input: #27272a;
+    }
+  }
+}
+
+@layer utilities {
+  .glass {
+    background-color: rgba(255, 255, 255, 0.5);
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .glass {
+      background-color: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+}

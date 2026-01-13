@@ -79,3 +79,4 @@ temp/
 .stylelintcache
 .prettierignore
 /generated/prisma
+*.apk

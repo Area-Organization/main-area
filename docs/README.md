@@ -1,8 +1,12 @@
-# Website
+# Documentation Website
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+This directory contains the source code for the **Technical Documentation Website** of the AREA project, built using [Docusaurus](https://docusaurus.io/).
+
+> **Note:** This README is for the documentation site only. To run the main AREA application (Backend/Web/Mobile), please refer to the `Installation & Démarrage` section within the documentation itself.
 
 ## Installation
+
+Install dependencies for the documentation site:
 
 ```bash
 yarn
@@ -10,19 +14,23 @@ yarn
 
 ## Local Development
 
+Start the documentation server locally:
+
 ```bash
 yarn start
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+This command opens a browser window at `http://localhost:3000`. Most changes are reflected live.
 
 ## Build
+
+Generate static files for production:
 
 ```bash
 yarn build
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+The content will be generated in the `build` directory.
 
 ## Deployment
 
@@ -37,5 +45,3 @@ Not using SSH:
 ```bash
 GIT_USER=<Your GitHub username> yarn deploy
 ```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.

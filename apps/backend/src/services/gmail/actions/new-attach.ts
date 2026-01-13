@@ -1,7 +1,7 @@
 import type { IAction, IContext } from "../../../interfaces/service"
 
 export const newEmailWithAttachmentAction: IAction = {
-  name: "new_email_with_attachment",
+  name: "New email with attachment",
   description: "Triggered when a new email with attachment is received",
   params: {
     fileExtension: {
@@ -17,6 +17,15 @@ export const newEmailWithAttachmentAction: IAction = {
       description: "Filter by sender email address"
     }
   },
+  variables: [
+    { name: "messageId", description: "ID of the email message" },
+    { name: "from", description: "Sender address" },
+    { name: "subject", description: "Subject line" },
+    { name: "snippet", description: "Short preview of the email body" },
+    { name: "attachmentCount", description: "Number of attachments" },
+    { name: "firstAttachmentName", description: "Name of the first attachment" },
+    { name: "attachments", description: "List of attachments" }
+  ],
 
   async check(params, context: IContext): Promise<boolean> {
     const { fileExtension, from } = params

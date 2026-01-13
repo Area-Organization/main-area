@@ -8,15 +8,20 @@
   "scripts": {
     "dev": "bun run --filter '*' dev",
     "build": "bun run --filter '@area/*' build",
-    "postinstall": "bun run --filter '@area/backend' db:generate",
+    "test": "bun run --filter '*' test",
+    "postinstall": "if [ -z \"$EAS_BUILD\" ]; then bun run --filter '@area/backend' db:generate; fi",
     "db:generate": "bun run --filter '@area/backend' db:generate",
     "db:push": "bun run --filter '@area/backend' db:push",
     "lint": "eslint ."
   },
   "devDependencies": {
-    "@types/bun": "^1.3.4"
+    "@types/bun": "^1.3.5"
   },
   "peerDependencies": {
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@thisux/sveltednd": "^0.0.20",
+    "@xyflow/svelte": "^1.5.0"
   }
 }

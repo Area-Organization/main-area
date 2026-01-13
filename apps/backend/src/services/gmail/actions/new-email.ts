@@ -1,7 +1,7 @@
 import type { IAction, IContext } from "../../../interfaces/service"
 
 export const newEmailAction: IAction = {
-  name: "new_email",
+  name: "New email",
   description: "Triggered when a new email is received",
   params: {
     from: {
@@ -23,6 +23,15 @@ export const newEmailAction: IAction = {
       description: "Filter by Gmail label (e.g., INBOX, IMPORTANT)"
     }
   },
+  variables: [
+    { name: "messageId", description: "ID of the email message" },
+    { name: "from", description: "Sender address" },
+    { name: "subject", description: "Subject line" },
+    { name: "snippet", description: "Short preview of the email body" },
+    { name: "date", description: "Date received" },
+    { name: "attachmentCount", description: "Number of attachments" },
+    { name: "firstAttachmentName", description: "Name of the first attachment" }
+  ],
 
   async check(params, context: IContext): Promise<boolean> {
     const { from, subject, label } = params

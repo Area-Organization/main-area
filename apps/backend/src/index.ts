@@ -1,7 +1,7 @@
 import { app } from "./app"
 import { hookManager } from "./hooks/manager"
 
-app.listen(8080)
+app.listen({ port: 8080, hostname: "0.0.0.0" })
 
 hookManager.start()
 

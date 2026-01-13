@@ -1,25 +1,240 @@
-import React, { useState } from "react";
-import { StyleSheet, Alert, View, FlatList } from "react-native";
+import React, { useCallback, useState } from "react";
+import {
+  Alert,
+  View,
+  FlatList,
+  RefreshControl,
+  TouchableOpacity,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
+} from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { useServices } from "@/hooks/use-services";
+import { useServices, Service } from "@/hooks/use-services";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { useSession } from "@/ctx";
-import { Layout } from "@/constants/theme";
-import { Button } from "@/components/ui/button";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect } from "expo-router";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useToast } from "@/components/ui/toast";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+type Connection = {
+  id: string;
+  serviceName: string;
+  createdAt: string;
+};
+
+// Map known services to their brand colors
+const BRAND_COLORS: Record<string, string> = {
+  discord: "#5865F2",
+  spotify: "#1DB954",
+  github: "#181717",
+  twitch: "#9146FF",
+  gmail: "#e94538",
+  slack: "#4A154B",
+  notion: "#000000",
+  trello: "#0079BF"
+};
+
+const ServiceTile = ({
+  item,
+  isConnected,
+  onPress,
+  loading
+}: {
+  item: Service;
+  isConnected: boolean;
+  onPress: () => void;
+  loading: boolean;
+}) => {
+  const cardColor = useThemeColor({}, "card");
+  const borderColor = useThemeColor({}, "border");
+  const primaryColor = useThemeColor({}, "primary");
+
+  const brandColor = BRAND_COLORS[item.name.toLowerCase()] || primaryColor;
+
+  const dynamicStyle = isConnected
+    ? {
+        borderColor: brandColor,
+        shadowColor: brandColor,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.7,
+        shadowRadius: 20,
+        elevation: 20,
+        borderWidth: 2,
+        backgroundColor: cardColor
+      }
+    : {
+        borderColor: borderColor,
+        borderWidth: 1,
+        backgroundColor: cardColor
+      };
+
+  return (
+    <Animated.View entering={FadeInDown.springify().damping(15)} className="flex-1">
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={loading}
+        activeOpacity={0.7}
+        className="aspect-square rounded-3xl p-4 items-center justify-center relative border"
+        style={dynamicStyle}
+      >
+        {isConnected && (
+          <View
+            className="absolute top-3 right-3 w-5 h-5 rounded-full items-center justify-center z-10"
+            style={{ backgroundColor: brandColor }}
+          >
+            <IconSymbol name="checkmark.circle.fill" size={12} color="#FFF" />
+          </View>
+        )}
+
+        <View className="flex-1 justify-center items-center mb-2">
+          <View
+            className="w-16 h-16 rounded-2xl items-center justify-center"
+            style={{ backgroundColor: isConnected ? brandColor + "20" : "#8881" }}
+          >
+            <ThemedText className="text-3xl font-black" style={{ color: isConnected ? brandColor : "#888" }}>
+              {item.name[0].toUpperCase()}
+            </ThemedText>
+          </View>
+        </View>
+
+        <View className="h-10 justify-start items-center">
+          <ThemedText type="defaultSemiBold" className="capitalize text-center">
+            {item.name}
+          </ThemedText>
+          <ThemedText className="text-[10px] opacity-60 mt-0.5">
+            {isConnected ? "Connected" : "Tap to Connect"}
+          </ThemedText>
+        </View>
+
+        {loading && (
+          <View
+            className="absolute inset-0 rounded-3xl items-center justify-center opacity-90"
+            style={{ backgroundColor: cardColor }}
+          >
+            <ThemedText className="text-xs font-bold" style={{ color: primaryColor }}>
+              Processing...
+            </ThemedText>
+          </View>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+const ApiKeyModal = ({
+  visible,
+  service,
+  onClose,
+  onSubmit,
+  loading
+}: {
+  visible: boolean;
+  service: Service | null;
+  onClose: () => void;
+  onSubmit: (values: Record<string, string>) => void;
+  loading: boolean;
+}) => {
+  const [values, setValues] = useState<Record<string, string>>({});
+  const cardColor = useThemeColor({}, "card");
+
+  React.useEffect(() => {
+    setValues({});
+  }, [service]);
+
+  if (!service) return null;
+
+  const handleSubmit = () => {
+    onSubmit(values);
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1 justify-end bg-black/60"
+      >
+        <View className="rounded-t-3xl p-6 gap-6" style={{ backgroundColor: cardColor }}>
+          <View className="flex-row justify-between items-center">
+            <ThemedText type="subtitle">Connect {service.name}</ThemedText>
+            <TouchableOpacity onPress={onClose}>
+              <IconSymbol name="xmark.circle.fill" size={24} color="#999" />
+            </TouchableOpacity>
+          </View>
+
+          <ThemedText className="opacity-60 text-sm">
+            {service.description || "Enter the required credentials to connect this service."}
+          </ThemedText>
+
+          <ScrollView className="max-h-[300px]">
+            {service.authFields?.map((field) => (
+              <View key={field.key} className="mb-4">
+                <ThemedText type="defaultSemiBold" className="mb-2">
+                  {field.label} {field.required && <ThemedText className="text-red-500">*</ThemedText>}
+                </ThemedText>
+                <Input
+                  placeholder={field.description || `Enter ${field.label}`}
+                  value={values[field.key] || ""}
+                  onChangeText={(text) => setValues((prev) => ({ ...prev, [field.key]: text }))}
+                  secureTextEntry={field.type === "password"}
+                  autoCapitalize="none"
+                />
+              </View>
+            ))}
+          </ScrollView>
+
+          <Button title={loading ? "Connecting..." : "Connect Service"} onPress={handleSubmit} loading={loading} />
+          <View className="h-4" />
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+};
 
 export default function ServicesScreen() {
   const { client } = useSession();
-  const { services, refresh } = useServices();
-  const [loading, setLoading] = useState<string | null>(null);
+  const { services, refresh: refreshServices, loading: loadingServices } = useServices();
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [loadingConnections, setLoadingConnections] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const cardColor = useThemeColor({}, "card");
-  const borderColor = useThemeColor({}, "border");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-  const handleConnect = async (serviceName: string) => {
-    setLoading(serviceName);
+  const toast = useToast();
+  const insets = useSafeAreaInsets();
+
+  const fetchData = async () => {
+    setLoadingConnections(true);
+    try {
+      await refreshServices();
+      const { data } = await client.api.connections.get();
+      if (data && data.connections) {
+        setConnections(data.connections);
+      }
+    } catch (e) {
+      console.error("Failed to fetch data", e);
+    } finally {
+      setLoadingConnections(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
+
+  const handleOAuthConnect = async (serviceName: string) => {
+    setActionLoading(serviceName);
     try {
       const callbackUrl = Linking.createURL("oauth-callback");
       const { data, error } = await client.api.connections.oauth2({ serviceName })["auth-url"].get({
@@ -27,7 +242,7 @@ export default function ServicesScreen() {
       });
 
       if (error) {
-        Alert.alert("Error", String(error.value));
+        toast.error(typeof error.value === "string" ? error.value : (error.value as any).message || "OAuth Error");
         return;
       }
       if (!data) return;
@@ -38,78 +253,136 @@ export default function ServicesScreen() {
         const url = new URL(result.url);
         const status = url.searchParams.get("status");
         if (status === "success") {
-          Alert.alert("Success", `Connected to ${serviceName}`);
-          refresh();
+          toast.success(`Connected to ${serviceName}`);
+          fetchData();
         } else {
-          Alert.alert("Failed", "Connection not established");
+          toast.error("Connection not established");
         }
       }
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      toast.error(error.message);
     } finally {
-      setLoading(null);
+      setActionLoading(null);
     }
   };
 
+  const handleApiKeySubmit = async (values: Record<string, string>) => {
+    if (!selectedService) return;
+
+    const missingField = selectedService.authFields?.find((f) => f.required && !values[f.key]);
+    if (missingField) {
+      toast.error(`${missingField.label} is required`);
+      return;
+    }
+
+    setActionLoading(selectedService.name);
+    try {
+      const payload: any = {
+        serviceName: selectedService.name,
+        accessToken: values["accessToken"],
+        metadata: values
+      };
+
+      const { error } = await client.api.connections.post(payload);
+
+      if (error) {
+        toast.error(typeof error.value === "object" ? (error.value as any).message : "Failed to connect");
+      } else {
+        toast.success(`Connected to ${selectedService.name}`);
+        setModalVisible(false);
+        fetchData();
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Connection failed");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDisconnect = async (connectionId: string, serviceName: string) => {
+    Alert.alert("Disconnect", `Disconnect ${serviceName}? Active AREAs using this service will stop working.`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Disconnect",
+        style: "destructive",
+        onPress: async () => {
+          setActionLoading(serviceName);
+          try {
+            const { error } = await client.api.connections({ id: connectionId }).delete();
+            if (error) {
+              toast.error("Failed to disconnect service.");
+            } else {
+              toast.success(`${serviceName} disconnected`);
+              fetchData();
+            }
+          } catch (e) {
+            toast.error("An unexpected error occurred.");
+          } finally {
+            setActionLoading(null);
+          }
+        }
+      }
+    ]);
+  };
+
+  const handleTilePress = (item: Service, connection: Connection | undefined) => {
+    if (connection) {
+      handleDisconnect(connection.id, item.name);
+    } else {
+      if (item.authType === "oauth2") {
+        handleOAuthConnect(item.name);
+      } else if (item.authType === "api_key") {
+        setSelectedService(item);
+        setModalVisible(true);
+      } else {
+        toast.success("No authentication required for this service");
+      }
+    }
+  };
+
+  const isLoading = loadingServices || loadingConnections;
+
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>
-        Services
-      </ThemedText>
+    <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
+      <View className="px-5 mb-4">
+        <ThemedText type="title">Services</ThemedText>
+        <ThemedText className="opacity-60 text-sm">Tap a tile to connect or disconnect.</ThemedText>
+      </View>
 
       <FlatList
         data={services}
         keyExtractor={(item) => item.name}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <View style={[styles.card, { backgroundColor: cardColor, borderColor }]}>
-            <View style={styles.cardContent}>
-              <ThemedText type="defaultSemiBold" style={{ fontSize: 18 }}>
-                {item.name}
-              </ThemedText>
-              <ThemedText style={styles.description}>{item.description}</ThemedText>
+        numColumns={2}
+        columnWrapperStyle={{ gap: 12 }}
+        contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 100 }}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchData} />}
+        renderItem={({ item }) => {
+          const connection = connections.find((c) => c.serviceName === item.name);
+          return (
+            <ServiceTile
+              item={item}
+              isConnected={!!connection}
+              loading={actionLoading === item.name}
+              onPress={() => handleTilePress(item, connection)}
+            />
+          );
+        }}
+        ListEmptyComponent={
+          !isLoading ? (
+            <View className="p-10 items-center justify-center">
+              <ThemedText className="text-center opacity-60">No services available.</ThemedText>
+            </View>
+          ) : null
+        }
+      />
 
-              <View style={styles.badges}>
-                <View style={styles.badge}>
-                  <ThemedText style={styles.badgeText}>{item.actions.length} Triggers</ThemedText>
-                </View>
-                <View style={styles.badge}>
-                  <ThemedText style={styles.badgeText}>{item.reactions.length} Actions</ThemedText>
-                </View>
-              </View>
-            </View>
-            <View style={styles.action}>
-              <Button
-                title={loading === item.name ? "..." : "Connect"}
-                onPress={() => handleConnect(item.name)}
-                variant="outline"
-                loading={loading === item.name}
-                style={{ height: 40, borderRadius: 12 }}
-              />
-            </View>
-          </View>
-        )}
+      <ApiKeyModal
+        visible={modalVisible}
+        service={selectedService}
+        onClose={() => setModalVisible(false)}
+        onSubmit={handleApiKeySubmit}
+        loading={!!actionLoading}
       />
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 20, paddingTop: 60 },
-  title: { marginBottom: 20 },
-  list: { paddingBottom: 40, gap: 15 },
-  card: {
-    padding: 16,
-    borderRadius: Layout.radius,
-    borderWidth: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between"
-  },
-  cardContent: { flex: 1, paddingRight: 10 },
-  description: { fontSize: 13, color: "#888", marginVertical: 4 },
-  action: { width: 100 },
-  badges: { flexDirection: "row", gap: 5, marginTop: 5 },
-  badge: { backgroundColor: "rgba(124, 58, 237, 0.1)", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  badgeText: { fontSize: 10, color: "#7C3AED", fontWeight: "600" }
-});
