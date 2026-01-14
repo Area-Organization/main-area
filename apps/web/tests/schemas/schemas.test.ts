@@ -44,17 +44,23 @@ describe('Area Schemas', () => {
         actionName: 'new_issue',
         params: { repo: 'test' }
       },
-      reaction: {
-        serviceName: 'discord',
-        reactionName: 'send_message',
-        params: { channel: '123' }
-      }
+      reactions: [
+        {
+          serviceName: 'discord',
+          reactionName: 'send_message',
+          params: { channel: '123' }
+        }
+      ]
     };
     expect(Value.Check(createAreaSchema, validArea)).toBe(true);
   });
 
   it('rejects empty name', () => {
-    const invalidArea = { name: '', action: {}, reaction: {} };
+    const invalidArea = {
+      name: '',
+      action: { serviceName: 'a', actionName: 'b', params: {} },
+      reactions: []
+    };
     expect(Value.Check(createAreaSchema, invalidArea)).toBe(false);
   });
 });

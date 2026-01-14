@@ -64,7 +64,15 @@ describe("Route: Areas (Advanced Operations)", () => {
     triggerCount: 5,
     lastTriggered: new Date(),
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
+    action: {
+      id: "act_1",
+      serviceName: "valid_service",
+      actionName: "valid_action",
+      params: {},
+      connectionId: "conn_1"
+    },
+    reactions: []
   }
 
   describe("GET /api/areas/:id", () => {

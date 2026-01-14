@@ -54,7 +54,6 @@ function CustomSwitch({ value, onValueChange, primaryColor }: CustomSwitchProps)
 
   const trackStyle = useAnimatedStyle(() => {
     const backgroundColor = interpolateColor(offset.value, [2, 22], ["#3f3f46", primaryColor]);
-
     const shadowOpacity = interpolate(offset.value, [2, 22], [0, 0.4]);
 
     return {
@@ -162,6 +161,8 @@ function AutomationCard({ item, index, onDelete, onToggle, onEdit, primaryColor 
   const cardBackgroundColor = useThemeColor({}, "card");
   const borderColor = useThemeColor({}, "border");
 
+  const reactions = item.reactions || [];
+
   return (
     <Animated.View entering={FadeInDown.delay(index * 100).springify()} className="mb-4 relative">
       <View style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: "hidden", flexDirection: "row" }]}>
@@ -224,10 +225,30 @@ function AutomationCard({ item, index, onDelete, onToggle, onEdit, primaryColor 
                 </ThemedText>
               </View>
               <MaterialIcons name="chevron-right" size={16} color="#999" />
-              <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10">
-                <ThemedText className="font-bold text-primary">
-                  {getServiceInitial(item.reaction?.serviceName)}
-                </ThemedText>
+
+              <View className="flex-row -space-x-2">
+                {reactions.slice(0, 3).map((r: any, i: number) => (
+                  <View
+                    key={i}
+                    className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10 border border-card"
+                    style={{ zIndex: 10 - i }}
+                  >
+                    <ThemedText className="font-bold text-primary">{getServiceInitial(r.serviceName)}</ThemedText>
+                  </View>
+                ))}
+                {reactions.length > 3 && (
+                  <View
+                    className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10 border border-card"
+                    style={{ zIndex: 0 }}
+                  >
+                    <ThemedText className="text-xs font-bold text-primary">+{reactions.length - 3}</ThemedText>
+                  </View>
+                )}
+                {reactions.length === 0 && (
+                  <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10 border border-card">
+                    <ThemedText className="font-bold text-primary">?</ThemedText>
+                  </View>
+                )}
               </View>
             </View>
 
@@ -254,10 +275,12 @@ function AutomationCard({ item, index, onDelete, onToggle, onEdit, primaryColor 
               <ThemedText className="font-bold text-primary">IF </ThemedText>
               {item.action?.actionName}
             </ThemedText>
-            <ThemedText className="text-sm opacity-80" numberOfLines={1}>
-              <ThemedText className="font-bold text-primary">THEN </ThemedText>
-              {item.reaction?.reactionName}
-            </ThemedText>
+            {reactions.map((r: any, i: number) => (
+              <ThemedText key={i} className="text-sm opacity-80" numberOfLines={1}>
+                <ThemedText className="font-bold text-primary">THEN </ThemedText>
+                {r.reactionName}
+              </ThemedText>
+            ))}
           </View>
         </Animated.View>
       </GestureDetector>

@@ -1,12 +1,12 @@
 <script lang="ts">
   import "./layout.css";
   import favicon from "$lib/assets/favicon.svg";
-  import Header from "@/components/Header.svelte";
-  import { Toaster } from "@/components/ui/sonner";
+  import Header from "$lib/components/Header.svelte";
+  import { Toaster } from "$lib/components/ui/sonner";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import { onMount } from "svelte";
-  import { auth } from "@/auth-client";
+  import { auth } from "$lib/auth-client";
 
   let { children } = $props();
   let isChecking = $state(true);

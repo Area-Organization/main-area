@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { Button } from "$lib/components/ui/button/index.js";
-  import { auth } from "@/auth-client";
+  import { auth } from "$lib/auth-client";
   import { Github } from "lucide-svelte";
   import { toast } from "svelte-sonner";
 

@@ -66,12 +66,14 @@ describe("Route: Areas Controller", () => {
       params: { repo: "test" },
       connectionId: "conn_1"
     },
-    reaction: {
-      serviceName: "valid_service",
-      reactionName: "valid_reaction",
-      params: { msg: "hi" },
-      connectionId: "conn_2"
-    }
+    reactions: [
+      {
+        serviceName: "valid_service",
+        reactionName: "valid_reaction",
+        params: { msg: "hi" },
+        connectionId: "conn_2"
+      }
+    ]
   }
 
   describe("POST /api/areas (Create)", () => {
@@ -111,7 +113,10 @@ describe("Route: Areas Controller", () => {
     })
 
     it("successfully creates area and calls action.setup()", async () => {
-      mockFindUnique.mockResolvedValueOnce({ id: "conn_1", accessToken: "token_a" }).mockResolvedValueOnce({ id: "conn_2" })
+      mockFindUnique
+        .mockResolvedValueOnce({ id: "conn_1", accessToken: "token_a" }) // Action conn check
+        .mockResolvedValueOnce({ id: "conn_2" }) // Reaction 0 conn check
+        .mockResolvedValueOnce({ id: "conn_1", accessToken: "token_a" }) // Context generation
 
       mockCreate.mockResolvedValue({
         id: "area_new",
@@ -121,7 +126,7 @@ describe("Route: Areas Controller", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         action: { ...validPayload.action, id: "act_1" },
-        reaction: { ...validPayload.reaction, id: "react_1" }
+        reactions: [{ ...validPayload.reactions[0], id: "react_1" }]
       })
 
       const response = await app.handle(

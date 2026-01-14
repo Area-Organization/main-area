@@ -1,8 +1,8 @@
 <script lang="ts">
   import * as Card from "$lib/components/ui/card/index.js";
-  import ServiceCard from "@/components/ServiceCard.svelte";
+  import ServiceCard from "$lib/components/ServiceCard.svelte";
   import type { PageProps } from "./$types";
-  import { auth } from "@/auth-client";
+  import { auth } from "$lib/auth-client";
 
   const session = auth.useSession();
   const username = $derived($session.data?.user?.name ?? "User");
