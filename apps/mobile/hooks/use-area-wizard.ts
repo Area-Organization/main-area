@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { BackHandler } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useSession } from "@/ctx";
@@ -17,7 +17,7 @@ export type ConfiguredReaction = {
   params: Record<string, any>;
 };
 
-export function useAreaWizard() {
+export function useAreaWizard(editAreaId?: string) {
   const router = useRouter();
   const { client } = useSession();
   const toast = useToast();
@@ -46,6 +46,9 @@ export function useAreaWizard() {
   const [loadingConnections, setLoadingConnections] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Edit Mode Specific State
+  const [isFetchingInitialData, setIsFetchingInitialData] = useState(!!editAreaId);
 
   const pulseProgress = useSharedValue(0);
 
@@ -76,6 +79,67 @@ export function useAreaWizard() {
       };
     }, [client])
   );
+
+  // Load initial data if editing
+  useEffect(() => {
+    if (!editAreaId || !services.length) return;
+
+    const fetchAreaDetails = async () => {
+      setIsFetchingInitialData(true);
+      try {
+        const { data, error } = await client.api.areas({ id: editAreaId }).get();
+
+        if (error || !data) {
+          toast.error("Failed to load AREA details");
+          router.back();
+          return;
+        }
+
+        const area = data.area;
+        setAreaName(area.name);
+        setAreaDescription(area.description || "");
+
+        // Reconstruct Action State
+        if (area.action) {
+          const s = services.find((srv) => srv.name === area.action?.serviceName);
+          const a = s?.actions.find((act) => act.name === area.action?.actionName);
+          if (s && a) {
+            setActionService(s);
+            setSelectedAction(a);
+            setActionParams(area.action.params);
+          }
+        }
+
+        // Reconstruct Reactions State
+        const reactions: ConfiguredReaction[] = [];
+        area.reactions.forEach((r) => {
+          const s = services.find((srv) => srv.name === r.serviceName);
+          const reactionDef = s?.reactions.find((react) => react.name === r.reactionName);
+          if (s && reactionDef) {
+            reactions.push({
+              id: r.id,
+              service: s,
+              reaction: reactionDef,
+              params: r.params
+            });
+          }
+        });
+        setConfiguredReactions(reactions);
+
+        // Jump to summary step for editing so users see everything at once
+        setWizardStep(3);
+        setSubStep("LIST");
+      } catch (e) {
+        console.error(e);
+        toast.error("Error loading AREA");
+        router.back();
+      } finally {
+        setIsFetchingInitialData(false);
+      }
+    };
+
+    fetchAreaDetails();
+  }, [editAreaId, services, client]);
 
   const resetForm = () => {
     setWizardStep(1);
@@ -224,6 +288,12 @@ export function useAreaWizard() {
     pulseProgress.value = withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) });
 
     try {
+      const connectionId = connections.find((c) => c.serviceName === actionService!.name)?.id;
+
+      if (!connectionId) {
+        throw new Error("Action connection not found. Please reconnect the service.");
+      }
+
       const payload = {
         name: areaName,
         description: areaDescription || undefined,
@@ -231,32 +301,52 @@ export function useAreaWizard() {
           serviceName: actionService!.name,
           actionName: selectedAction.name,
           params: actionParams,
-          connectionId: connections.find((c) => c.serviceName === actionService!.name).id
+          connectionId: connectionId
         },
         reactions: configuredReactions.map((r) => ({
           serviceName: r.service.name,
           reactionName: r.reaction.name,
           params: r.params,
-          connectionId: connections.find((c) => c.serviceName === r.service.name).id
+          connectionId: connections.find((c) => c.serviceName === r.service.name)?.id || ""
         }))
       };
 
-      const { error } = await client.api.areas.post(payload);
+      let error;
+      if (editAreaId) {
+        // Update Logic (PATCH)
+        const res = await client.api.areas({ id: editAreaId }).patch({
+          ...payload,
+          enabled: true // keep enabled by default on edit unless handled explicitly
+        });
+        error = res.error;
+      } else {
+        // Create Logic (POST)
+        const res = await client.api.areas.post(payload);
+        error = res.error;
+      }
+
       if (error) throw new Error(typeof error.value === "object" ? (error.value as any).message : String(error.value));
 
       feedback.notification("success");
-      setShowConfetti(true);
 
-      setTimeout(() => {
-        setSubmitting(false);
-        resetForm();
-        router.navigate("/(tabs)");
-        toast.success("Area created successfully!");
-      }, 2000);
+      // Only show confetti on create
+      if (!editAreaId) {
+        setShowConfetti(true);
+      }
+
+      setTimeout(
+        () => {
+          setSubmitting(false);
+          if (!editAreaId) resetForm();
+          router.navigate("/(tabs)");
+          toast.success(editAreaId ? "Area updated!" : "Area created successfully!");
+        },
+        editAreaId ? 500 : 2000
+      );
     } catch (err: any) {
       cancelAnimation(pulseProgress);
       pulseProgress.value = 0;
-      toast.error(err.message || "Failed to create.");
+      toast.error(err.message || (editAreaId ? "Failed to update." : "Failed to create."));
       setSubmitting(false);
     }
   };
@@ -284,6 +374,7 @@ export function useAreaWizard() {
     showConfetti,
     pulseProgress,
     loading: loadingServices || loadingConnections,
+    isFetchingInitialData,
     services,
 
     // Handlers

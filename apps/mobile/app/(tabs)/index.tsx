@@ -84,7 +84,7 @@ export default function HomeScreen() {
   };
 
   const handleEdit = (id: string) => {
-    toast.success("Edit coming soon!");
+    router.push(`/edit-area/${id}`);
   };
 
   return (

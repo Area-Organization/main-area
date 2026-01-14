@@ -48,6 +48,7 @@ function RootLayoutNav() {
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="oauth-callback" options={{ headerShown: false }} />
+            <Stack.Screen name="edit-area/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </ToastProvider>
