@@ -309,6 +309,7 @@ export default function CreateAreaWizard() {
   const cardColor = useThemeColor({}, "card");
   const borderColor = useThemeColor({}, "border");
   const mutedColor = useThemeColor({}, "muted");
+  const destructiveColor = useThemeColor({}, "notification");
 
   // State: Wizard Flow
   const [wizardStep, setWizardStep] = useState<WizardStep>(1);
@@ -695,8 +696,12 @@ export default function CreateAreaWizard() {
               </ThemedText>
               <ThemedText className="text-sm opacity-60">{r.reaction.name}</ThemedText>
             </View>
-            <TouchableOpacity onPress={() => handleDeleteReaction(r.id)} className="p-2">
-              <MaterialIcons name="delete-outline" size={24} color={mutedColor} />
+            <TouchableOpacity
+              onPress={() => handleDeleteReaction(r.id)}
+              className="w-10 h-10 rounded-full items-center justify-center"
+              style={{ backgroundColor: `${destructiveColor}15` }}
+            >
+              <MaterialIcons name="delete" size={22} color={destructiveColor} />
             </TouchableOpacity>
           </View>
         ))}
