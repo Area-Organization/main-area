@@ -118,15 +118,19 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                 serviceName: body.action.serviceName,
                 actionName: body.action.actionName,
                 params: actionParamsWithMetadata,
-                connectionId: body.action.connectionId
+                connectionId: body.action.connectionId,
+                posX: body.action.posX ?? 100,
+                posY: body.action.posY ?? 200
               }
             },
             reactions: {
-              create: body.reactions.map((r) => ({
+              create: body.reactions.map((r, index) => ({
                 serviceName: r.serviceName,
                 reactionName: r.reactionName,
                 params: r.params,
-                connectionId: r.connectionId
+                connectionId: r.connectionId,
+                posX: r.posX ?? 600,
+                posY: r.posY ?? 100 + index * 200
               }))
             }
           },
@@ -152,7 +156,9 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                   serviceName: area.action.serviceName,
                   actionName: area.action.actionName,
                   params: area.action.params as Record<string, any>,
-                  connectionId: area.action.connectionId
+                  connectionId: area.action.connectionId,
+                  posX: area.action.posX,
+                  posY: area.action.posY
                 }
               : undefined,
             reactions: area.reactions.map((r) => ({
@@ -160,7 +166,9 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
               serviceName: r.serviceName,
               reactionName: r.reactionName,
               params: r.params as Record<string, any>,
-              connectionId: r.connectionId
+              connectionId: r.connectionId,
+              posX: r.posX,
+              posY: r.posY
             }))
           }
         }
@@ -233,7 +241,9 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                   serviceName: area.action.serviceName,
                   actionName: area.action.actionName,
                   params: area.action.params as Record<string, any>,
-                  connectionId: area.action.connectionId
+                  connectionId: area.action.connectionId,
+                  posX: area.action.posX,
+                  posY: area.action.posY
                 }
               : undefined,
             reactions: area.reactions.map((r) => ({
@@ -241,7 +251,9 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
               serviceName: r.serviceName,
               reactionName: r.reactionName,
               params: r.params as Record<string, any>,
-              connectionId: r.connectionId
+              connectionId: r.connectionId,
+              posX: r.posX,
+              posY: r.posY
             }))
           })),
           total,
@@ -309,7 +321,9 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                   serviceName: area.action.serviceName,
                   actionName: area.action.actionName,
                   params: area.action.params as Record<string, any>,
-                  connectionId: area.action.connectionId
+                  connectionId: area.action.connectionId,
+                  posX: area.action.posX,
+                  posY: area.action.posY
                 }
               : undefined,
             reactions: area.reactions.map((r) => ({
@@ -317,7 +331,9 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
               serviceName: r.serviceName,
               reactionName: r.reactionName,
               params: r.params as Record<string, any>,
-              connectionId: r.connectionId
+              connectionId: r.connectionId,
+              posX: r.posX,
+              posY: r.posY
             }))
           }
         }
@@ -434,7 +450,6 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
           }
         }
 
-        // Bonobones + Laura = <3
         const area = await prisma.area.update({
           where: { id: params.id },
           data: {
@@ -447,7 +462,9 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                   serviceName: body.action.serviceName,
                   actionName: body.action.actionName,
                   params: body.action.params,
-                  connectionId: body.action.connectionId
+                  connectionId: body.action.connectionId,
+                  posX: body.action.posX,
+                  posY: body.action.posY
                 }
               }
             }),
@@ -458,7 +475,9 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                   serviceName: r.serviceName,
                   reactionName: r.reactionName,
                   params: r.params,
-                  connectionId: r.connectionId
+                  connectionId: r.connectionId,
+                  posX: r.posX ?? 0,
+                  posY: r.posY ?? 0
                 }))
               }
             })
@@ -484,7 +503,9 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                   serviceName: area.action.serviceName,
                   actionName: area.action.actionName,
                   params: area.action.params as Record<string, any>,
-                  connectionId: area.action.connectionId
+                  connectionId: area.action.connectionId,
+                  posX: area.action.posX,
+                  posY: area.action.posY
                 }
               : undefined,
             reactions: area.reactions.map((r) => ({
@@ -492,7 +513,9 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
               serviceName: r.serviceName,
               reactionName: r.reactionName,
               params: r.params as Record<string, any>,
-              connectionId: r.connectionId
+              connectionId: r.connectionId,
+              posX: r.posX,
+              posY: r.posY
             }))
           }
         }

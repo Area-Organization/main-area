@@ -10,7 +10,9 @@ export const AreaActionSchema = t.Object({
   serviceName: t.String(),
   actionName: t.String(),
   params: ActionParams,
-  connectionId: t.String()
+  connectionId: t.String(),
+  posX: t.Number(),
+  posY: t.Number()
 });
 
 export const AreaReactionSchema = t.Object({
@@ -18,7 +20,9 @@ export const AreaReactionSchema = t.Object({
   serviceName: t.String(),
   reactionName: t.String(),
   params: ReactionParams,
-  connectionId: t.String()
+  connectionId: t.String(),
+  posX: t.Number(),
+  posY: t.Number()
 });
 
 export const AreaSchema = t.Object({
@@ -41,14 +45,18 @@ export const CreateAreaBody = t.Object({
     serviceName: t.String(),
     actionName: t.String(),
     params: ActionParams,
-    connectionId: t.String()
+    connectionId: t.String(),
+    posX: t.Optional(t.Number()),
+    posY: t.Optional(t.Number())
   }),
   reactions: t.Array(
     t.Object({
       serviceName: t.String(),
       reactionName: t.String(),
       params: ReactionParams,
-      connectionId: t.String()
+      connectionId: t.String(),
+      posX: t.Optional(t.Number()),
+      posY: t.Optional(t.Number())
     })
   )
 });
@@ -62,7 +70,9 @@ export const UpdateAreaBody = t.Object({
       serviceName: t.String(),
       actionName: t.String(),
       params: ActionParams,
-      connectionId: t.String()
+      connectionId: t.String(),
+      posX: t.Optional(t.Number()),
+      posY: t.Optional(t.Number())
     })
   ),
   reactions: t.Optional(
@@ -71,7 +81,9 @@ export const UpdateAreaBody = t.Object({
         serviceName: t.String(),
         reactionName: t.String(),
         params: ReactionParams,
-        connectionId: t.String()
+        connectionId: t.String(),
+        posX: t.Optional(t.Number()),
+        posY: t.Optional(t.Number())
       })
     )
   )

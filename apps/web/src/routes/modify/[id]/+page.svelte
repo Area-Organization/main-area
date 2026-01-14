@@ -38,12 +38,11 @@
 
   $effect(() => {
     untrack(() => {
-      // Bonobones t'es gay
       const actionNodeId = `${Math.random()}`;
       nodes.push({
         id: actionNodeId,
         type: "action",
-        position: { x: 100, y: 200 },
+        position: { x: curArea.action?.posX ?? 100, y: curArea.action?.posY ?? 200 },
         data: {
           label: "action",
           info: actionInfo(),
@@ -57,7 +56,7 @@
         nodes.push({
           id: reactionNodeId,
           type: "reaction",
-          position: { x: 600, y: 100 + index * 200 },
+          position: { x: reaction.posX ?? 600, y: reaction.posY ?? 100 + index * 200 },
           data: {
             label: "reaction",
             info: getReactionInfo(reaction.reactionName),
@@ -124,7 +123,9 @@
         serviceName: rServiceName,
         reactionName: rData.info.name,
         params: rData.paramValues ?? {},
-        connectionId: rConnectionId
+        connectionId: rConnectionId,
+        posX: rNode.position.x,
+        posY: rNode.position.y
       });
     }
 
@@ -135,7 +136,9 @@
         serviceName: actionServiceName,
         actionName: actionData.info.name,
         params: actionData?.paramValues ?? {},
-        connectionId: actionConnectionId
+        connectionId: actionConnectionId,
+        posX: actionNode.position.x,
+        posY: actionNode.position.y
       },
       reactions: mappedReactions
     });

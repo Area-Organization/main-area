@@ -71,7 +71,9 @@
         serviceName: rServiceName,
         reactionName: rData.info.name,
         params: rData.paramValues ?? {},
-        connectionId: rConnectionId
+        connectionId: rConnectionId,
+        posX: rNode.position.x,
+        posY: rNode.position.y
       });
     }
 
@@ -82,7 +84,9 @@
         serviceName: actionServiceName,
         actionName: actionData.info.name,
         params: actionData?.paramValues ?? {},
-        connectionId: actionConnectionId
+        connectionId: actionConnectionId,
+        posX: actionNode.position.x,
+        posY: actionNode.position.y
       },
       reactions: mappedReactions
     });

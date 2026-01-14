@@ -130,6 +130,9 @@ model AreaAction {
   actionName  String
   params      Json
 
+  posX Float @default(0)
+  posY Float @default(0)
+
   area   Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
   areaId String @unique
 
@@ -144,6 +147,9 @@ model AreaReaction {
   serviceName  String
   reactionName String
   params       Json
+
+  posX Float @default(0)
+  posY Float @default(0)
 
   area   Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
   areaId String
