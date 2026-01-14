@@ -38,6 +38,7 @@ import Animated, {
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import { useToast } from "@/components/ui/toast";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
@@ -47,13 +48,17 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 // --- Types ---
 type WizardStep = 1 | 2 | 3;
-type SubStep = "SERVICE" | "EVENT" | "CONFIG";
+type SubStep = "SERVICE" | "EVENT" | "CONFIG" | "LIST";
+
+type ConfiguredReaction = {
+  id: string;
+  service: Service;
+  reaction: any;
+  params: Record<string, any>;
+};
 
 // --- Components ---
 
-/**
- * A lightweight confetti particle system using Reanimated
- */
 const ConfettiParticle = ({ index }: { index: number }) => {
   const x = useSharedValue(width / 2);
   const y = useSharedValue(Dimensions.get("window").height / 2);
@@ -111,9 +116,8 @@ const SuccessConfetti = ({ active }: { active: boolean }) => {
 
 interface ConnectionStepProps {
   actionService: Service | null;
-  reactionService: Service | null;
+  reactions: ConfiguredReaction[];
   selectedAction: any;
-  selectedReaction: any;
   areaName: string;
   setAreaName: (val: string) => void;
   areaDescription: string;
@@ -126,9 +130,8 @@ interface ConnectionStepProps {
 
 function ConnectionStep({
   actionService,
-  reactionService,
+  reactions,
   selectedAction,
-  selectedReaction,
   areaName,
   setAreaName,
   areaDescription,
@@ -165,7 +168,6 @@ function ConnectionStep({
   // 2. Animate the Line "Flowing" (Stroke Dash Offset)
   const animatedPathProps = useAnimatedProps(() => {
     // Dash array is [10, 10] -> 20 units total pattern
-    // We move offset to create flow effect
     const offset = interpolate(pulseProgress.value, [0, 1], [0, -pathLength]);
     const opacity = interpolate(pulseProgress.value, [0, 0.2, 0.8, 1], [0.3, 1, 1, 0.3]);
 
@@ -189,10 +191,7 @@ function ConnectionStep({
                 </LinearGradient>
               </Defs>
 
-              {/* Base Cable (Static Gray) */}
               <Path d={cablePath} stroke={borderColor} strokeWidth="4" fill="none" />
-
-              {/* Animated Flowing Cable (Colored) */}
               <AnimatedPath
                 d={cablePath}
                 stroke="url(#grad)"
@@ -201,8 +200,6 @@ function ConnectionStep({
                 strokeDasharray={[10, 10]}
                 animatedProps={animatedPathProps}
               />
-
-              {/* Pulse Particle (Glowing Dot) */}
               <AnimatedCircle r="8" cy={cableHeight / 2} fill={primaryColor} animatedProps={animatedCircleProps} />
             </Svg>
 
@@ -216,12 +213,30 @@ function ConnectionStep({
               </View>
             </View>
 
-            {/* Right Icon (Reaction) */}
-            <View className="absolute right-[30px] top-[45px] w-16 h-16 rounded-2xl bg-card border border-border items-center justify-center z-10 shadow-sm">
-              <ThemedText className="text-3xl font-bold text-primary">
-                {getServiceInitial(reactionService?.name)}
-              </ThemedText>
-              <View className="absolute -bottom-6 w-24 items-center">
+            {/* Right Icons (Reactions) */}
+            <View className="absolute right-[30px] top-[45px] z-10">
+              <View className="flex-row -space-x-8">
+                {reactions.slice(0, 3).map((r, i) => (
+                  <View
+                    key={r.id}
+                    className="w-16 h-16 rounded-2xl bg-card border border-border items-center justify-center shadow-sm"
+                    style={{ zIndex: 10 - i }}
+                  >
+                    <ThemedText className="text-3xl font-bold text-primary">
+                      {getServiceInitial(r.service.name)}
+                    </ThemedText>
+                  </View>
+                ))}
+                {reactions.length > 3 && (
+                  <View
+                    className="w-16 h-16 rounded-2xl bg-card border border-border items-center justify-center shadow-sm"
+                    style={{ zIndex: 0 }}
+                  >
+                    <ThemedText className="font-bold text-muted-foreground">+{reactions.length - 3}</ThemedText>
+                  </View>
+                )}
+              </View>
+              <View className="absolute -bottom-6 w-full items-center">
                 <ThemedText className="text-xs font-bold opacity-60">THEN THAT</ThemedText>
               </View>
             </View>
@@ -260,7 +275,12 @@ function ConnectionStep({
 
           <View className="bg-muted/50 p-4 rounded-xl gap-2">
             <ThemedText className="text-xs font-mono opacity-70">TRIGGER: {selectedAction?.name}</ThemedText>
-            <ThemedText className="text-xs font-mono opacity-70">ACTION: {selectedReaction?.name}</ThemedText>
+            <ThemedText className="text-xs font-mono opacity-70">REACTIONS: {reactions.length}</ThemedText>
+            {reactions.map((r) => (
+              <ThemedText key={r.id} className="text-xs font-mono opacity-50 ml-2">
+                - {r.service.name}: {r.reaction.name}
+              </ThemedText>
+            ))}
           </View>
 
           <Button
@@ -285,7 +305,6 @@ export default function CreateAreaWizard() {
   const insets = useSafeAreaInsets();
   const toast = useToast();
 
-  // Theme Colors
   const primaryColor = useThemeColor({}, "primary");
   const cardColor = useThemeColor({}, "card");
   const borderColor = useThemeColor({}, "border");
@@ -295,14 +314,18 @@ export default function CreateAreaWizard() {
   const [wizardStep, setWizardStep] = useState<WizardStep>(1);
   const [subStep, setSubStep] = useState<SubStep>("SERVICE");
 
-  // State: Data
+  // State: Action (Single)
   const [actionService, setActionService] = useState<Service | null>(null);
   const [selectedAction, setSelectedAction] = useState<any>(null);
   const [actionParams, setActionParams] = useState<Record<string, any>>({});
 
-  const [reactionService, setReactionService] = useState<Service | null>(null);
-  const [selectedReaction, setSelectedReaction] = useState<any>(null);
-  const [reactionParams, setReactionParams] = useState<Record<string, any>>({});
+  // State: Reactions (Multiple)
+  const [configuredReactions, setConfiguredReactions] = useState<ConfiguredReaction[]>([]);
+
+  // State: Temp Reaction (Currently being added)
+  const [tempReactionService, setTempReactionService] = useState<Service | null>(null);
+  const [tempSelectedReaction, setTempSelectedReaction] = useState<any>(null);
+  const [tempReactionParams, setTempReactionParams] = useState<Record<string, any>>({});
 
   const [areaName, setAreaName] = useState("");
   const [areaDescription, setAreaDescription] = useState("");
@@ -312,7 +335,6 @@ export default function CreateAreaWizard() {
   const [submitting, setSubmitting] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // Animation Values
   const pulseProgress = useSharedValue(0);
 
   useFocusEffect(
@@ -347,17 +369,18 @@ export default function CreateAreaWizard() {
     setSubStep("SERVICE");
     setActionService(null);
     setSelectedAction(null);
-    setReactionService(null);
-    setSelectedReaction(null);
+    setConfiguredReactions([]);
+    setTempReactionService(null);
+    setTempSelectedReaction(null);
     setAreaName("");
     setAreaDescription("");
     setActionParams({});
-    setReactionParams({});
-
+    setTempReactionParams({});
     setShowConfetti(false);
     pulseProgress.value = 0;
   };
 
+  // Select Service
   const handleServiceSelect = (service: Service, type: "action" | "reaction") => {
     const connection = connections.find((c) => c.serviceName === service.name);
     if (!connection) {
@@ -366,26 +389,28 @@ export default function CreateAreaWizard() {
     }
 
     Haptics.selectionAsync();
-    if (type === "action") setActionService(service);
-    else setReactionService(service);
+    if (type === "action") {
+      setActionService(service);
+    } else {
+      setTempReactionService(service);
+    }
     setSubStep("EVENT");
   };
 
+  // Select Event
   const handleEventSelect = (item: any, type: "action" | "reaction") => {
     Haptics.selectionAsync();
-    if (type === "action") setSelectedAction(item);
-    else setSelectedReaction(item);
+    if (type === "action") {
+      setSelectedAction(item);
+    } else {
+      setTempSelectedReaction(item);
+    }
     setSubStep("CONFIG");
   };
 
-  const validateStep = () => {
-    if (subStep !== "CONFIG") return true;
-
-    const item = wizardStep === 1 ? selectedAction : selectedReaction;
-    const params = wizardStep === 1 ? actionParams : reactionParams;
-
+  // Validate Params
+  const validateParams = (item: any, params: any) => {
     if (!item || !item.params) return true;
-
     for (const [key, config] of Object.entries(item.params as Record<string, any>)) {
       if (config.required) {
         const value = params[key];
@@ -399,54 +424,93 @@ export default function CreateAreaWizard() {
     return true;
   };
 
-  const goNextStep = () => {
-    if (!validateStep()) return;
-
+  const handleActionComplete = () => {
+    if (!validateParams(selectedAction, actionParams)) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (wizardStep === 1) {
-      setWizardStep(2);
-      setSubStep("SERVICE");
-    } else if (wizardStep === 2) {
-      setWizardStep(3);
-    }
+    setWizardStep(2);
+    setSubStep("LIST");
+  };
+
+  const handleAddReaction = () => {
+    if (!validateParams(tempSelectedReaction, tempReactionParams)) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // Add to list
+    setConfiguredReactions((prev) => [
+      ...prev,
+      {
+        id: Math.random().toString(36).substr(2, 9),
+        service: tempReactionService!,
+        reaction: tempSelectedReaction!,
+        params: tempReactionParams
+      }
+    ]);
+
+    // Reset temp
+    setTempReactionService(null);
+    setTempSelectedReaction(null);
+    setTempReactionParams({});
+
+    // Go back to list
+    setSubStep("LIST");
+  };
+
+  const handleDeleteReaction = (id: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setConfiguredReactions((prev) => prev.filter((r) => r.id !== id));
   };
 
   const goBackSubStep = () => {
     if (wizardStep === 3) {
       setWizardStep(2);
+      setSubStep("LIST");
       return;
     }
+
+    if (wizardStep === 2) {
+      // In Step 2 (Reactions)
+      if (subStep === "LIST") {
+        setWizardStep(1);
+        setSubStep("CONFIG");
+        return;
+      }
+      if (subStep === "CONFIG") {
+        setSubStep("EVENT");
+        return;
+      }
+      if (subStep === "EVENT") {
+        setSubStep("SERVICE");
+        return;
+      }
+      if (subStep === "SERVICE") {
+        setSubStep("LIST");
+        return;
+      }
+    }
+
+    // Step 1
     if (subStep === "CONFIG") setSubStep("EVENT");
     else if (subStep === "EVENT") {
       setSubStep("SERVICE");
-      if (wizardStep === 1) setActionService(null);
-      else setReactionService(null);
-    } else if (subStep === "SERVICE") {
-      if (wizardStep === 2) {
-        setWizardStep(1);
-        setSubStep("CONFIG");
-      }
+      setActionService(null);
     }
   };
 
-  // Handle hardware back button on Android
+  // Hardware Back Button
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        // If we are deeper than the start, handle internally
         if (wizardStep > 1 || subStep !== "SERVICE") {
           goBackSubStep();
-          return true; // prevent default behavior
+          return true;
         }
-        return false; // let default behavior happen (go back/exit)
+        return false;
       };
-
       const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
       return () => subscription.remove();
     }, [wizardStep, subStep])
   );
 
-  // --- Final Submit Logic ---
   const handleCreate = async () => {
     if (!areaName.trim()) {
       toast.error("Please name your Area.");
@@ -454,10 +518,7 @@ export default function CreateAreaWizard() {
     }
 
     setSubmitting(true);
-
-    // 1. Reset progress to 0 ensuring no jump
     pulseProgress.value = 0;
-    // 2. Animate to 1
     pulseProgress.value = withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) });
 
     try {
@@ -470,22 +531,20 @@ export default function CreateAreaWizard() {
           params: actionParams,
           connectionId: connections.find((c) => c.serviceName === actionService!.name).id
         },
-        reaction: {
-          serviceName: reactionService!.name,
-          reactionName: selectedReaction.name,
-          params: reactionParams,
-          connectionId: connections.find((c) => c.serviceName === reactionService!.name).id
-        }
+        reactions: configuredReactions.map((r) => ({
+          serviceName: r.service.name,
+          reactionName: r.reaction.name,
+          params: r.params,
+          connectionId: connections.find((c) => c.serviceName === r.service.name).id
+        }))
       };
 
       const { error } = await client.api.areas.post(payload);
       if (error) throw new Error(typeof error.value === "object" ? (error.value as any).message : String(error.value));
 
-      // Success Animation
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setShowConfetti(true);
 
-      // Wait for animation then navigate
       setTimeout(() => {
         setSubmitting(false);
         resetForm();
@@ -504,8 +563,8 @@ export default function CreateAreaWizard() {
 
   const renderServiceGrid = (servicesList: Service[], type: "action" | "reaction") => (
     <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1">
-      {wizardStep > 1 && (
-        <View className="px-5 py-2 flex-row items-center gap-2">
+      <View className="px-5 py-2 flex-row items-center gap-2">
+        {(wizardStep > 1 || (wizardStep === 1 && subStep !== "SERVICE")) && (
           <TouchableOpacity onPress={goBackSubStep}>
             <IconSymbol
               name="chevron.right"
@@ -514,9 +573,9 @@ export default function CreateAreaWizard() {
               style={{ transform: [{ rotate: "180deg" }] }}
             />
           </TouchableOpacity>
-          <ThemedText type="subtitle">{type === "reaction" ? "Select Reaction Service" : "Select Service"}</ThemedText>
-        </View>
-      )}
+        )}
+        <ThemedText type="subtitle">{type === "reaction" ? "Add Reaction" : "Select Action Service"}</ThemedText>
+      </View>
       <ScrollView contentContainerStyle={{ padding: 20, flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
         {servicesList.length === 0 ? (
           <ThemedText className="opacity-60 mt-10 w-full text-center">No matching services found.</ThemedText>
@@ -576,7 +635,7 @@ export default function CreateAreaWizard() {
     );
   };
 
-  const renderConfig = (item: any, params: any, setParams: any, availableVars: any[] = []) => (
+  const renderConfig = (item: any, params: any, setParams: any, onNext: () => void, availableVars: any[] = []) => (
     <Animated.View entering={SlideInRight} exiting={SlideOutRight} className="flex-1 flex flex-col">
       <View className="px-5 py-2 flex-row items-center gap-2">
         <TouchableOpacity onPress={goBackSubStep}>
@@ -600,7 +659,55 @@ export default function CreateAreaWizard() {
       </ScrollView>
 
       <View className="p-5 border-t" style={{ borderColor }}>
-        <Button title="Next Step" onPress={goNextStep} />
+        <Button title="Continue" onPress={onNext} />
+      </View>
+    </Animated.View>
+  );
+
+  const renderReactionList = () => (
+    <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1">
+      <View className="px-5 py-2 flex-row items-center gap-2">
+        <TouchableOpacity onPress={goBackSubStep}>
+          <IconSymbol name="chevron.right" size={24} color={mutedColor} style={{ transform: [{ rotate: "180deg" }] }} />
+        </TouchableOpacity>
+        <ThemedText type="subtitle">Reactions</ThemedText>
+      </View>
+
+      <ScrollView contentContainerStyle={{ padding: 20, gap: 12 }}>
+        <TouchableOpacity
+          onPress={() => setSubStep("SERVICE")}
+          className="p-4 rounded-xl border border-dashed flex-row items-center justify-center gap-2"
+          style={{ borderColor: primaryColor, backgroundColor: primaryColor + "10" }}
+        >
+          <IconSymbol name="plus.circle.fill" size={24} color={primaryColor} />
+          <ThemedText className="text-primary font-bold">Add Reaction</ThemedText>
+        </TouchableOpacity>
+
+        {configuredReactions.map((r, i) => (
+          <View
+            key={r.id}
+            className="p-4 rounded-xl border flex-row items-center justify-between"
+            style={{ backgroundColor: cardColor, borderColor }}
+          >
+            <View className="flex-1">
+              <ThemedText type="defaultSemiBold" className="capitalize">
+                {r.service.name}
+              </ThemedText>
+              <ThemedText className="text-sm opacity-60">{r.reaction.name}</ThemedText>
+            </View>
+            <TouchableOpacity onPress={() => handleDeleteReaction(r.id)} className="p-2">
+              <MaterialIcons name="delete-outline" size={24} color={mutedColor} />
+            </TouchableOpacity>
+          </View>
+        ))}
+
+        {configuredReactions.length === 0 && (
+          <ThemedText className="text-center opacity-40 mt-10">Add at least one reaction to proceed.</ThemedText>
+        )}
+      </ScrollView>
+
+      <View className="p-5 border-t" style={{ borderColor }}>
+        <Button title="Next Step" onPress={() => setWizardStep(3)} disabled={configuredReactions.length === 0} />
       </View>
     </Animated.View>
   );
@@ -621,14 +728,12 @@ export default function CreateAreaWizard() {
 
   return (
     <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
-      {/* Success Overlay */}
       <SuccessConfetti active={showConfetti} />
 
-      {/* Header Progress */}
       <View className="h-16 flex-row items-center px-5 justify-between border-b border-border/50">
         <View>
           <ThemedText type="subtitle">
-            {wizardStep === 1 ? "Step 1: The Trigger" : wizardStep === 2 ? "Step 2: The Reaction" : "Step 3: Connect"}
+            {wizardStep === 1 ? "Step 1: The Trigger" : wizardStep === 2 ? "Step 2: Reactions" : "Step 3: Connect"}
           </ThemedText>
           <View className="flex-row gap-1 mt-1">
             <View className={`h-1 rounded-full ${wizardStep >= 1 ? "bg-primary w-8" : "bg-muted w-2"}`} />
@@ -641,32 +746,39 @@ export default function CreateAreaWizard() {
         )}
       </View>
 
-      {/* Content Area */}
       <View className="flex-1">
         {wizardStep === 1 && (
           <>
             {subStep === "SERVICE" && renderServiceGrid(actionServices, "action")}
             {subStep === "EVENT" && actionService && renderEventList(actionService, "action")}
-            {subStep === "CONFIG" && selectedAction && renderConfig(selectedAction, actionParams, setActionParams)}
+            {subStep === "CONFIG" &&
+              selectedAction &&
+              renderConfig(selectedAction, actionParams, setActionParams, handleActionComplete)}
           </>
         )}
 
         {wizardStep === 2 && (
           <>
+            {subStep === "LIST" && renderReactionList()}
             {subStep === "SERVICE" && renderServiceGrid(reactionServices, "reaction")}
-            {subStep === "EVENT" && reactionService && renderEventList(reactionService, "reaction")}
+            {subStep === "EVENT" && tempReactionService && renderEventList(tempReactionService, "reaction")}
             {subStep === "CONFIG" &&
-              selectedReaction &&
-              renderConfig(selectedReaction, reactionParams, setReactionParams, selectedAction?.variables)}
+              tempSelectedReaction &&
+              renderConfig(
+                tempSelectedReaction,
+                tempReactionParams,
+                setTempReactionParams,
+                handleAddReaction,
+                selectedAction?.variables
+              )}
           </>
         )}
 
         {wizardStep === 3 && (
           <ConnectionStep
             actionService={actionService}
-            reactionService={reactionService}
+            reactions={configuredReactions}
             selectedAction={selectedAction}
-            selectedReaction={selectedReaction}
             areaName={areaName}
             setAreaName={setAreaName}
             areaDescription={areaDescription}
