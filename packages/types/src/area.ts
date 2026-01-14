@@ -31,7 +31,7 @@ export const AreaSchema = t.Object({
   createdAt: t.String(),
   updatedAt: t.String(),
   action: t.Optional(AreaActionSchema),
-  reaction: t.Optional(AreaReactionSchema)
+  reactions: t.Array(AreaReactionSchema)
 });
 
 export const CreateAreaBody = t.Object({
@@ -43,12 +43,14 @@ export const CreateAreaBody = t.Object({
     params: ActionParams,
     connectionId: t.String()
   }),
-  reaction: t.Object({
-    serviceName: t.String(),
-    reactionName: t.String(),
-    params: ReactionParams,
-    connectionId: t.String()
-  })
+  reactions: t.Array(
+    t.Object({
+      serviceName: t.String(),
+      reactionName: t.String(),
+      params: ReactionParams,
+      connectionId: t.String()
+    })
+  )
 });
 
 export const UpdateAreaBody = t.Object({
@@ -63,13 +65,15 @@ export const UpdateAreaBody = t.Object({
       connectionId: t.String()
     })
   ),
-  reaction: t.Optional(
-    t.Object({
-      serviceName: t.String(),
-      reactionName: t.String(),
-      params: ReactionParams,
-      connectionId: t.String()
-    })
+  reactions: t.Optional(
+    t.Array(
+      t.Object({
+        serviceName: t.String(),
+        reactionName: t.String(),
+        params: ReactionParams,
+        connectionId: t.String()
+      })
+    )
   )
 });
 

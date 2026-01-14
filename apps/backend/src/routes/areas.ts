@@ -38,24 +38,42 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
             statusCode: 400
           }
         }
-        const reactionService = serviceRegistry.get(body.reaction.serviceName)
-        if (!reactionService) {
-          set.status = 400
-          return {
-            error: "Bad Request",
-            message: `Service '${body.reaction.serviceName}' not found`,
-            statusCode: 400
+
+        for (const r of body.reactions) {
+          const reactionService = serviceRegistry.get(r.serviceName)
+          if (!reactionService) {
+            set.status = 400
+            return {
+              error: "Bad Request",
+              message: `Service '${r.serviceName}' not found`,
+              statusCode: 400
+            }
+          }
+          const reaction = reactionService.reactions.find((def) => def.name === r.reactionName)
+          if (!reaction) {
+            set.status = 400
+            return {
+              error: "Bad Request",
+              message: `Reaction '${r.reactionName}' not found in '${r.serviceName}'`,
+              statusCode: 400
+            }
+          }
+          const reactionConnection = await prisma.userConnection.findUnique({
+            where: {
+              id: r.connectionId,
+              userId: user.id
+            }
+          })
+          if (!reactionConnection) {
+            set.status = 404
+            return {
+              error: "Not Found",
+              message: `Reaction connection not found for ${r.serviceName}`,
+              statusCode: 404
+            }
           }
         }
-        const reaction = reactionService.reactions.find((r) => r.name === body.reaction.reactionName)
-        if (!reaction) {
-          set.status = 400
-          return {
-            error: "Bad Request",
-            message: `Reaction '${body.reaction.reactionName}' not found in '${body.reaction.serviceName}'`,
-            statusCode: 400
-          }
-        }
+
         const actionConnection = await prisma.userConnection.findUnique({
           where: {
             id: body.action.connectionId,
@@ -67,20 +85,6 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
           return {
             error: "Not Found",
             message: "Action connection not found",
-            statusCode: 404
-          }
-        }
-        const reactionConnection = await prisma.userConnection.findUnique({
-          where: {
-            id: body.reaction.connectionId,
-            userId: user.id
-          }
-        })
-        if (!reactionConnection) {
-          set.status = 404
-          return {
-            error: "Not Found",
-            message: "Reaction connection not found",
             statusCode: 404
           }
         }
@@ -117,18 +121,18 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                 connectionId: body.action.connectionId
               }
             },
-            reaction: {
-              create: {
-                serviceName: body.reaction.serviceName,
-                reactionName: body.reaction.reactionName,
-                params: body.reaction.params,
-                connectionId: body.reaction.connectionId
-              }
+            reactions: {
+              create: body.reactions.map((r) => ({
+                serviceName: r.serviceName,
+                reactionName: r.reactionName,
+                params: r.params,
+                connectionId: r.connectionId
+              }))
             }
           },
           include: {
             action: true,
-            reaction: true
+            reactions: true
           }
         })
         set.status = 201
@@ -151,15 +155,13 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                   connectionId: area.action.connectionId
                 }
               : undefined,
-            reaction: area.reaction
-              ? {
-                  id: area.reaction.id,
-                  serviceName: area.reaction.serviceName,
-                  reactionName: area.reaction.reactionName,
-                  params: area.reaction.params as Record<string, any>,
-                  connectionId: area.reaction.connectionId
-                }
-              : undefined
+            reactions: area.reactions.map((r) => ({
+              id: r.id,
+              serviceName: r.serviceName,
+              reactionName: r.reactionName,
+              params: r.params as Record<string, any>,
+              connectionId: r.connectionId
+            }))
           }
         }
       } catch (error) {
@@ -183,7 +185,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
       detail: {
         tags: ["Areas"],
         summary: "Create a new AREA",
-        description: "Creates a new automation by connecting an action to a reaction"
+        description: "Creates a new automation by connecting an action to reactions"
       }
     }
   )
@@ -210,7 +212,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
             orderBy: { createdAt: "desc" },
             include: {
               action: true,
-              reaction: true
+              reactions: true
             }
           }),
           prisma.area.count({ where })
@@ -234,15 +236,13 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                   connectionId: area.action.connectionId
                 }
               : undefined,
-            reaction: area.reaction
-              ? {
-                  id: area.reaction.id,
-                  serviceName: area.reaction.serviceName,
-                  reactionName: area.reaction.reactionName,
-                  params: area.reaction.params as Record<string, any>,
-                  connectionId: area.reaction.connectionId
-                }
-              : undefined
+            reactions: area.reactions.map((r) => ({
+              id: r.id,
+              serviceName: r.serviceName,
+              reactionName: r.reactionName,
+              params: r.params as Record<string, any>,
+              connectionId: r.connectionId
+            }))
           })),
           total,
           limit,
@@ -282,7 +282,7 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
           },
           include: {
             action: true,
-            reaction: true
+            reactions: true
           }
         })
         if (!area) {
@@ -312,15 +312,13 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                   connectionId: area.action.connectionId
                 }
               : undefined,
-            reaction: area.reaction
-              ? {
-                  id: area.reaction.id,
-                  serviceName: area.reaction.serviceName,
-                  reactionName: area.reaction.reactionName,
-                  params: area.reaction.params as Record<string, any>,
-                  connectionId: area.reaction.connectionId
-                }
-              : undefined
+            reactions: area.reactions.map((r) => ({
+              id: r.id,
+              serviceName: r.serviceName,
+              reactionName: r.reactionName,
+              params: r.params as Record<string, any>,
+              connectionId: r.connectionId
+            }))
           }
         }
       } catch (error) {
@@ -398,40 +396,45 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
             }
           }
         }
-        if (body.reaction) {
-          const reactionService = serviceRegistry.get(body.reaction.serviceName)
-          if (!reactionService) {
-            set.status = 400
-            return {
-              error: "Bad Request",
-              message: `Service '${body.reaction.serviceName} not found'`,
-              statusCode: 400
+
+        if (body.reactions) {
+          for (const r of body.reactions) {
+            const reactionService = serviceRegistry.get(r.serviceName)
+            if (!reactionService) {
+              set.status = 400
+              return {
+                error: "Bad Request",
+                message: `Service '${r.serviceName} not found'`,
+                statusCode: 400
+              }
             }
-          }
-          const reaction = reactionService.reactions.find((a) => a.name === body.reaction?.reactionName)
-          if (!reaction) {
-            set.status = 400
-            return {
-              error: "Bad request",
-              message: `Reaction '${body.reaction.reactionName}' not found`,
-              statusCode: 400
+            const reaction = reactionService.reactions.find((a) => a.name === r.reactionName)
+            if (!reaction) {
+              set.status = 400
+              return {
+                error: "Bad request",
+                message: `Reaction '${r.reactionName}' not found`,
+                statusCode: 400
+              }
             }
-          }
-          const reactionConnection = await prisma.userConnection.findFirst({
-            where: {
-              id: body.reaction.connectionId,
-              userId: user.id
-            }
-          })
-          if (!reactionConnection) {
-            set.status = 404
-            return {
-              error: "Not Found",
-              message: `Reaction connection not found`,
-              statusCode: 404
+            const reactionConnection = await prisma.userConnection.findFirst({
+              where: {
+                id: r.connectionId,
+                userId: user.id
+              }
+            })
+            if (!reactionConnection) {
+              set.status = 404
+              return {
+                error: "Not Found",
+                message: `Reaction connection not found for ${r.serviceName}`,
+                statusCode: 404
+              }
             }
           }
         }
+
+        // Bonobones + Laura = <3
         const area = await prisma.area.update({
           where: { id: params.id },
           data: {
@@ -448,20 +451,21 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                 }
               }
             }),
-            ...(body.reaction && {
-              reaction: {
-                update: {
-                  serviceName: body.reaction.serviceName,
-                  reactionName: body.reaction.reactionName,
-                  params: body.reaction.params,
-                  connectionId: body.reaction.connectionId
-                }
+            ...(body.reactions && {
+              reactions: {
+                deleteMany: {},
+                create: body.reactions.map((r) => ({
+                  serviceName: r.serviceName,
+                  reactionName: r.reactionName,
+                  params: r.params,
+                  connectionId: r.connectionId
+                }))
               }
             })
           },
           include: {
             action: true,
-            reaction: true
+            reactions: true
           }
         })
         return {
@@ -483,15 +487,13 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
                   connectionId: area.action.connectionId
                 }
               : undefined,
-            reaction: area.reaction
-              ? {
-                  id: area.reaction.id,
-                  serviceName: area.reaction.serviceName,
-                  reactionName: area.reaction.reactionName,
-                  params: area.reaction.params as Record<string, any>,
-                  connectionId: area.reaction.connectionId
-                }
-              : undefined
+            reactions: area.reactions.map((r) => ({
+              id: r.id,
+              serviceName: r.serviceName,
+              reactionName: r.reactionName,
+              params: r.params as Record<string, any>,
+              connectionId: r.connectionId
+            }))
           }
         }
       } catch (error) {
