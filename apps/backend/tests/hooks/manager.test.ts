@@ -47,13 +47,15 @@ const mockArea = {
     connectionId: "conn_A",
     params: { someParam: "abc", metadata: { lastId: 100 } }
   },
-  reaction: {
-    id: "react_1",
-    serviceName: "mockServiceB",
-    reactionName: "mockReaction",
-    connectionId: "conn_B",
-    params: { message: "Hello {{value}}" }
-  }
+  reactions: [
+    {
+      id: "react_1",
+      serviceName: "mockServiceB",
+      reactionName: "mockReaction",
+      connectionId: "conn_B",
+      params: { message: "Hello {{value}}" }
+    }
+  ]
 }
 
 const mockConnectionA = { id: "conn_A", accessToken: "token_A", expiresAt: new Date(Date.now() + 10000) }
@@ -91,7 +93,7 @@ describe("Automation Engine (HookManager)", () => {
     // Assertions
     expect(prisma.area.findMany).toHaveBeenCalledWith({
       where: { enabled: true },
-      include: { action: true, reaction: true, user: true }
+      include: { action: true, reactions: true, user: true }
     })
     expect(mockActionCheck).toHaveBeenCalled()
     expect(mockReactionExecute).toHaveBeenCalled()
