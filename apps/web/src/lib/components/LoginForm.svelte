@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { defaultValues, superForm } from "sveltekit-superforms";
+  import { superForm } from "sveltekit-superforms";
   import * as Card from "$lib/components/ui/card/index.js";
   import { typebox } from "sveltekit-superforms/adapters";
   import { loginSchema } from "@/schemas/auth.schemas";
@@ -7,8 +7,10 @@
   import { Input } from "$lib/components/ui/input/index.js";
   import { Checkbox } from "$lib/components/ui/checkbox/index.js";
   import PasswordInput from "./PasswordInput.svelte";
+  import OAuthButtons from "./OAuthButtons.svelte";
   import { page } from "$app/state";
   import { auth } from "@/auth-client";
+  import { goto } from "$app/navigation";
 
   const redirectTo = page.url.searchParams.get("redirectTo")
     ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
@@ -34,6 +36,8 @@
             console.error("Login failed:", error);
             return;
           }
+
+          goto(redirectTo ? decodeURIComponent(redirectTo) : "/");
         } catch (error) {
           console.error("Login error:", error);
         }
@@ -90,8 +94,10 @@
           No account?
           <a href={`/register${redirectTo ? `?redirectTo=${redirectTo}` : ""}`} class="underline"> Register</a>
         </p>
-        <Form.Button class="flex-1">Login</Form.Button>
+        <Form.Button class="flex-1 w-full">Login</Form.Button>
       </div>
+
+      <OAuthButtons />
     </form>
   </Card.Content>
 </Card.Root>

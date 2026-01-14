@@ -7,6 +7,8 @@
   import { superForm } from "sveltekit-superforms";
   import { page } from "$app/state";
   import * as Card from "$lib/components/ui/card/index.js";
+  import { goto } from "$app/navigation";
+  import OAuthButtons from "./OAuthButtons.svelte";
   import { auth } from "@/auth-client";
 
   const redirectTo = page.url.searchParams.get("redirectTo")
@@ -38,7 +40,8 @@
             console.error("Registration failed:", error);
             return;
           }
-          console.log("Registration successful:", data);
+
+          goto(redirectTo ? decodeURIComponent(redirectTo) : "/");
         } catch (error) {
           console.error("Registration error:", error);
         }
@@ -97,8 +100,10 @@
           Already have an account?
           <a href={`/login${redirectTo ? `?redirectTo=${redirectTo}` : ""}`} class="underline"> Login</a>
         </p>
-        <Form.Button class="flex-1">Register</Form.Button>
+        <Form.Button class="flex-1 w-full">Register</Form.Button>
       </div>
+
+      <OAuthButtons />
     </form>
   </Card.Content>
 </Card.Root>

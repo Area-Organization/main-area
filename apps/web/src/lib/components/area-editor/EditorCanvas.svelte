@@ -70,7 +70,7 @@
       type: draggedItem.type,
       position,
       data: {
-        label: `node`,
+        label: draggedItem.type,
         info: draggedItem.info
       },
       origin: [0.5, 0.0]
