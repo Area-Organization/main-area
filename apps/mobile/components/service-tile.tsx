@@ -6,6 +6,7 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import type { Service } from "@/hooks/use-services";
 import { useServiceColor } from "@/lib/service-utils";
+import { ServiceIcon } from "@/components/service-icon";
 
 interface ServiceTileProps {
   item: Service;
@@ -38,6 +39,8 @@ export function ServiceTile({ item, isConnected, onPress, loading }: ServiceTile
         backgroundColor: cardColor
       };
 
+  const iconColor = isConnected ? brandColor : "#888";
+
   return (
     <Animated.View entering={FadeInDown.springify().damping(15)} className="flex-1">
       <TouchableOpacity
@@ -57,14 +60,7 @@ export function ServiceTile({ item, isConnected, onPress, loading }: ServiceTile
         )}
 
         <View className="flex-1 justify-center items-center mb-2">
-          <View
-            className="w-16 h-16 rounded-2xl items-center justify-center"
-            style={{ backgroundColor: isConnected ? brandColor + "20" : "#8881" }}
-          >
-            <ThemedText className="text-3xl font-black" style={{ color: isConnected ? brandColor : "#888" }}>
-              {item.name[0].toUpperCase()}
-            </ThemedText>
-          </View>
+          <ServiceIcon serviceName={item.name} size={48} color={iconColor} />
         </View>
 
         <View className="h-10 justify-start items-center">

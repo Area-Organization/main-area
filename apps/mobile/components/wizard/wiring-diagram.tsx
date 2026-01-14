@@ -4,8 +4,9 @@ import Svg, { Path, Circle, Defs, LinearGradient, Stop } from "react-native-svg"
 import Animated, { useAnimatedProps, interpolate, SharedValue } from "react-native-reanimated";
 import { ThemedText } from "@/components/themed-text";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { getServiceInitial } from "@/lib/service-utils";
 import { Service } from "@/hooks/use-services";
+import { ServiceIcon } from "@/components/service-icon";
+import { BRAND_COLORS } from "@/lib/service-utils";
 
 const { width } = Dimensions.get("window");
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -20,6 +21,9 @@ interface WiringDiagramProps {
 export function WiringDiagram({ actionService, reactions, pulseProgress }: WiringDiagramProps) {
   const primaryColor = useThemeColor({}, "primary");
   const borderColor = useThemeColor({}, "border");
+
+  // FIX: Use BRAND_COLORS dictionary lookup instead of hook
+  const actionColor = BRAND_COLORS[actionService?.name?.toLowerCase() || ""] || primaryColor;
 
   const cableHeight = 150;
   const padding = 60;
@@ -61,7 +65,7 @@ export function WiringDiagram({ actionService, reactions, pulseProgress }: Wirin
         </Svg>
 
         <View className="absolute left-[30px] top-[45px] w-16 h-16 rounded-2xl bg-card border border-border items-center justify-center z-10 shadow-sm">
-          <ThemedText className="text-3xl font-bold text-primary">{getServiceInitial(actionService?.name)}</ThemedText>
+          <ServiceIcon serviceName={actionService?.name || ""} size={32} color={actionColor} />
           <View className="absolute -bottom-6 w-24 items-center">
             <ThemedText className="text-xs font-bold opacity-60">IF THIS</ThemedText>
           </View>
@@ -69,15 +73,18 @@ export function WiringDiagram({ actionService, reactions, pulseProgress }: Wirin
 
         <View className="absolute right-[30px] top-[45px] z-10">
           <View className="flex-row -space-x-8">
-            {reactions.slice(0, 3).map((r, i) => (
-              <View
-                key={r.id}
-                className="w-16 h-16 rounded-2xl bg-card border border-border items-center justify-center shadow-sm"
-                style={{ zIndex: 10 - i }}
-              >
-                <ThemedText className="text-3xl font-bold text-primary">{getServiceInitial(r.service.name)}</ThemedText>
-              </View>
-            ))}
+            {reactions.slice(0, 3).map((r, i) => {
+              const rColor = BRAND_COLORS[r.service.name.toLowerCase()] || primaryColor;
+              return (
+                <View
+                  key={r.id}
+                  className="w-16 h-16 rounded-2xl bg-card border border-border items-center justify-center shadow-sm"
+                  style={{ zIndex: 10 - i }}
+                >
+                  <ServiceIcon serviceName={r.service.name} size={32} color={rColor} />
+                </View>
+              );
+            })}
             {reactions.length > 3 && (
               <View
                 className="w-16 h-16 rounded-2xl bg-card border border-border items-center justify-center shadow-sm"

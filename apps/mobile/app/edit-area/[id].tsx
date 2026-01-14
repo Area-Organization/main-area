@@ -14,6 +14,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useAreaWizard } from "@/hooks/use-area-wizard";
 import { WiringDiagram } from "@/components/wizard/wiring-diagram";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { ServiceIcon } from "@/components/service-icon";
+import { BRAND_COLORS } from "@/lib/service-utils";
 
 export default function EditAreaScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,19 +54,22 @@ export default function EditAreaScreen() {
         <ThemedText type="subtitle">{type === "reaction" ? "Add Reaction" : "Select Action Service"}</ThemedText>
       </View>
       <ScrollView contentContainerStyle={{ padding: 20, flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-        {servicesList.map((s, i) => (
-          <TouchableOpacity
-            key={i}
-            onPress={() => wizard.handleServiceSelect(s, type)}
-            className="w-[48%] aspect-square rounded-2xl border items-center justify-center p-4 gap-3"
-            style={{ backgroundColor: cardColor, borderColor }}
-          >
-            <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center">
-              <ThemedText className="text-2xl font-bold text-primary">{s.name[0].toUpperCase()}</ThemedText>
-            </View>
-            <ThemedText className="font-semibold capitalize text-center">{s.name}</ThemedText>
-          </TouchableOpacity>
-        ))}
+        {servicesList.map((s, i) => {
+          const color = BRAND_COLORS[s.name.toLowerCase()] || primaryColor;
+          return (
+            <TouchableOpacity
+              key={i}
+              onPress={() => wizard.handleServiceSelect(s, type)}
+              className="w-[48%] aspect-square rounded-2xl border items-center justify-center p-4 gap-3"
+              style={{ backgroundColor: cardColor, borderColor }}
+            >
+              <View className="w-12 h-12 items-center justify-center">
+                <ServiceIcon serviceName={s.name} size={40} color={color} />
+              </View>
+              <ThemedText className="font-semibold capitalize text-center">{s.name}</ThemedText>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     </Animated.View>
   );

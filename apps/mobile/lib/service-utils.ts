@@ -1,4 +1,5 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { MaterialCommunityIcons, FontAwesome5, FontAwesome } from "@expo/vector-icons";
 
 export const BRAND_COLORS: Record<string, string> = {
   discord: "#5865F2",
@@ -8,7 +9,20 @@ export const BRAND_COLORS: Record<string, string> = {
   gmail: "#e94538",
   slack: "#4A154B",
   notion: "#000000",
-  trello: "#0079BF"
+  trello: "#0079BF",
+  youtube: "#FF0000",
+  "google drive": "#1FA463"
+};
+
+export const SERVICE_ICONS: Record<string, { lib: any; name: string }> = {
+  github: { lib: FontAwesome, name: "github" },
+  gmail: { lib: MaterialCommunityIcons, name: "gmail" },
+  discord: { lib: FontAwesome5, name: "discord" },
+  trello: { lib: FontAwesome5, name: "trello" },
+  spotify: { lib: FontAwesome5, name: "spotify" },
+  youtube: { lib: FontAwesome5, name: "youtube" },
+  "google drive": { lib: MaterialCommunityIcons, name: "google-drive" },
+  notion: { lib: MaterialCommunityIcons, name: "notebook-edit-outline" }
 };
 
 /**

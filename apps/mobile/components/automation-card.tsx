@@ -17,7 +17,8 @@ import { ThemedText } from "@/components/themed-text";
 import { CustomSwitch } from "@/components/ui/custom-switch";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import type { AreaType } from "@area/types";
-import { getServiceInitial } from "@/lib/service-utils";
+import { BRAND_COLORS, useServiceColor } from "@/lib/service-utils";
+import { ServiceIcon } from "@/components/service-icon";
 
 const BUTTON_WIDTH = 80;
 
@@ -34,6 +35,10 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
   const translateX = useSharedValue(0);
   const context = useSharedValue(0);
   const isSwiping = useSharedValue(false);
+  const cardBackgroundColor = useThemeColor({}, "card");
+  const borderColor = useThemeColor({}, "border");
+
+  const actionColor = useServiceColor(item.action?.serviceName || "");
 
   const pan = Gesture.Pan()
     .activeOffsetX([-20, 20])
@@ -81,9 +86,6 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
     onDelete(item.id);
     translateX.value = withSpring(0);
   };
-
-  const cardBackgroundColor = useThemeColor({}, "card");
-  const borderColor = useThemeColor({}, "border");
 
   const reactions = item.reactions || [];
 
@@ -143,33 +145,34 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
         >
           <View className="flex-row justify-between mb-3">
             <View className="flex-row items-center gap-2">
-              <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10">
-                <ThemedText className="font-bold text-primary">
-                  {getServiceInitial(item.action?.serviceName)}
-                </ThemedText>
+              <View className="w-8 h-8 rounded-lg items-center justify-center bg-muted">
+                <ServiceIcon serviceName={item.action?.serviceName || ""} size={18} color={actionColor} />
               </View>
               <MaterialIcons name="chevron-right" size={16} color="#999" />
 
               <View className="flex-row -space-x-2">
-                {reactions.slice(0, 3).map((r: any, i: number) => (
-                  <View
-                    key={i}
-                    className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10 border border-card"
-                    style={{ zIndex: 10 - i }}
-                  >
-                    <ThemedText className="font-bold text-primary">{getServiceInitial(r.serviceName)}</ThemedText>
-                  </View>
-                ))}
+                {reactions.slice(0, 3).map((r: any, i: number) => {
+                  const rColor = BRAND_COLORS[r.serviceName.toLowerCase()] || primaryColor;
+                  return (
+                    <View
+                      key={i}
+                      className="w-8 h-8 rounded-lg items-center justify-center bg-muted border border-card"
+                      style={{ zIndex: 10 - i }}
+                    >
+                      <ServiceIcon serviceName={r.serviceName} size={16} color={rColor} />
+                    </View>
+                  );
+                })}
                 {reactions.length > 3 && (
                   <View
-                    className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10 border border-card"
+                    className="w-8 h-8 rounded-lg items-center justify-center bg-muted border border-card"
                     style={{ zIndex: 0 }}
                   >
                     <ThemedText className="text-xs font-bold text-primary">+{reactions.length - 3}</ThemedText>
                   </View>
                 )}
                 {reactions.length === 0 && (
-                  <View className="w-8 h-8 rounded-lg items-center justify-center bg-primary/10 border border-card">
+                  <View className="w-8 h-8 rounded-lg items-center justify-center bg-muted border border-card">
                     <ThemedText className="font-bold text-primary">?</ThemedText>
                   </View>
                 )}
