@@ -61,14 +61,12 @@ export const newSpecialsAction: IAction = {
         }
         return true
       }
-
       return false
     } catch (error) {
       console.error("Error checking Steam specials:", error)
       return false
     }
   },
-
   async setup(_params, _context: IContext): Promise<void> {
     const response = await fetch("https://store.steampowered.com/api/featuredcategories")
     if (!response.ok) {
