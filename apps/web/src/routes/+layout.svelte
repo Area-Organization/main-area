@@ -3,10 +3,10 @@
   import favicon from "$lib/assets/favicon.svg";
   import Header from "@/components/Header.svelte";
   import { Toaster } from "@/components/ui/sonner";
-  import { authClient } from "@/auth-client";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import { onMount } from "svelte";
+  import { auth } from "@/auth-client";
 
   let { children } = $props();
   let isChecking = $state(true);
@@ -16,7 +16,7 @@
     const path = page.url.pathname;
     const isPublic = publicRoutes.some((route) => path.startsWith(route));
 
-    const { data: session } = await authClient.getSession();
+    const { data: session } = await auth.getSession();
 
     if (!session && !isPublic) {
       const fromUrl = page.url.pathname + page.url.search;

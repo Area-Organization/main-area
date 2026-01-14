@@ -1,10 +1,10 @@
 <script lang="ts">
   import * as Card from "$lib/components/ui/card/index.js";
   import ServiceCard from "@/components/ServiceCard.svelte";
-  import { authClient } from "@/auth-client";
   import type { PageProps } from "./$types";
+  import { auth } from "@/auth-client";
 
-  const session = authClient.useSession();
+  const session = auth.useSession();
   const username = $derived($session.data?.user?.name ?? "User");
 
   let { data }: PageProps = $props();
