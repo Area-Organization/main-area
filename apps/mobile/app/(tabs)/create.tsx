@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { ScrollView, TouchableOpacity, View, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Service } from "@/hooks/use-services";
@@ -110,7 +110,7 @@ export default function CreateAreaWizard() {
         <ThemedText type="subtitle">Configure</ThemedText>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
         <View className="p-5 rounded-xl border mb-6" style={{ backgroundColor: cardColor, borderColor }}>
           <ThemedText type="defaultSemiBold" className="text-primary mb-2">
             Selected: {item.name}
@@ -188,7 +188,7 @@ export default function CreateAreaWizard() {
 
   const renderConnectionStep = () => (
     <Animated.View entering={FadeIn.delay(200)} className="flex-1">
-      <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 50 }} keyboardShouldPersistTaps="handled">
         <WiringDiagram
           actionService={wizard.actionService}
           reactions={wizard.configuredReactions}
@@ -254,7 +254,7 @@ export default function CreateAreaWizard() {
     <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
       <SuccessConfetti active={wizard.showConfetti} />
 
-      <View className="h-16 flex-row items-center px-5 justify-between border-b border-border/50">
+      <View className="h-16 flex-row items-center px-5 justify-between border-b border-border/50 z-10">
         <View>
           <ThemedText type="subtitle">
             {wizard.wizardStep === 1
@@ -274,43 +274,49 @@ export default function CreateAreaWizard() {
         )}
       </View>
 
-      <View className="flex-1">
-        {wizard.wizardStep === 1 && (
-          <>
-            {wizard.subStep === "SERVICE" && renderServiceGrid(actionServices, "action")}
-            {wizard.subStep === "EVENT" && wizard.actionService && renderEventList(wizard.actionService, "action")}
-            {wizard.subStep === "CONFIG" &&
-              wizard.selectedAction &&
-              renderConfig(
-                wizard.selectedAction,
-                wizard.actionParams,
-                wizard.setActionParams,
-                wizard.handleActionComplete
-              )}
-          </>
-        )}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+      >
+        <View className="flex-1">
+          {wizard.wizardStep === 1 && (
+            <>
+              {wizard.subStep === "SERVICE" && renderServiceGrid(actionServices, "action")}
+              {wizard.subStep === "EVENT" && wizard.actionService && renderEventList(wizard.actionService, "action")}
+              {wizard.subStep === "CONFIG" &&
+                wizard.selectedAction &&
+                renderConfig(
+                  wizard.selectedAction,
+                  wizard.actionParams,
+                  wizard.setActionParams,
+                  wizard.handleActionComplete
+                )}
+            </>
+          )}
 
-        {wizard.wizardStep === 2 && (
-          <>
-            {wizard.subStep === "LIST" && renderReactionList()}
-            {wizard.subStep === "SERVICE" && renderServiceGrid(reactionServices, "reaction")}
-            {wizard.subStep === "EVENT" &&
-              wizard.tempReactionService &&
-              renderEventList(wizard.tempReactionService, "reaction")}
-            {wizard.subStep === "CONFIG" &&
-              wizard.tempSelectedReaction &&
-              renderConfig(
-                wizard.tempSelectedReaction,
-                wizard.tempReactionParams,
-                wizard.setTempReactionParams,
-                wizard.handleAddReaction,
-                wizard.selectedAction?.variables
-              )}
-          </>
-        )}
+          {wizard.wizardStep === 2 && (
+            <>
+              {wizard.subStep === "LIST" && renderReactionList()}
+              {wizard.subStep === "SERVICE" && renderServiceGrid(reactionServices, "reaction")}
+              {wizard.subStep === "EVENT" &&
+                wizard.tempReactionService &&
+                renderEventList(wizard.tempReactionService, "reaction")}
+              {wizard.subStep === "CONFIG" &&
+                wizard.tempSelectedReaction &&
+                renderConfig(
+                  wizard.tempSelectedReaction,
+                  wizard.tempReactionParams,
+                  wizard.setTempReactionParams,
+                  wizard.handleAddReaction,
+                  wizard.selectedAction?.variables
+                )}
+            </>
+          )}
 
-        {wizard.wizardStep === 3 && renderConnectionStep()}
-      </View>
+          {wizard.wizardStep === 3 && renderConnectionStep()}
+        </View>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
