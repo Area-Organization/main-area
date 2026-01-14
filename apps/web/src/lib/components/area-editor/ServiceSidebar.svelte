@@ -1,6 +1,6 @@
 <script lang="ts">
   import { draggable } from "@thisux/sveltednd";
-  import type { DndItem } from "@/types";
+  import type { DndItem } from "$lib/types";
   import type { ServiceDTO, UserConnectionSchemaType } from "@area/types";
 
   let { title, services, type, userConnections } = $props<{

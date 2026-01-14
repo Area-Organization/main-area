@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { authClient } from "@/auth-client";
+  import { authClient } from "$lib/auth-client";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Github } from "lucide-svelte";
   import { toast } from "svelte-sonner";

@@ -2,9 +2,6 @@
   import * as Card from "$lib/components/ui/card/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Badge } from "$lib/components/ui/badge/index.js";
-  import { getAreas } from "$lib/api/getAreas";
-  import type { AreaType } from "@area/types";
-  import { onMount } from "svelte";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -29,7 +26,9 @@
             <div class="flex justify-between items-start">
               <div class="flex-1">
                 <div class="flex items-center gap-2">
-                  <Card.Title>{area.name}</Card.Title>
+                  <a href={`/modify/${area.id}`} class="hover:underline">
+                    <Card.Title>{area.name}</Card.Title>
+                  </a>
                   <Badge variant={area.enabled ? "default" : "secondary"}>
                     {area.enabled ? "Active" : "Inactive"}
                   </Badge>
@@ -56,13 +55,15 @@
 
               <div class="border rounded-lg p-4 bg-purple-50/50">
                 <h3 class="font-semibold text-sm mb-2 flex items-center gap-2">
-                  <span class="text-purple-600">🎯</span> Action
+                  <span class="text-purple-600">🎯</span> Actions ({area.reactions.length})
                 </h3>
-                {#if area.reaction}
-                  <p class="text-sm">
-                    <span class="font-medium capitalize">{area.reaction.serviceName}</span>
-                    <span class="text-muted-foreground"> • {area.reaction.reactionName}</span>
-                  </p>
+                {#if area.reactions}
+                  {#each area.reactions as reaction}
+                    <p class="text-sm mb-1 last:mb-0">
+                      <span class="font-medium capitalize">{reaction.serviceName}</span>
+                      <span class="text-muted-foreground"> • {reaction.reactionName}</span>
+                    </p>
+                  {/each}
                 {/if}
               </div>
             </div>

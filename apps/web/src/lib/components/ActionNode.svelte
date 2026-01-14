@@ -5,10 +5,10 @@
   import { Position, type NodeProps, useSvelteFlow, type Edge } from "@xyflow/svelte";
   import { ChevronsLeftRight, Copy } from "lucide-svelte";
   import { toast } from "svelte-sonner";
-  import ParamsInput from "./ParamsInput.svelte";
-  import NodeHeader from "./NodeHeader.svelte";
-  import ResizedHandle from "./ResizedHandle.svelte";
-  import type { ActionNodeData } from "@/types";
+  import ParamsInput from "$lib/components/ParamsInput.svelte";
+  import NodeHeader from "$lib/components/NodeHeader.svelte";
+  import ResizedHandle from "$lib/components/ResizedHandle.svelte";
+  import type { ActionNodeData } from "$lib/types";
   import { validateNode } from "@/area-utils";
 
   interface Props extends NodeProps {

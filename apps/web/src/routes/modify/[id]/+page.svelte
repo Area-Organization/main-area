@@ -19,6 +19,7 @@
 
   let nodes = $state.raw<Node[]>([]);
   let edges = $state.raw<Edge[]>([]);
+
   let actionInfo = $derived(() => {
     for (const service of services) {
       const action = service.actions.find((a) => a.name === curArea.action?.actionName);
@@ -26,20 +27,23 @@
     }
     return undefined;
   });
-  let reactionInfo = $derived(() => {
+
+  const getReactionInfo = (name: string) => {
     for (const service of services) {
-      const reaction = service.reactions.find((r) => r.name === curArea.reaction?.reactionName);
+      const reaction = service.reactions.find((r) => r.name === name);
       if (reaction) return reaction;
     }
     return undefined;
-  });
+  };
 
   $effect(() => {
     untrack(() => {
+      // Bonobones t'es gay
+      const actionNodeId = `${Math.random()}`;
       nodes.push({
-        id: `${Math.random()}`,
+        id: actionNodeId,
         type: "action",
-        position: { x: 0, y: 0 },
+        position: { x: 100, y: 200 },
         data: {
           label: "action",
           info: actionInfo(),
@@ -48,22 +52,25 @@
         origin: [0.5, 0.0]
       } satisfies Node);
 
-      nodes.push({
-        id: `${Math.random()}`,
-        type: "reaction",
-        position: { x: 0, y: 0 },
-        data: {
-          label: "reaction",
-          info: reactionInfo(),
-          paramValues: curArea.reaction?.params
-        },
-        origin: [0.5, 0.0]
-      } satisfies Node);
+      curArea.reactions.forEach((reaction, index) => {
+        const reactionNodeId = `${Math.random()}`;
+        nodes.push({
+          id: reactionNodeId,
+          type: "reaction",
+          position: { x: 600, y: 100 + index * 200 },
+          data: {
+            label: "reaction",
+            info: getReactionInfo(reaction.reactionName),
+            paramValues: reaction.params
+          },
+          origin: [0.5, 0.0]
+        } satisfies Node);
 
-      edges.push({
-        id: `${Math.random()}`,
-        source: nodes[0].id,
-        target: nodes[1].id
+        edges.push({
+          id: `${Math.random()}`,
+          source: actionNodeId,
+          target: reactionNodeId
+        });
       });
     });
   });
@@ -77,39 +84,48 @@
 
   async function modifyArea(name: string, desc: string) {
     const actionNode = nodes.find((n) => n.type === "action");
-    const reactionNode = nodes.find((n) => n.type === "reaction");
+    const reactionNodes = nodes.filter((n) => n.type === "reaction");
 
-    if (!actionNode || !reactionNode) {
+    if (!actionNode || reactionNodes.length === 0) {
       toast.error("Missing nodes");
       return;
     }
 
     const actionData = actionNode.data as ActionNodeData;
-    const reactionData = reactionNode.data as ReactionNodeData;
+    const actionServiceName = services.find((s) => s.actions.find((a) => a.name === actionData.info.name))?.name;
 
-    const actionServiceName = services.find((s) => {
-      return s.actions.find((a) => {
-        return a.name == actionData.info.name;
-      });
-    })?.name;
-
-    const reactionServiceName = services.find((s) => {
-      return s.reactions.find((r) => {
-        return r.name == reactionData.info.name;
-      });
-    })?.name;
-
-    if (!actionServiceName || !reactionServiceName) {
-      toast.error("Could not identify services.");
+    if (!actionServiceName) {
+      toast.error("Could not identify action service.");
+      return;
+    }
+    const actionConnectionId = getConnectionId(actionServiceName);
+    if (!actionConnectionId) {
+      toast.error("Action connection missing.");
       return;
     }
 
-    const actionConnectionId = getConnectionId(actionServiceName);
-    const reactionConnectionId = getConnectionId(reactionServiceName);
+    const mappedReactions = [];
+    for (const rNode of reactionNodes) {
+      const rData = rNode.data as ReactionNodeData;
+      const rServiceName = services.find((s) => s.reactions.find((r) => r.name === rData.info.name))?.name;
 
-    if (!actionConnectionId || !reactionConnectionId) {
-      toast.error("No connections.");
-      return;
+      if (!rServiceName) {
+        toast.error(`Could not identify service for reaction: ${rData.info.name}`);
+        return;
+      }
+
+      const rConnectionId = getConnectionId(rServiceName);
+      if (!rConnectionId) {
+        toast.error(`No connection for ${rServiceName}.`);
+        return;
+      }
+
+      mappedReactions.push({
+        serviceName: rServiceName,
+        reactionName: rData.info.name,
+        params: rData.paramValues ?? {},
+        connectionId: rConnectionId
+      });
     }
 
     const { error } = await client.api.areas({ id: curArea.id }).patch({
@@ -118,15 +134,10 @@
       action: {
         serviceName: actionServiceName,
         actionName: actionData.info.name,
-        params: actionData?.paramValues ?? [],
+        params: actionData?.paramValues ?? {},
         connectionId: actionConnectionId
       },
-      reaction: {
-        serviceName: reactionServiceName,
-        reactionName: reactionData.info.name,
-        params: reactionData?.paramValues ?? [],
-        connectionId: reactionConnectionId
-      }
+      reactions: mappedReactions
     });
 
     if (error) {

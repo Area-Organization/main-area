@@ -2,13 +2,13 @@
   import { superForm } from "sveltekit-superforms";
   import * as Card from "$lib/components/ui/card/index.js";
   import { typebox } from "sveltekit-superforms/adapters";
-  import { loginSchema } from "@/schemas/auth.schemas";
-  import { authClient } from "@/auth-client";
+  import { loginSchema } from "$lib/schemas/auth.schemas";
+  import { authClient } from "$lib/auth-client";
   import * as Form from "$lib/components/ui/form/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Checkbox } from "$lib/components/ui/checkbox/index.js";
-  import PasswordInput from "./PasswordInput.svelte";
-  import OAuthButtons from "./OAuthButtons.svelte";
+  import PasswordInput from "$lib/components/PasswordInput.svelte";
+  import OAuthButtons from "$lib/components/OAuthButtons.svelte";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
 

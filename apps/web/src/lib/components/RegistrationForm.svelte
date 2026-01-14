@@ -1,11 +1,11 @@
 <script lang="ts">
   import * as Form from "$lib/components/ui/form/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
-  import { registrationSchema } from "@/schemas/auth.schemas";
+  import { registrationSchema } from "$lib/schemas/auth.schemas";
   import PasswordInput from "./PasswordInput.svelte";
   import { typebox } from "sveltekit-superforms/adapters";
   import { superForm } from "sveltekit-superforms";
-  import { authClient } from "@/auth-client";
+  import { authClient } from "$lib/auth-client";
   import { page } from "$app/state";
   import * as Card from "$lib/components/ui/card/index.js";
   import { goto } from "$app/navigation";

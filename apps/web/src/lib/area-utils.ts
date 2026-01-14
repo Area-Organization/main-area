@@ -1,12 +1,12 @@
 import type { ParameterDTO } from "@area/types";
 import type { Edge, Node } from "@xyflow/svelte";
-import type { ActionNodeData, ReactionNodeData } from "./types";
+import type { ActionNodeData, ReactionNodeData } from "$lib/types";
 
 export function validateArea(nodes: Node[], edges: Edge[]) {
   let actionNb = nodes.filter((n) => n.type === "action").length;
   let reactionNb = nodes.filter((n) => n.type === "reaction").length;
 
-  if (actionNb === 0 || reactionNb === 0) return false;
+  if (actionNb !== 1 || reactionNb === 0) return false;
 
   const allNodesValid = nodes.every((n) => n.data.valid !== false);
   if (!allNodesValid) return false;
@@ -15,7 +15,8 @@ export function validateArea(nodes: Node[], edges: Edge[]) {
   edges.forEach((e) => {
     if (e.source && e.target) link++;
   });
-  if (!link) return false;
+  // Rudimentary check: at least enough links to connect reactions
+  if (link < reactionNb) return false;
 
   return true;
 }
