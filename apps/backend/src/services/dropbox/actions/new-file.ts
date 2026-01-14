@@ -8,7 +8,7 @@ export const newFileAction: IAction = {
       type: "string",
       label: "Folder Path",
       required: true,
-      description: "Path to monitor (ex: /Apps/MyArea). Leave empty for root."
+      description: "Path to monitor, empty for root."
     }
   },
   variables: [

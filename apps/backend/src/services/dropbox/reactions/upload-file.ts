@@ -14,7 +14,7 @@ export const uploadFileReaction: IReaction = {
       type: "string",
       label: "Content",
       required: true,
-      description: "Text to put inside the file. You can use {{variables}}"
+      description: "Text to put inside the file."
     }
   },
   async execute(params, context: IContext): Promise<void> {
