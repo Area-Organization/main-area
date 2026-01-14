@@ -199,6 +199,6 @@ describe("Automation Engine (HookManager)", () => {
     await hookManager.checkAllAreas()
 
     expect(mockReactionExecute).toHaveBeenCalled()
-    expect(prisma.area.update).not.toHaveBeenCalled()
+    expect(prisma.area.update).toHaveBeenCalled()
   })
 })

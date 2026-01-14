@@ -97,7 +97,9 @@ describe("Route: Areas Controller", () => {
     })
 
     it("returns 404 if connection does not exist", async () => {
-      mockFindUnique.mockResolvedValue(null)
+      mockFindUnique
+        .mockResolvedValueOnce({ id: "conn_2" })
+        .mockResolvedValueOnce(null)
 
       const response = await app.handle(
         new Request("http://localhost/api/areas", {
@@ -114,9 +116,8 @@ describe("Route: Areas Controller", () => {
 
     it("successfully creates area and calls action.setup()", async () => {
       mockFindUnique
-        .mockResolvedValueOnce({ id: "conn_1", accessToken: "token_a" }) // Action conn check
-        .mockResolvedValueOnce({ id: "conn_2" }) // Reaction 0 conn check
-        .mockResolvedValueOnce({ id: "conn_1", accessToken: "token_a" }) // Context generation
+        .mockResolvedValueOnce({ id: "conn_2" }) // 1. Reaction Connection
+        .mockResolvedValueOnce({ id: "conn_1", accessToken: "token_a" }) // 2. Action Connection (with token)
 
       mockCreate.mockResolvedValue({
         id: "area_new",
