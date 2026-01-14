@@ -1,15 +1,21 @@
 <script lang="ts">
-  import { authClient } from "$lib/auth-client";
+  import { page } from "$app/state";
   import { Button } from "$lib/components/ui/button/index.js";
+  import { auth } from "$lib/auth-client";
   import { Github } from "lucide-svelte";
   import { toast } from "svelte-sonner";
 
   const handleSocialLogin = async (provider: "github" | "google") => {
     try {
-      const { data, error } = await authClient.signIn.social({
+      const redirectTo = page.url.searchParams.get("redirectTo")
+        ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
+        : null;
+
+      const { data, error } = await auth.signInSocial(
         provider,
-        callbackURL: "/profile"
-      });
+        redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
+      );
+
       if (error) {
         toast.error(error.message || `Failed to sign in with ${provider}`);
       }
