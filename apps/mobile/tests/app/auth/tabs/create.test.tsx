@@ -65,7 +65,8 @@ jest.mock("expo-router", () => {
   const { useEffect } = require("react");
   return {
     useRouter: () => ({ navigate: mockNavigate }),
-    useFocusEffect: (cb: any) => useEffect(cb, [])
+    useFocusEffect: (cb: any) => useEffect(cb, []),
+    useSegments: () => []
   };
 });
 
@@ -90,17 +91,28 @@ describe("Screen: Create Area Wizard", () => {
 
     await waitFor(() => expect(getByPlaceholderText("Enter Branch")).toBeTruthy());
     fireEvent.changeText(getByPlaceholderText("Enter Branch"), "main");
-    fireEvent.press(getByText("Next Step"));
+    fireEvent.press(getByText("Continue"));
 
     // --- STEP 2: REACTION ---
+    // 1. We are now on the Reaction List screen. We need to click "Add Reaction" to see the services.
+    await waitFor(() => expect(getByText("Add Reaction")).toBeTruthy());
+    fireEvent.press(getByText("Add Reaction"));
+
+    // 2. Select Service from grid
     await waitFor(() => expect(getByText("discord")).toBeTruthy());
     fireEvent.press(getByText("discord"));
 
+    // 3. Select Event
     await waitFor(() => expect(getByText("message")).toBeTruthy());
     fireEvent.press(getByText("message"));
 
+    // 4. Configure Reaction
     await waitFor(() => expect(getByPlaceholderText("Enter Content")).toBeTruthy());
     fireEvent.changeText(getByPlaceholderText("Enter Content"), "Hello World");
+    fireEvent.press(getByText("Continue"));
+
+    // 5. We are back on the Reaction List. Now "Next Step" is enabled.
+    await waitFor(() => expect(getByText("Next Step")).toBeTruthy());
     fireEvent.press(getByText("Next Step"));
 
     // --- STEP 3: REVIEW & CONNECT ---
@@ -120,12 +132,14 @@ describe("Screen: Create Area Wizard", () => {
           params: { branch: "main" },
           connectionId: "conn_1"
         },
-        reaction: {
-          serviceName: "discord",
-          reactionName: "message",
-          params: { content: "Hello World" },
-          connectionId: "conn_2"
-        }
+        reactions: [
+          {
+            serviceName: "discord",
+            reactionName: "message",
+            params: { content: "Hello World" },
+            connectionId: "conn_2"
+          }
+        ]
       });
     });
 
