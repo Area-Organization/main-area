@@ -1,17 +1,11 @@
 import { redirect } from "@sveltejs/kit";
 import type { LayoutServerLoad } from "./$types";
-import { authClient } from "@/auth-client";
+import { auth } from "@/auth-client";
 
 export const load: LayoutServerLoad = async ({ request, url }) => {
   let isAuthenticated = false;
   try {
-    const { data: session } = await authClient.getSession({
-      fetchOptions: {
-        headers: {
-          cookie: request.headers.get("cookie") || ""
-        }
-      }
-    });
+    const { data: session } = await auth.getSession(request);
     isAuthenticated = !!session;
   } catch (e) {}
 

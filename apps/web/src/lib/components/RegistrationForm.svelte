@@ -5,9 +5,9 @@
   import PasswordInput from "./PasswordInput.svelte";
   import { typebox } from "sveltekit-superforms/adapters";
   import { superForm } from "sveltekit-superforms";
-  import { authClient } from "@/auth-client";
   import { page } from "$app/state";
   import * as Card from "$lib/components/ui/card/index.js";
+  import { auth } from "@/auth-client";
 
   const redirectTo = page.url.searchParams.get("redirectTo")
     ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
@@ -27,12 +27,12 @@
             return;
           }
 
-          const { data, error } = await authClient.signUp.email({
-            name: form.data.name,
-            email: form.data.email,
-            password: form.data.password,
-            callbackURL: redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
-          });
+          const { data, error } = await auth.signUpEmail(
+            form.data.email,
+            form.data.password,
+            form.data.name,
+            redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
+          );
 
           if (error) {
             console.error("Registration failed:", error);

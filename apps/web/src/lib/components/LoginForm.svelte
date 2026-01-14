@@ -3,12 +3,12 @@
   import * as Card from "$lib/components/ui/card/index.js";
   import { typebox } from "sveltekit-superforms/adapters";
   import { loginSchema } from "@/schemas/auth.schemas";
-  import { authClient } from "@/auth-client";
   import * as Form from "$lib/components/ui/form/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Checkbox } from "$lib/components/ui/checkbox/index.js";
   import PasswordInput from "./PasswordInput.svelte";
   import { page } from "$app/state";
+  import { auth } from "@/auth-client";
 
   const redirectTo = page.url.searchParams.get("redirectTo")
     ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
@@ -23,12 +23,12 @@
         if (!form.valid) return;
 
         try {
-          const { data, error } = await authClient.signIn.email({
-            email: form.data.email,
-            password: form.data.password,
-            rememberMe: form.data.rememberMe,
-            callbackURL: redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
-          });
+          const { data, error } = await auth.signInEmail(
+            form.data.email,
+            form.data.password,
+            form.data.rememberMe,
+            redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
+          );
 
           if (error) {
             console.error("Login failed:", error);
