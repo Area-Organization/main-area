@@ -5,18 +5,7 @@ import { ThemedText } from "@/components/themed-text";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import type { Service } from "@/hooks/use-services";
-
-// Map known services to their brand colors
-const BRAND_COLORS: Record<string, string> = {
-  discord: "#5865F2",
-  spotify: "#1DB954",
-  github: "#181717",
-  twitch: "#9146FF",
-  gmail: "#e94538",
-  slack: "#4A154B",
-  notion: "#000000",
-  trello: "#0079BF"
-};
+import { useServiceColor } from "@/lib/service-utils";
 
 interface ServiceTileProps {
   item: Service;
@@ -30,7 +19,7 @@ export function ServiceTile({ item, isConnected, onPress, loading }: ServiceTile
   const borderColor = useThemeColor({}, "border");
   const primaryColor = useThemeColor({}, "primary");
 
-  const brandColor = BRAND_COLORS[item.name.toLowerCase()] || primaryColor;
+  const brandColor = useServiceColor(item.name);
 
   const dynamicStyle = isConnected
     ? {

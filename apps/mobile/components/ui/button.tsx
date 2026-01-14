@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, ActivityIndicator, ViewStyle, Pressable } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import { feedback } from "@/lib/haptics";
 
 type ButtonProps = {
   onPress: () => void;
@@ -47,7 +47,7 @@ export function Button({ onPress, title, variant = "primary", disabled, loading,
 
   const handlePressIn = () => {
     if (disabled || loading) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    feedback.impact("light");
     scale.value = withSpring(0.97, springConfig);
   };
 
@@ -66,7 +66,9 @@ export function Button({ onPress, title, variant = "primary", disabled, loading,
       onPressOut={handlePressOut}
       disabled={disabled || loading}
       style={[animatedStyle, style]}
-      className={`h-[50px] flex-row items-center justify-center px-5 rounded-2xl ${bgClass} ${borderClass} ${className || ""}`}
+      className={`h-[50px] flex-row items-center justify-center px-5 rounded-2xl ${bgClass} ${borderClass} ${
+        className || ""
+      }`}
     >
       {loading ? (
         <ActivityIndicator color={variant === "outline" || variant === "secondary" ? "#000" : "#FFF"} />

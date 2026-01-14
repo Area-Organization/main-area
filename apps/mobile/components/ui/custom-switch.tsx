@@ -7,7 +7,7 @@ import Animated, {
   interpolate,
   interpolateColor
 } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import { feedback } from "@/lib/haptics";
 
 interface CustomSwitchProps {
   value: boolean;
@@ -19,7 +19,7 @@ export function CustomSwitch({ value, onValueChange, primaryColor }: CustomSwitc
   const offset = useSharedValue(value ? 22 : 2);
 
   const toggleSwitch = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    feedback.impact("medium");
     onValueChange(!value);
   };
 

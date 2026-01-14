@@ -11,12 +11,13 @@ import Animated, {
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { MaterialIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { feedback } from "@/lib/haptics";
 
 import { ThemedText } from "@/components/themed-text";
 import { CustomSwitch } from "@/components/ui/custom-switch";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import type { AreaType } from "@area/types";
+import { getServiceInitial } from "@/lib/service-utils";
 
 const BUTTON_WIDTH = 80;
 
@@ -34,14 +35,12 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
   const context = useSharedValue(0);
   const isSwiping = useSharedValue(false);
 
-  const getServiceInitial = (name?: string) => (name ? name[0].toUpperCase() : "?");
-
   const pan = Gesture.Pan()
     .activeOffsetX([-20, 20])
     .onStart(() => {
       context.value = translateX.value;
       isSwiping.value = true;
-      runOnJS(Haptics.selectionAsync)();
+      runOnJS(feedback.selection)();
     })
     .onUpdate((event) => {
       translateX.value = event.translationX + context.value;
