@@ -3,7 +3,7 @@ import { newFileAction } from "./actions/new-file"
 import { createFolderReaction } from "./reactions/create-folder"
 
 export const googleDriveService: IService = {
-  name: "googledrive",
+  name: "google drive",
   description: "Manage your files and folders in Google Drive.",
   requiresAuth: true,
   authType: "oauth2",
