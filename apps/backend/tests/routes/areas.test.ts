@@ -64,14 +64,18 @@ describe("Route: Areas Controller", () => {
       serviceName: "valid_service",
       actionName: "valid_action",
       params: { repo: "test" },
-      connectionId: "conn_1"
+      connectionId: "conn_1",
+      posX: 100,
+      posY: 200
     },
     reactions: [
       {
         serviceName: "valid_service",
         reactionName: "valid_reaction",
         params: { msg: "hi" },
-        connectionId: "conn_2"
+        connectionId: "conn_2",
+        posX: 600,
+        posY: 100
       }
     ]
   }
@@ -97,9 +101,7 @@ describe("Route: Areas Controller", () => {
     })
 
     it("returns 404 if connection does not exist", async () => {
-      mockFindUnique
-        .mockResolvedValueOnce({ id: "conn_2" })
-        .mockResolvedValueOnce(null)
+      mockFindUnique.mockResolvedValueOnce({ id: "conn_2" }).mockResolvedValueOnce(null)
 
       const response = await app.handle(
         new Request("http://localhost/api/areas", {
@@ -122,12 +124,13 @@ describe("Route: Areas Controller", () => {
       mockCreate.mockResolvedValue({
         id: "area_new",
         name: "New Area",
+        description: "Description",
         enabled: true,
         triggerCount: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
-        action: { ...validPayload.action, id: "act_1" },
-        reactions: [{ ...validPayload.reactions[0], id: "react_1" }]
+        action: { ...validPayload.action, id: "act_1", posX: 100, posY: 200 },
+        reactions: [{ ...validPayload.reactions[0], id: "react_1", posX: 600, posY: 100 }]
       })
 
       const response = await app.handle(

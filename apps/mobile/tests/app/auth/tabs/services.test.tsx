@@ -57,7 +57,6 @@ describe("Screen: Services", () => {
       expect(mockPostConnection).toHaveBeenCalledWith({
         serviceName: "openai",
         accessToken: "sk-12345",
-        // FIX 2: Metadata now contains accessToken because we changed the key above
         metadata: { accessToken: "sk-12345" }
       });
     });

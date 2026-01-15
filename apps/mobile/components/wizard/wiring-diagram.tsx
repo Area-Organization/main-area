@@ -22,7 +22,6 @@ export function WiringDiagram({ actionService, reactions, pulseProgress }: Wirin
   const primaryColor = useThemeColor({}, "primary");
   const borderColor = useThemeColor({}, "border");
 
-  // FIX: Use BRAND_COLORS dictionary lookup instead of hook
   const actionColor = BRAND_COLORS[actionService?.name?.toLowerCase() || ""] || primaryColor;
 
   const cableHeight = 150;
