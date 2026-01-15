@@ -47,7 +47,7 @@ const AnimatedLetter = ({ letter, index }: { letter: string; index: number }) =>
   }));
 
   return (
-    <Animated.Text style={[style, { color: primary }]} className="text-5xl font-black tracking-tighter">
+    <Animated.Text style={[style, { color: primary }]} className="text-5xl font-sans-bold tracking-tighter">
       {letter}
     </Animated.Text>
   );

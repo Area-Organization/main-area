@@ -5,9 +5,9 @@ import Animated, {
   useSharedValue,
   withRepeat,
   withSequence,
-  withTiming,
-  interpolateColor
+  withTiming
 } from "react-native-reanimated";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 interface SkeletonProps {
   width?: number | string;
@@ -18,6 +18,8 @@ interface SkeletonProps {
 
 export function Skeleton({ width = "100%", height = 20, borderRadius = 8, style }: SkeletonProps) {
   const opacity = useSharedValue(0.3);
+
+  const backgroundColor = useThemeColor({}, "muted");
 
   useEffect(() => {
     opacity.value = withRepeat(
@@ -38,7 +40,7 @@ export function Skeleton({ width = "100%", height = 20, borderRadius = 8, style 
           width: width as any,
           height: height as any,
           borderRadius,
-          backgroundColor: "#334155" // Slate 700
+          backgroundColor
         },
         animatedStyle,
         style

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Pressable } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -37,6 +37,7 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
   const isSwiping = useSharedValue(false);
   const cardBackgroundColor = useThemeColor({}, "card");
   const borderColor = useThemeColor({}, "border");
+  const mutedForeground = useThemeColor({}, "icon");
 
   const actionColor = useServiceColor(item.action?.serviceName || "");
 
@@ -91,7 +92,7 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
 
   return (
     <Animated.View entering={FadeInDown.delay(index * 100).springify()} className="mb-4 relative">
-      <View style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: "hidden", flexDirection: "row" }]}>
+      <View className="absolute inset-0 flex-row overflow-hidden rounded-lg">
         <Animated.View
           style={[
             { width: BUTTON_WIDTH, backgroundColor: "#3b82f6", justifyContent: "center", alignItems: "center" },
@@ -103,7 +104,6 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
             style={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}
           >
             <MaterialIcons name="edit" size={24} color="white" />
-            <Text style={{ color: "white", fontSize: 10, fontWeight: "bold", marginTop: 4 }}>EDIT</Text>
           </Pressable>
         </Animated.View>
 
@@ -120,35 +120,30 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
             style={{ width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}
           >
             <MaterialIcons name="delete" size={24} color="white" />
-            <Text style={{ color: "white", fontSize: 10, fontWeight: "bold", marginTop: 4 }}>DELETE</Text>
           </Pressable>
         </Animated.View>
       </View>
 
       <GestureDetector gesture={pan}>
         <Animated.View
+          className="shadow-card rounded-lg"
           style={[
             rStyle,
             {
               backgroundColor: cardBackgroundColor,
-              borderRadius: 16,
               borderWidth: 1,
               borderColor: borderColor,
-              padding: 16,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.05,
-              shadowRadius: 5,
-              elevation: 2
+              padding: 20
             }
           ]}
         >
-          <View className="flex-row justify-between mb-3">
-            <View className="flex-row items-center gap-2">
-              <View className="w-8 h-8 rounded-lg items-center justify-center bg-muted">
-                <ServiceIcon serviceName={item.action?.serviceName || ""} size={18} color={actionColor} />
+          {/* Header Row */}
+          <View className="flex-row justify-between mb-4">
+            <View className="flex-row items-center gap-3">
+              <View className="w-10 h-10 rounded-full items-center justify-center bg-muted">
+                <ServiceIcon serviceName={item.action?.serviceName || ""} size={20} color={actionColor} />
               </View>
-              <MaterialIcons name="chevron-right" size={16} color="#999" />
+              <MaterialIcons name="arrow-forward" size={16} color={mutedForeground} />
 
               <View className="flex-row -space-x-2">
                 {reactions.slice(0, 3).map((r: any, i: number) => {
@@ -156,24 +151,19 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
                   return (
                     <View
                       key={i}
-                      className="w-8 h-8 rounded-lg items-center justify-center bg-muted border border-card"
+                      className="w-10 h-10 rounded-full items-center justify-center bg-muted border-2 border-card"
                       style={{ zIndex: 10 - i }}
                     >
-                      <ServiceIcon serviceName={r.serviceName} size={16} color={rColor} />
+                      <ServiceIcon serviceName={r.serviceName} size={18} color={rColor} />
                     </View>
                   );
                 })}
                 {reactions.length > 3 && (
                   <View
-                    className="w-8 h-8 rounded-lg items-center justify-center bg-muted border border-card"
+                    className="w-10 h-10 rounded-full items-center justify-center bg-muted border-2 border-card"
                     style={{ zIndex: 0 }}
                   >
                     <ThemedText className="text-xs font-bold text-primary">+{reactions.length - 3}</ThemedText>
-                  </View>
-                )}
-                {reactions.length === 0 && (
-                  <View className="w-8 h-8 rounded-lg items-center justify-center bg-muted border border-card">
-                    <ThemedText className="font-bold text-primary">?</ThemedText>
                   </View>
                 )}
               </View>
@@ -186,27 +176,35 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
             />
           </View>
 
+          {/* Title & Description */}
           <ThemedText type="defaultSemiBold" className="text-lg">
             {item.name || "Untitled Area"}
           </ThemedText>
           {item.description ? (
-            <ThemedText className="text-sm opacity-60 mt-1" numberOfLines={1}>
+            <ThemedText className="text-[13px] opacity-60 mt-1 mb-1" numberOfLines={1}>
               {item.description}
             </ThemedText>
           ) : null}
 
-          <View className="h-[1px] bg-border my-3 opacity-50" />
-
-          <View className="gap-1">
-            <ThemedText className="text-sm opacity-80" numberOfLines={1}>
-              <ThemedText className="font-bold text-primary">IF </ThemedText>
-              {item.action?.actionName}
-            </ThemedText>
-            {reactions.map((r: any, i: number) => (
-              <ThemedText key={i} className="text-sm opacity-80" numberOfLines={1}>
-                <ThemedText className="font-bold text-primary">THEN </ThemedText>
-                {r.reactionName}
+          <View className="mt-4 pt-3 border-t border-border gap-1.5">
+            <View className="flex-row items-center gap-2">
+              <View className="px-1.5 py-0.5 rounded bg-primary/10">
+                <ThemedText className="text-[10px] font-bold text-primary">IF</ThemedText>
+              </View>
+              <ThemedText className="text-sm opacity-80" numberOfLines={1}>
+                {item.action?.actionName}
               </ThemedText>
+            </View>
+
+            {reactions.map((r: any, i: number) => (
+              <View key={i} className="flex-row items-center gap-2">
+                <View className="px-1.5 py-0.5 rounded bg-primary/10">
+                  <ThemedText className="text-[10px] font-bold text-primary">THEN</ThemedText>
+                </View>
+                <ThemedText className="text-sm opacity-80" numberOfLines={1}>
+                  {r.reactionName}
+                </ThemedText>
+              </View>
             ))}
           </View>
         </Animated.View>

@@ -84,7 +84,7 @@ function DynamicIslandToast({ message, type, onHide }: { message: string; type: 
           />
         </View>
         <Text
-          className={`font-semibold text-sm flex-1 ${
+          className={`font-sans-semibold text-sm flex-1 ${
             type === "success" ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"
           }`}
         >

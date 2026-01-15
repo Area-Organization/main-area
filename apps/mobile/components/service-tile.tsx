@@ -25,11 +25,6 @@ export function ServiceTile({ item, isConnected, onPress, loading }: ServiceTile
   const dynamicStyle = isConnected
     ? {
         borderColor: brandColor,
-        shadowColor: brandColor,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.7,
-        shadowRadius: 20,
-        elevation: 20,
         borderWidth: 2,
         backgroundColor: cardColor
       }
@@ -47,15 +42,15 @@ export function ServiceTile({ item, isConnected, onPress, loading }: ServiceTile
         onPress={onPress}
         disabled={loading}
         activeOpacity={0.7}
-        className="aspect-square rounded-3xl p-4 items-center justify-center relative border"
+        className="aspect-square rounded-xl p-5 items-center justify-center relative shadow-card"
         style={dynamicStyle}
       >
         {isConnected && (
           <View
-            className="absolute top-3 right-3 w-5 h-5 rounded-full items-center justify-center z-10"
+            className="absolute top-3 right-3 w-6 h-6 rounded-full items-center justify-center z-10"
             style={{ backgroundColor: brandColor }}
           >
-            <IconSymbol name="checkmark.circle.fill" size={12} color="#FFF" />
+            <IconSymbol name="checkmark.circle.fill" size={14} color="#FFF" />
           </View>
         )}
 
@@ -67,18 +62,18 @@ export function ServiceTile({ item, isConnected, onPress, loading }: ServiceTile
           <ThemedText type="defaultSemiBold" className="capitalize text-center">
             {item.name}
           </ThemedText>
-          <ThemedText className="text-[10px] opacity-60 mt-0.5">
-            {isConnected ? "Connected" : "Tap to Connect"}
+          <ThemedText className="text-[11px] opacity-50 mt-1 font-medium">
+            {isConnected ? "Connected" : "Connect"}
           </ThemedText>
         </View>
 
         {loading && (
           <View
-            className="absolute inset-0 rounded-3xl items-center justify-center opacity-90"
+            className="absolute inset-0 rounded-xl items-center justify-center opacity-95"
             style={{ backgroundColor: cardColor }}
           >
             <ThemedText className="text-xs font-bold" style={{ color: primaryColor }}>
-              Processing...
+              ...
             </ThemedText>
           </View>
         )}

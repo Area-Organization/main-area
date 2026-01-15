@@ -1,26 +1,19 @@
 import React from "react";
 import { View, StyleSheet, ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeIn } from "react-native-reanimated";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 interface ScreenWrapperProps {
   children: React.ReactNode;
   style?: ViewStyle;
-  withGradient?: boolean;
 }
 
-export function ScreenWrapper({ children, style, withGradient = true }: ScreenWrapperProps) {
-  return (
-    <View style={styles.container}>
-      {withGradient && (
-        <LinearGradient
-          // Deep Slate 900 to a slightly lighter Slate for depth
-          colors={["#0f172a", "#1e293b"]}
-          style={StyleSheet.absoluteFill}
-        />
-      )}
+export function ScreenWrapper({ children, style }: ScreenWrapperProps) {
+  const backgroundColor = useThemeColor({}, "background");
 
+  return (
+    <View style={[styles.container, { backgroundColor }]}>
       <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
         <Animated.View entering={FadeIn.duration(500)} style={[styles.content, style]}>
           {children}
@@ -32,8 +25,7 @@ export function ScreenWrapper({ children, style, withGradient = true }: ScreenWr
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#0f172a" // Fallback
+    flex: 1
   },
   safeArea: {
     flex: 1
