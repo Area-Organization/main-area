@@ -105,18 +105,12 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Horizontal Stats Section */}
+        {/* Stats Grid Section */}
         {stats && areas.length > 0 && (
-          <View className="mb-6">
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 20 }}
-            >
-              <GlassStatCard value={stats.activeAreas} subLabel="Active" color="#10b981" delay={0} />
-              <GlassStatCard value={stats.totalTriggers} subLabel="Triggers" color={primaryColor} delay={100} />
-              <GlassStatCard value={stats.totalAreas} subLabel="Total" color="#f59e0b" delay={200} />
-            </ScrollView>
+          <View className="flex-row px-5 mb-6 gap-3">
+            <GlassStatCard value={stats.activeAreas} subLabel="Active" color="#10b981" delay={0} />
+            <GlassStatCard value={stats.totalTriggers} subLabel="Triggers" color={primaryColor} delay={100} />
+            <GlassStatCard value={stats.totalAreas} subLabel="Total" color="#f59e0b" delay={200} />
           </View>
         )}
 

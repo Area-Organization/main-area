@@ -17,21 +17,28 @@ export function GlassStatCard({ value, subLabel, delay = 0, color }: GlassStatCa
     <Animated.View
       entering={FadeInRight.delay(delay).springify().damping(12)}
       style={{
+        flex: 1,
         backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.03)",
         borderWidth: 1,
         borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
         borderRadius: 20,
-        padding: 16,
-        minWidth: 120,
-        marginRight: 10,
+        paddingVertical: 16,
+        paddingHorizontal: 8,
         alignItems: "center",
         justifyContent: "center"
       }}
     >
-      <ThemedText type="title" style={{ color: color, fontSize: 26, marginBottom: 2 }}>
+      <ThemedText
+        type="title"
+        style={{ color: color, fontSize: 24, marginBottom: 2 }}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+      >
         {value}
       </ThemedText>
-      <ThemedText className="text-xs opacity-60 font-bold uppercase tracking-wider">{subLabel}</ThemedText>
+      <ThemedText className="text-[10px] opacity-60 font-bold uppercase tracking-wider text-center" numberOfLines={1}>
+        {subLabel}
+      </ThemedText>
     </Animated.View>
   );
 }
