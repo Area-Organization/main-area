@@ -24,7 +24,7 @@ export default function CreateAreaWizard() {
   const primaryColor = useThemeColor({}, "primary");
   const cardColor = useThemeColor({}, "card");
   const borderColor = useThemeColor({}, "border");
-  const mutedColor = useThemeColor({}, "muted");
+  const iconColor = useThemeColor({}, "icon");
   const destructiveColor = useThemeColor({}, "notification");
 
   // --- Render Functions ---
@@ -37,7 +37,7 @@ export default function CreateAreaWizard() {
             <IconSymbol
               name="chevron.right"
               size={24}
-              color={mutedColor}
+              color={iconColor}
               style={{ transform: [{ rotate: "180deg" }] }}
             />
           </TouchableOpacity>
@@ -79,7 +79,7 @@ export default function CreateAreaWizard() {
             <IconSymbol
               name="chevron.right"
               size={24}
-              color={mutedColor}
+              color={iconColor}
               style={{ transform: [{ rotate: "180deg" }] }}
             />
           </TouchableOpacity>
@@ -99,7 +99,7 @@ export default function CreateAreaWizard() {
                 <ThemedText type="defaultSemiBold">{item.name}</ThemedText>
                 <ThemedText className="text-xs opacity-60 mt-1">{item.description}</ThemedText>
               </View>
-              <IconSymbol name="chevron.right" size={20} color={mutedColor} />
+              <IconSymbol name="chevron.right" size={20} color={iconColor} />
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -111,7 +111,7 @@ export default function CreateAreaWizard() {
     <Animated.View entering={SlideInRight} exiting={SlideOutRight} className="flex-1 flex flex-col">
       <View className="px-5 py-2 flex-row items-center gap-2">
         <TouchableOpacity onPress={wizard.goBackSubStep}>
-          <IconSymbol name="chevron.right" size={24} color={mutedColor} style={{ transform: [{ rotate: "180deg" }] }} />
+          <IconSymbol name="chevron.right" size={24} color={iconColor} style={{ transform: [{ rotate: "180deg" }] }} />
         </TouchableOpacity>
         <ThemedText type="subtitle">Configure</ThemedText>
       </View>
@@ -140,7 +140,7 @@ export default function CreateAreaWizard() {
     <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1">
       <View className="px-5 py-2 flex-row items-center gap-2">
         <TouchableOpacity onPress={wizard.goBackSubStep}>
-          <IconSymbol name="chevron.right" size={24} color={mutedColor} style={{ transform: [{ rotate: "180deg" }] }} />
+          <IconSymbol name="chevron.right" size={24} color={iconColor} style={{ transform: [{ rotate: "180deg" }] }} />
         </TouchableOpacity>
         <ThemedText type="subtitle">Reactions</ThemedText>
       </View>

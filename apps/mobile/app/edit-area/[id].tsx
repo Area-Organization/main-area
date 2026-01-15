@@ -26,7 +26,7 @@ export default function EditAreaScreen() {
   const primaryColor = useThemeColor({}, "primary");
   const cardColor = useThemeColor({}, "card");
   const borderColor = useThemeColor({}, "border");
-  const mutedColor = useThemeColor({}, "muted");
+  const iconColor = useThemeColor({}, "icon");
   const destructiveColor = useThemeColor({}, "notification");
 
   if (wizard.isFetchingInitialData) {
@@ -46,7 +46,7 @@ export default function EditAreaScreen() {
             <IconSymbol
               name="chevron.right"
               size={24}
-              color={mutedColor}
+              color={iconColor}
               style={{ transform: [{ rotate: "180deg" }] }}
             />
           </TouchableOpacity>
@@ -83,7 +83,7 @@ export default function EditAreaScreen() {
             <IconSymbol
               name="chevron.right"
               size={24}
-              color={mutedColor}
+              color={iconColor}
               style={{ transform: [{ rotate: "180deg" }] }}
             />
           </TouchableOpacity>
@@ -103,7 +103,7 @@ export default function EditAreaScreen() {
                 <ThemedText type="defaultSemiBold">{item.name}</ThemedText>
                 <ThemedText className="text-xs opacity-60 mt-1">{item.description}</ThemedText>
               </View>
-              <IconSymbol name="chevron.right" size={20} color={mutedColor} />
+              <IconSymbol name="chevron.right" size={20} color={iconColor} />
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -115,7 +115,7 @@ export default function EditAreaScreen() {
     <Animated.View entering={SlideInRight} exiting={SlideOutRight} className="flex-1 flex flex-col">
       <View className="px-5 py-2 flex-row items-center gap-2">
         <TouchableOpacity onPress={wizard.goBackSubStep}>
-          <IconSymbol name="chevron.right" size={24} color={mutedColor} style={{ transform: [{ rotate: "180deg" }] }} />
+          <IconSymbol name="chevron.right" size={24} color={iconColor} style={{ transform: [{ rotate: "180deg" }] }} />
         </TouchableOpacity>
         <ThemedText type="subtitle">Configure</ThemedText>
       </View>
@@ -142,7 +142,7 @@ export default function EditAreaScreen() {
     <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1">
       <View className="px-5 py-2 flex-row items-center gap-2">
         <TouchableOpacity onPress={wizard.goBackSubStep}>
-          <IconSymbol name="chevron.right" size={24} color={mutedColor} style={{ transform: [{ rotate: "180deg" }] }} />
+          <IconSymbol name="chevron.right" size={24} color={iconColor} style={{ transform: [{ rotate: "180deg" }] }} />
         </TouchableOpacity>
         <ThemedText type="subtitle">Reactions</ThemedText>
       </View>
@@ -246,7 +246,7 @@ export default function EditAreaScreen() {
       {/* Custom Header for Edit Mode */}
       <View className="h-16 flex-row items-center px-5 gap-3 border-b border-border/50 z-10">
         <TouchableOpacity onPress={() => router.back()}>
-          <MaterialIcons name="close" size={24} color={mutedColor} />
+          <MaterialIcons name="close" size={24} color={iconColor} />
         </TouchableOpacity>
         <ThemedText type="subtitle">Edit AREA</ThemedText>
       </View>
