@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, ActivityIndicator, ViewStyle, Pressable } from "react-native";
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
 import { feedback } from "@/lib/haptics";
 
 type ButtonProps = {
@@ -39,20 +39,14 @@ export function Button({ onPress, title, variant = "primary", disabled, loading,
     textClass = "text-muted-foreground";
   }
 
-  const springConfig = {
-    mass: 0.2,
-    damping: 20,
-    stiffness: 400
-  };
-
   const handlePressIn = () => {
     if (disabled || loading) return;
     feedback.impact("light");
-    scale.value = withSpring(0.98, springConfig);
+    scale.value = withTiming(0.97, { duration: 100, easing: Easing.out(Easing.ease) });
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, springConfig);
+    scale.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
   };
 
   const animatedStyle = useAnimatedStyle(() => ({

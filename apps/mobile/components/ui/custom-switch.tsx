@@ -3,9 +3,10 @@ import { Pressable } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
+  withTiming,
   interpolate,
-  interpolateColor
+  interpolateColor,
+  Easing
 } from "react-native-reanimated";
 import { feedback } from "@/lib/haptics";
 
@@ -19,15 +20,14 @@ export function CustomSwitch({ value, onValueChange, primaryColor }: CustomSwitc
   const offset = useSharedValue(value ? 22 : 2);
 
   const toggleSwitch = () => {
-    feedback.impact("medium");
+    feedback.impact("light");
     onValueChange(!value);
   };
 
   useEffect(() => {
-    offset.value = withSpring(value ? 22 : 2, {
-      mass: 0.8,
-      damping: 15,
-      stiffness: 120
+    offset.value = withTiming(value ? 22 : 2, {
+      duration: 250,
+      easing: Easing.inOut(Easing.ease)
     });
   }, [value]);
 

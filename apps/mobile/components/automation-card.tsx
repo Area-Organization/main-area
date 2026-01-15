@@ -91,7 +91,7 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
   const reactions = item.reactions || [];
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 100).springify()} className="mb-4 relative">
+    <Animated.View entering={FadeInDown.delay(index * 100).duration(400)} className="mb-4 relative">
       <View className="absolute inset-0 flex-row overflow-hidden rounded-lg">
         <Animated.View
           style={[

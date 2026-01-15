@@ -15,7 +15,7 @@ export function GlassStatCard({ value, subLabel, delay = 0, color }: GlassStatCa
 
   return (
     <Animated.View
-      entering={FadeInRight.delay(delay).springify().damping(12)}
+      entering={FadeInRight.delay(delay).duration(500)}
       style={{
         flex: 1,
         backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.03)",

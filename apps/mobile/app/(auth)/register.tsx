@@ -10,10 +10,11 @@ import { useSession } from "@/ctx";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
+  withTiming,
   withDelay,
   SlideInRight,
-  FadeIn
+  FadeIn,
+  Easing
 } from "react-native-reanimated";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useThemeColor } from "@/hooks/use-theme-color";
@@ -31,11 +32,12 @@ const AnimatedLetter = ({ letter, index }: { letter: string; index: number }) =>
 
   useEffect(() => {
     const delay = index * 40;
-    const springConfig = { damping: 50, stiffness: 300 };
+    const duration = 800;
+    const easing = Easing.out(Easing.exp);
 
-    translateX.value = withDelay(delay, withSpring(0, springConfig));
-    translateY.value = withDelay(delay, withSpring(0, springConfig));
-    opacity.value = withDelay(delay, withSpring(1, springConfig));
+    translateX.value = withDelay(delay, withTiming(0, { duration, easing }));
+    translateY.value = withDelay(delay, withTiming(0, { duration, easing }));
+    opacity.value = withDelay(delay, withTiming(1, { duration, easing }));
   }, []);
 
   const style = useAnimatedStyle(() => ({

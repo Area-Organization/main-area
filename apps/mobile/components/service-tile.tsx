@@ -37,7 +37,7 @@ export function ServiceTile({ item, isConnected, onPress, loading }: ServiceTile
   const iconColor = isConnected ? brandColor : "#888";
 
   return (
-    <Animated.View entering={FadeInDown.springify().damping(15)} className="flex-1">
+    <Animated.View entering={FadeInDown.duration(400)} className="flex-1">
       <TouchableOpacity
         onPress={onPress}
         disabled={loading}
