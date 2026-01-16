@@ -13,8 +13,7 @@ export const googleDriveService: IService = {
     clientId: process.env.DRIVE_CLIENT_ID!,
     clientSecret: process.env.DRIVE_CLIENT_SECRET!,
     scopes: [
-      "https://www.googleapis.com/auth/drive.readonly",
-      "https://www.googleapis.com/auth/drive.file"
+      "https://www.googleapis.com/auth/drive"
     ]
   },
   actions: [
