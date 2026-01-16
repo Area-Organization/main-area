@@ -339,13 +339,17 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
         nonce: crypto.randomUUID()
       })
       const authUrl = new URL(service.oauth.authorizationUrl)
-      authUrl.searchParams.set('client_id', service.oauth.clientId)
-      authUrl.searchParams.set('redirect_uri', `${getBaseUrl()}/api/connections/oauth2/callback`)
-      authUrl.searchParams.set('scope', service.oauth.scopes.join(' '))
-      authUrl.searchParams.set('state', state)
-      authUrl.searchParams.set('response_type', 'code')
-      authUrl.searchParams.set('access_type', 'offline')
-      authUrl.searchParams.set('prompt', 'consent')
+        authUrl.searchParams.set('client_id', service.oauth.clientId)
+        authUrl.searchParams.set('redirect_uri', `${getBaseUrl()}/api/connections/oauth2/callback`)
+        authUrl.searchParams.set('state', state)
+        authUrl.searchParams.set('response_type', 'code')
+        authUrl.searchParams.set('scope', service.oauth.scopes.join(' '))
+        if (params.serviceName === 'notion') {
+          authUrl.searchParams.set('owner', 'user')
+        } else {
+          authUrl.searchParams.set('access_type', 'offline')
+          authUrl.searchParams.set('prompt', 'consent')
+        }
       return {
         authUrl: authUrl.toString(),
         state
@@ -396,12 +400,17 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
         set.status = 400
         return "Invalid service configuration"
       }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      }
+      if (serviceName === 'notion') {
+        const auth = Buffer.from(`${service.oauth.clientId}:${service.oauth.clientSecret}`).toString('base64')
+        headers['Authorization'] = `Basic ${auth}`
+      }
       const tokenResponse = await fetch(service.oauth.tokenUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json'
-        },
+        headers: headers,
         body: new URLSearchParams({
           grant_type: 'authorization_code',
           code: code,
@@ -411,6 +420,8 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
         })
       })
       if (!tokenResponse.ok) {
+        const errorData = await tokenResponse.text()
+        console.error(`Token exchange failed for ${serviceName}:`, errorData)
         const redirectURL = new URL(callbackUrl || "area://oauth-callback")
         redirectURL.searchParams.set("status", "error")
         redirectURL.searchParams.set("message", "Token exchange failed")
