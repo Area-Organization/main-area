@@ -13,7 +13,7 @@ export const app = new Elysia()
     cors({
       origin: process.env.FRONTEND_URL || "http://localhost:8081",
       credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization"]
+      allowedHeaders: ["Content-Type", "Authorization", "ngrok-skip-browser-warning"]
     })
   )
   .use(

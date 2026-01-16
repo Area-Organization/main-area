@@ -25,7 +25,7 @@ export function ParamInputs({ params, values, onChange, availableVariables }: Pa
 
   const primaryColor = useThemeColor({}, "primary");
   const borderColor = useThemeColor({}, "border");
-  const inputBg = useThemeColor({ light: "#FFFFFF", dark: "#18181B" }, "background");
+  const inputBg = useThemeColor({}, "input");
   const textColor = useThemeColor({}, "text");
   const insets = useSafeAreaInsets();
 
@@ -46,13 +46,9 @@ export function ParamInputs({ params, values, onChange, availableVariables }: Pa
     const token = `{{${variableName}}}`;
     if (targetField) {
       const currentValue = values[targetField] || "";
-      // Default to end of string if no selection recorded
       const cursor = selectionMap[targetField] ?? currentValue.length;
-
       const newValue = currentValue.slice(0, cursor) + token + currentValue.slice(cursor);
       onChange(targetField, newValue);
-
-      // Advance predicted cursor position
       setSelectionMap((prev) => ({ ...prev, [targetField]: cursor + token.length }));
     }
     setModalVisible(false);
@@ -122,7 +118,6 @@ export function ParamInputs({ params, values, onChange, availableVariables }: Pa
             style={{ paddingBottom: insets.bottom }}
             onPress={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
             <View className="p-4 border-b border-gray-100 dark:border-zinc-800 flex-row justify-between items-center bg-gray-50/50 dark:bg-zinc-900">
               <View>
                 <ThemedText type="subtitle">Insert Variable</ThemedText>
@@ -136,7 +131,6 @@ export function ParamInputs({ params, values, onChange, availableVariables }: Pa
               </TouchableOpacity>
             </View>
 
-            {/* Variable List */}
             <FlatList
               data={availableVariables}
               keyExtractor={(item) => item.name}

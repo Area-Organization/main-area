@@ -24,9 +24,9 @@ export function Input({ className, style, icon, error, ...props }: InputProps) {
   const primaryColor = useThemeColor({}, "primary");
   const borderColor = useThemeColor({}, "border");
   const errorColor = useThemeColor({}, "notification");
-  const inputBg = useThemeColor({ light: "#FFFFFF", dark: "#18181B" }, "background");
+  const inputBg = useThemeColor({}, "input");
   const textColor = useThemeColor({}, "text");
-  const placeholderColor = "#A1A1AA";
+  const placeholderColor = useThemeColor({}, "icon");
 
   const animatedStyle = useAnimatedStyle(() => {
     if (error) {
@@ -44,7 +44,7 @@ export function Input({ className, style, icon, error, ...props }: InputProps) {
 
   const handleFocus = (e: any) => {
     focusProgress.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.ease) });
-    scale.value = withTiming(1.015, { duration: 150, easing: Easing.out(Easing.ease) });
+    scale.value = withTiming(1.01, { duration: 150, easing: Easing.out(Easing.ease) });
     props.onFocus?.(e);
   };
 
@@ -55,16 +55,16 @@ export function Input({ className, style, icon, error, ...props }: InputProps) {
   };
 
   return (
-    <View className="mb-2">
+    <View className="mb-3">
       <Animated.View
-        className={`flex-row items-center border rounded-2xl px-4 h-[56px] ${className || ""}`}
+        className={`flex-row items-center border rounded-lg px-4 h-[52px] ${className || ""}`}
         style={[{ backgroundColor: inputBg, borderWidth: 1 }, animatedStyle, style]}
       >
-        {icon && <View className="mr-3 opacity-70">{icon}</View>}
+        {icon && <View className="mr-3 opacity-50">{icon}</View>}
         <TextInput
           {...props}
           placeholderTextColor={placeholderColor}
-          className="flex-1 h-full text-base font-medium"
+          className="flex-1 h-full text-[15px] font-sans-medium"
           style={{ color: textColor }}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -76,7 +76,7 @@ export function Input({ className, style, icon, error, ...props }: InputProps) {
           entering={FadeInUp.duration(200)}
           exiting={FadeOutUp.duration(150)}
           style={{ color: errorColor }}
-          className="text-xs ml-4 mt-1 font-medium"
+          className="text-xs ml-4 mt-1 font-sans-medium"
         >
           {error}
         </Animated.Text>

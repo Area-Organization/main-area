@@ -17,15 +17,15 @@ export function ThemedText({
   const getBaseClass = () => {
     switch (type) {
       case "title":
-        return "text-4xl font-bold leading-tight";
+        return "text-4xl font-sans-bold leading-tight";
       case "defaultSemiBold":
-        return "text-base leading-6 font-semibold";
+        return "text-base leading-6 font-sans-semibold";
       case "subtitle":
-        return "text-xl font-bold";
+        return "text-xl font-sans-bold";
       case "link":
-        return "text-base leading-7 text-[#0a7ea4]";
+        return "text-base leading-7 text-[#0a7ea4] font-sans-medium";
       default:
-        return "text-base leading-6";
+        return "text-base leading-6 font-sans";
     }
   };
 

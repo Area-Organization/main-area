@@ -3,7 +3,7 @@ import { newFileAction } from "./actions/new-file"
 import { createFolderReaction } from "./reactions/create-folder"
 
 export const googleDriveService: IService = {
-  name: "googledrive",
+  name: "google drive",
   description: "Manage your files and folders in Google Drive.",
   requiresAuth: true,
   authType: "oauth2",
@@ -13,8 +13,7 @@ export const googleDriveService: IService = {
     clientId: process.env.DRIVE_CLIENT_ID!,
     clientSecret: process.env.DRIVE_CLIENT_SECRET!,
     scopes: [
-      "https://www.googleapis.com/auth/drive.readonly",
-      "https://www.googleapis.com/auth/drive.file"
+      "https://www.googleapis.com/auth/drive"
     ]
   },
   actions: [

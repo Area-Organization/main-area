@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { SvelteFlowProvider, type Node, type Edge } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
   import { toast } from "svelte-sonner";
@@ -9,87 +8,74 @@
   import CreateAreaDialog from "@/components/area-editor/CreateAreaDialog.svelte";
 
   import { client } from "@/api";
-  import { getServices } from "@/api/getServices";
-  import { getServiceConnections } from "@/api/getServiceConnections";
-  import type { UserConnectionSchemaType, ServiceDTO } from "@area/types";
   import { goto } from "$app/navigation";
+  import type { PageProps } from "./$types";
+  import { validateArea } from "@/area-utils";
+  import type { ActionNodeData, ReactionNodeData } from "@/types";
 
-  type NodeData = {
-    info: { name: string };
-    paramValues?: Record<string, unknown>;
-    valid?: boolean;
-  };
+  let { data }: PageProps = $props();
+  let connections = $derived(data.connections.connections);
+  let services = $derived(data.services);
 
   let nodes = $state.raw<Node[]>([]);
   let edges = $state.raw<Edge[]>([]);
 
-  let servicesPromise = $state<Promise<ServiceDTO[]>>();
-  let userConnections = $state<UserConnectionSchemaType[]>([]);
-
-  onMount(async () => {
-    servicesPromise = getServices();
-    try {
-      const result = await getServiceConnections();
-      userConnections = result.connections;
-    } catch (e) {
-      console.error("Failed to fetch connections", e);
-    }
-  });
-
-  let actionNb = $derived(nodes.filter((n) => n.type === "action").length);
-  let reactionNb = $derived(nodes.filter((n) => n.type === "reaction").length);
-
-  function validateArea() {
-    if (actionNb === 0 || reactionNb === 0) return false;
-
-    const allNodesValid = nodes.every((n) => n.data.valid !== false);
-    if (!allNodesValid) return false;
-
-    let link = 0;
-    edges.forEach((e) => {
-      if (e.source && e.target) link++;
-    });
-    if (!link) return false;
-
-    return true;
-  }
-
   function getConnectionId(serviceName: string): string | undefined {
-    const connection = userConnections.find((c) => c.serviceName === serviceName);
+    const connection = connections.find((c) => c.serviceName === serviceName);
     return connection?.id;
   }
 
   let isDialogOpen = $state(false);
 
   async function createArea(name: string, desc: string) {
-    const actions = nodes.filter((n) => n.type == "action");
-    const reactions = nodes.filter((n) => n.type == "reaction");
+    const actionNode = nodes.find((n) => n.type == "action");
+    const reactionNodes = nodes.filter((n) => n.type == "reaction");
 
-    const services = await servicesPromise;
-    if (!services) return;
+    if (!actionNode || reactionNodes.length === 0) {
+      toast.error("Incomplete Area configuration");
+      return;
+    }
 
-    const actionData = actions[0].data as unknown as NodeData;
-    const reactionData = reactions[0].data as unknown as NodeData;
+    const actionData = actionNode.data as ActionNodeData;
 
-    const actionServiceName = services.find((s) => {
-      return s.actions.find((a) => {
-        return a.name == actionData.info.name;
-      });
-    })?.name;
+    const actionServiceName = services.find((s) => s.actions.find((a) => a.name === actionData.info.name))?.name;
 
-    const reactionServiceName = services.find((s) => {
-      return s.reactions.find((r) => {
-        return r.name == reactionData.info.name;
-      });
-    })?.name;
-
-    if (!actionServiceName || !reactionServiceName) {
-      toast.error("Could not identify services.");
+    if (!actionServiceName) {
+      toast.error("Could not identify action service.");
       return;
     }
 
     const actionConnectionId = getConnectionId(actionServiceName);
-    const reactionConnectionId = getConnectionId(reactionServiceName);
+    if (!actionConnectionId) {
+      toast.error(`No connection for ${actionServiceName}.`);
+      return;
+    }
+
+    const mappedReactions = [];
+    for (const rNode of reactionNodes) {
+      const rData = rNode.data as ReactionNodeData;
+      const rServiceName = services.find((s) => s.reactions.find((r) => r.name === rData.info.name))?.name;
+
+      if (!rServiceName) {
+        toast.error(`Could not identify service for reaction: ${rData.info.name}`);
+        return;
+      }
+
+      const rConnectionId = getConnectionId(rServiceName);
+      if (!rConnectionId) {
+        toast.error(`No connection for ${rServiceName}.`);
+        return;
+      }
+
+      mappedReactions.push({
+        serviceName: rServiceName,
+        reactionName: rData.info.name,
+        params: rData.paramValues ?? {},
+        connectionId: rConnectionId,
+        posX: rNode.position.x,
+        posY: rNode.position.y
+      });
+    }
 
     const { error } = await client.api.areas.post({
       name: name,
@@ -97,15 +83,12 @@
       action: {
         serviceName: actionServiceName,
         actionName: actionData.info.name,
-        params: actionData.paramValues,
-        connectionId: actionConnectionId
+        params: actionData?.paramValues ?? {},
+        connectionId: actionConnectionId,
+        posX: actionNode.position.x,
+        posY: actionNode.position.y
       },
-      reaction: {
-        serviceName: reactionServiceName,
-        reactionName: reactionData.info.name,
-        params: reactionData.paramValues,
-        connectionId: reactionConnectionId
-      }
+      reactions: mappedReactions
     });
 
     if (error) {
@@ -117,7 +100,7 @@
     } else {
       toast.success("Area created!");
       isDialogOpen = false;
-      goto("/")
+      goto("/");
     }
   }
 </script>
@@ -125,25 +108,13 @@
 <SvelteFlowProvider>
   <div class="h-full w-full flex justify-center items-center">
     <div class="grid grid-cols-[1fr_65%_1fr] h-full w-full gap-5 p-5">
-      {#await servicesPromise}
-        <div class="bg-card rounded-2xl p-3"><p>Loading...</p></div>
-      {:then services}
-        <ServiceSidebar title="Actions" type="action" services={services ?? []} {userConnections} />
-      {:catch error}
-        <div class="bg-card rounded-2xl p-3"><p class="text-destructive">Failed: {error.message}</p></div>
-      {/await}
+      <ServiceSidebar title="Actions" type="action" services={services ?? []} userConnections={connections} />
 
       <EditorCanvas bind:nodes bind:edges>
-        <CreateAreaDialog bind:open={isDialogOpen} disabled={!validateArea()} onsubmit={createArea} />
+        <CreateAreaDialog bind:open={isDialogOpen} disabled={!validateArea(nodes, edges)} onsubmit={createArea} />
       </EditorCanvas>
 
-      {#await servicesPromise}
-        <div class="bg-card rounded-2xl p-3"><p>Loading...</p></div>
-      {:then services}
-        <ServiceSidebar title="Reactions" type="reaction" services={services ?? []} {userConnections} />
-      {:catch error}
-        <div class="bg-card rounded-2xl p-3"><p class="text-destructive">Failed: {error.message}</p></div>
-      {/await}
+      <ServiceSidebar title="Reactions" type="reaction" services={services ?? []} userConnections={connections} />
     </div>
   </div>
 </SvelteFlowProvider>

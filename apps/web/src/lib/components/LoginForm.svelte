@@ -1,14 +1,16 @@
 <script lang="ts">
-  import { defaultValues, superForm } from "sveltekit-superforms";
+  import { superForm } from "sveltekit-superforms";
   import * as Card from "$lib/components/ui/card/index.js";
   import { typebox } from "sveltekit-superforms/adapters";
-  import { loginSchema } from "@/schemas/auth.schemas";
-  import { authClient } from "@/auth-client";
+  import { loginSchema } from "$lib/schemas/auth.schemas";
   import * as Form from "$lib/components/ui/form/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Checkbox } from "$lib/components/ui/checkbox/index.js";
-  import PasswordInput from "./PasswordInput.svelte";
+  import PasswordInput from "$lib/components/PasswordInput.svelte";
+  import OAuthButtons from "$lib/components/OAuthButtons.svelte";
   import { page } from "$app/state";
+  import { auth } from "$lib/auth-client";
+  import { goto } from "$app/navigation";
 
   const redirectTo = page.url.searchParams.get("redirectTo")
     ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
@@ -23,17 +25,19 @@
         if (!form.valid) return;
 
         try {
-          const { data, error } = await authClient.signIn.email({
-            email: form.data.email,
-            password: form.data.password,
-            rememberMe: form.data.rememberMe,
-            callbackURL: redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
-          });
+          const { data, error } = await auth.signInEmail(
+            form.data.email,
+            form.data.password,
+            form.data.rememberMe,
+            redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
+          );
 
           if (error) {
             console.error("Login failed:", error);
             return;
           }
+
+          goto(redirectTo ? decodeURIComponent(redirectTo) : "/");
         } catch (error) {
           console.error("Login error:", error);
         }
@@ -90,8 +94,10 @@
           No account?
           <a href={`/register${redirectTo ? `?redirectTo=${redirectTo}` : ""}`} class="underline"> Register</a>
         </p>
-        <Form.Button class="flex-1">Login</Form.Button>
+        <Form.Button class="flex-1 w-full">Login</Form.Button>
       </div>
+
+      <OAuthButtons />
     </form>
   </Card.Content>
 </Card.Root>

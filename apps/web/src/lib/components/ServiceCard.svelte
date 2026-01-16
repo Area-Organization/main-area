@@ -4,13 +4,13 @@
   import * as Card from "$lib/components/ui/card/index.js";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
   import { Switch } from "./ui/switch";
-  import { getServiceAuthUrl } from "@/api/getServiceAuthUrl";
+  import { getServiceAuthUrl } from "$lib/api/getServiceAuthUrl";
   import { onMount } from "svelte";
   import { invalidate } from "$app/navigation";
   import Label from "./ui/label/label.svelte";
   import Input from "./ui/input/input.svelte";
   import PasswordInput from "./PasswordInput.svelte";
-  import { client } from "@/api";
+  import { client } from "$lib/api";
   import Button from "./ui/button/button.svelte";
 
   interface Props {

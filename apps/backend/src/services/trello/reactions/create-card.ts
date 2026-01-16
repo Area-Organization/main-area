@@ -59,8 +59,13 @@ export const createCardReaction: IReaction = {
         }
       });
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`Failed to create Trello card: ${error || response.statusText}`);
+        const errorText = await response.text()
+        console.error("Erreur Trello détaillée :", {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorText
+          })
+        throw new Error(`Trello API Error: ${response.status} - ${errorText}`);
       }
 
       const createdCard = await response.json() as TrelloCard

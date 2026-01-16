@@ -2,36 +2,38 @@ import { Platform } from "react-native";
 
 const palette = {
   light: {
-    background: "#FFFFFF", // oklch(1.0 0 0)
-    foreground: "#09090B", // oklch(0.1448 0 0)
-    card: "#FFFFFF",
-    cardForeground: "#09090B",
-    primary: "#7C3AED", // Approx for oklch(0.5795 0.2300 280.0547)
-    primaryForeground: "#FFFFFF",
-    muted: "#F4F4F5",
-    mutedForeground: "#71717A",
-    destructive: "#EF4444",
-    border: "#E4E4E7",
-    input: "#E4E4E7"
+    background: "#fdfdfd",
+    foreground: "#000000",
+    card: "#fdfdfd",
+    cardForeground: "#000000",
+    primary: "#7033ff",
+    primaryForeground: "#ffffff",
+    secondary: "#edf0f4",
+    muted: "#f5f5f5",
+    mutedForeground: "#525252",
+    destructive: "#e54b4f",
+    border: "#e7e7ee",
+    input: "#ebebeb"
   },
   dark: {
-    background: "#09090B", // oklch(0.1221 0 0)
-    foreground: "#FAFAFA", // oklch(0.9851 0 0)
-    card: "#18181B", // oklch(0.1684 0 0)
-    cardForeground: "#FAFAFA",
-    primary: "#8B5CF6", // Approx for oklch(0.5945 0.2325 285.8306)
-    primaryForeground: "#FFFFFF",
-    muted: "#27272A",
-    mutedForeground: "#A1A1AA",
-    destructive: "#7F1D1D",
-    border: "#27272A",
-    input: "#27272A"
+    background: "#1a1b1e",
+    foreground: "#f0f0f0",
+    card: "#222327",
+    cardForeground: "#f0f0f0",
+    primary: "#8c5cff",
+    primaryForeground: "#ffffff",
+    secondary: "#2a2c33",
+    muted: "#2a2c33",
+    mutedForeground: "#a0a0a0",
+    destructive: "#f87171",
+    border: "#33353a",
+    input: "#33353a"
   }
 };
 
 export const Layout = {
-  radius: 16, // 1rem
-  spacing: 4 // 0.25rem
+  radius: 22.4, // Matches 1.4rem (~22.4px)
+  spacing: 4
 };
 
 export const Colors = {
@@ -47,6 +49,7 @@ export const Colors = {
     notification: palette.light.destructive,
     primary: palette.light.primary,
     primaryForeground: palette.light.primaryForeground,
+    secondary: palette.light.secondary,
     muted: palette.light.muted,
     input: palette.light.input
   },
@@ -62,6 +65,7 @@ export const Colors = {
     notification: palette.dark.destructive,
     primary: palette.dark.primary,
     primaryForeground: palette.dark.primaryForeground,
+    secondary: palette.dark.secondary,
     muted: palette.dark.muted,
     input: palette.dark.input
   }

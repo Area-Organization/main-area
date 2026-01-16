@@ -11,10 +11,10 @@
     type Edge
   } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
-  import ActionNode from "../ActionNode.svelte";
-  import ReactionNode from "../ReactionNode.svelte";
+  import ActionNode from "$lib/components/ActionNode.svelte";
+  import ReactionNode from "$lib/components/ReactionNode.svelte";
   import { setContext } from "svelte";
-  import type { DndItem } from "@/types";
+  import type { DndItem } from "$lib/types";
   import { toast } from "svelte-sonner";
   import type { Snippet } from 'svelte';
 
@@ -70,7 +70,7 @@
       type: draggedItem.type,
       position,
       data: {
-        label: `node`,
+        label: draggedItem.type,
         info: draggedItem.info
       },
       origin: [0.5, 0.0]

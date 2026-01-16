@@ -6,11 +6,17 @@ export const createAreaSchema = Type.Object({
   action: Type.Object({
     serviceName: Type.String(),
     actionName: Type.String(),
-    params: Type.Record(Type.String(), Type.Any())
+    params: Type.Record(Type.String(), Type.Any()),
+    posX: Type.Optional(Type.Number()),
+    posY: Type.Optional(Type.Number())
   }),
-  reaction: Type.Object({
-    serviceName: Type.String(),
-    reactionName: Type.String(),
-    params: Type.Record(Type.String(), Type.Any())
-  })
+  reactions: Type.Array(
+    Type.Object({
+      serviceName: Type.String(),
+      reactionName: Type.String(),
+      params: Type.Record(Type.String(), Type.Any()),
+      posX: Type.Optional(Type.Number()),
+      posY: Type.Optional(Type.Number())
+    })
+  )
 });
