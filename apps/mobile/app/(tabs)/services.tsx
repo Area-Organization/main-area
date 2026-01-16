@@ -24,6 +24,7 @@ import { useToast } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ServiceTile } from "@/components/service-tile";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Connection = {
   id: string;
@@ -104,7 +105,8 @@ export default function ServicesScreen() {
   const { client } = useSession();
   const { services, refresh: refreshServices, loading: loadingServices } = useServices();
   const [connections, setConnections] = useState<Connection[]>([]);
-  const [loadingConnections, setLoadingConnections] = useState(false);
+  const [loadingConnections, setLoadingConnections] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -114,9 +116,7 @@ export default function ServicesScreen() {
   const insets = useSafeAreaInsets();
 
   const fetchData = async () => {
-    setLoadingConnections(true);
     try {
-      await refreshServices();
       const { data } = await client.api.connections.get();
       if (data && data.connections) {
         setConnections(data.connections);
@@ -125,7 +125,14 @@ export default function ServicesScreen() {
       console.error("Failed to fetch data", e);
     } finally {
       setLoadingConnections(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([refreshServices(), fetchData()]);
+    setRefreshing(false);
   };
 
   useFocusEffect(
@@ -241,7 +248,22 @@ export default function ServicesScreen() {
     }
   };
 
-  const isLoading = loadingServices || loadingConnections;
+  if (loadingServices && services.length === 0) {
+    return (
+      <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
+        <View className="px-5 mb-4">
+          <Skeleton width={120} height={32} style={{ marginBottom: 8 }} />
+          <Skeleton width={200} height={16} />
+        </View>
+
+        <View className="flex-row flex-wrap px-4 gap-3">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <Skeleton key={i} style={{ width: "46%", aspectRatio: 1, borderRadius: 16 }} />
+          ))}
+        </View>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
@@ -256,7 +278,7 @@ export default function ServicesScreen() {
         numColumns={2}
         columnWrapperStyle={{ gap: 12 }}
         contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 100 }}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchData} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         renderItem={({ item }) => {
           const connection = connections.find((c) => c.serviceName === item.name);
           return (
@@ -269,11 +291,9 @@ export default function ServicesScreen() {
           );
         }}
         ListEmptyComponent={
-          !isLoading ? (
-            <View className="p-10 items-center justify-center">
-              <ThemedText className="text-center opacity-60">No services available.</ThemedText>
-            </View>
-          ) : null
+          <View className="p-10 items-center justify-center">
+            <ThemedText className="text-center opacity-60">No services available.</ThemedText>
+          </View>
         }
       />
 

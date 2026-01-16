@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect } from "react";
 import { BackHandler } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useSession } from "@/ctx";
-import { useServices, Service } from "@/hooks/use-services";
+import { useData } from "@/ctx-data";
+import { Service } from "@/hooks/use-services";
 import { useToast } from "@/components/ui/toast";
 import { feedback } from "@/lib/haptics";
 import { useSharedValue, withTiming, Easing, cancelAnimation } from "react-native-reanimated";
@@ -21,7 +22,8 @@ export function useAreaWizard(editAreaId?: string) {
   const router = useRouter();
   const { client } = useSession();
   const toast = useToast();
-  const { services, refresh: refreshServices, loading: loadingServices } = useServices();
+
+  const { services, connections, refreshData, isLoading: isGlobalLoading } = useData();
 
   // Navigation State
   const [wizardStep, setWizardStep] = useState<WizardStep>(1);
@@ -42,8 +44,7 @@ export function useAreaWizard(editAreaId?: string) {
   // Meta State
   const [areaName, setAreaName] = useState("");
   const [areaDescription, setAreaDescription] = useState("");
-  const [connections, setConnections] = useState<any[]>([]);
-  const [loadingConnections, setLoadingConnections] = useState(true);
+
   const [submitting, setSubmitting] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -52,32 +53,13 @@ export function useAreaWizard(editAreaId?: string) {
 
   const pulseProgress = useSharedValue(0);
 
-  // Fetch connections on focus
+  // Optimistically refresh data in background when screen is focused
   useFocusEffect(
     useCallback(() => {
       setShowConfetti(false);
       pulseProgress.value = 0;
-      let isActive = true;
-
-      const fetchData = async () => {
-        setLoadingConnections(true);
-        try {
-          await refreshServices();
-          const { data } = await client.api.connections.get();
-          if (isActive && data?.connections) {
-            setConnections(data.connections);
-          }
-        } catch (e) {
-          console.error("Failed to load connections", e);
-        } finally {
-          if (isActive) setLoadingConnections(false);
-        }
-      };
-      fetchData();
-      return () => {
-        isActive = false;
-      };
-    }, [client])
+      refreshData();
+    }, [])
   );
 
   // Load initial data if editing
@@ -373,7 +355,7 @@ export function useAreaWizard(editAreaId?: string) {
     submitting,
     showConfetti,
     pulseProgress,
-    loading: loadingServices || loadingConnections,
+    loading: isGlobalLoading,
     isFetchingInitialData,
     services,
 

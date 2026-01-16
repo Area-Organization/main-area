@@ -16,6 +16,7 @@ import { WiringDiagram } from "@/components/wizard/wiring-diagram";
 import { SuccessConfetti } from "@/components/wizard/confetti";
 import { ServiceIcon } from "@/components/service-icon";
 import { BRAND_COLORS } from "@/lib/service-utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CreateAreaWizard() {
   const insets = useSafeAreaInsets();
@@ -249,9 +250,25 @@ export default function CreateAreaWizard() {
 
   if (wizard.loading) {
     return (
-      <ThemedView className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color={primaryColor} />
-        <ThemedText className="mt-4">Loading magic...</ThemedText>
+      <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
+        <View className="h-16 flex-row items-center px-5 justify-between border-b border-border/50 z-10">
+          <View>
+            <Skeleton width={120} height={20} style={{ marginBottom: 4 }} />
+            <View className="flex-row gap-1 mt-1">
+              <Skeleton width={32} height={4} borderRadius={2} />
+              <Skeleton width={8} height={4} borderRadius={2} />
+              <Skeleton width={8} height={4} borderRadius={2} />
+            </View>
+          </View>
+        </View>
+        <View className="px-5 py-2">
+          <Skeleton width={150} height={24} />
+        </View>
+        <View className="flex-row flex-wrap px-5 gap-3 mt-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} style={{ width: "47%", aspectRatio: 1, borderRadius: 16 }} />
+          ))}
+        </View>
       </ThemedView>
     );
   }

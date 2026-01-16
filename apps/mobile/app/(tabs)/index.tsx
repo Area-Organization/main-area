@@ -13,20 +13,25 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { EmptyState } from "@/components/empty-state";
 import { AutomationCard } from "@/components/automation-card";
 import { GlassStatCard } from "@/components/glass-stat-card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HomeScreen() {
   const { client, signOut, user } = useSession();
   const [areas, setAreas] = useState<AreaType[]>([]);
   const [stats, setStats] = useState<AreaStatsResponseType | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
   const insets = useSafeAreaInsets();
   const toast = useToast();
   const router = useRouter();
 
   const primaryColor = useThemeColor({}, "primary");
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+
     try {
       const [areasReq, statsReq] = await Promise.all([client.api.areas.get(), client.api.areas.stats.overview.get()]);
 
@@ -39,13 +44,18 @@ export default function HomeScreen() {
     } catch (e) {
       console.error("Fetch Error:", e);
     } finally {
-      setLoading(false);
+      setIsInitialLoading(false);
+      setRefreshing(false);
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      fetchData();
+      if (areas.length === 0) {
+        fetchData(false);
+      } else {
+        fetchData(false);
+      }
     }, [])
   );
 
@@ -71,11 +81,15 @@ export default function HomeScreen() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
+          const previousAreas = [...areas];
+          setAreas((prev) => prev.filter((a) => a.id !== id));
+
           try {
             await client.api.areas({ id }).delete();
             toast.success("Area deleted");
-            fetchData();
+            fetchData(false);
           } catch (e) {
+            setAreas(previousAreas);
             toast.error("Failed to delete area");
           }
         }
@@ -86,6 +100,34 @@ export default function HomeScreen() {
   const handleEdit = (id: string) => {
     router.push(`/edit-area/${id}`);
   };
+
+  if (isInitialLoading && areas.length === 0) {
+    return (
+      <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
+        <View className="px-5 pb-5 flex-row justify-between items-center z-10">
+          <View>
+            <Skeleton width={100} height={20} style={{ marginBottom: 8 }} />
+            <Skeleton width={150} height={32} />
+          </View>
+          <Skeleton width={80} height={40} borderRadius={20} />
+        </View>
+
+        <View className="px-5 flex-1 gap-6">
+          <View className="flex-row gap-3">
+            <Skeleton style={{ flex: 1, height: 80, borderRadius: 20 }} />
+            <Skeleton style={{ flex: 1, height: 80, borderRadius: 20 }} />
+            <Skeleton style={{ flex: 1, height: 80, borderRadius: 20 }} />
+          </View>
+
+          <View>
+            <Skeleton width={120} height={24} style={{ marginBottom: 16 }} />
+            <Skeleton width="100%" height={160} style={{ marginBottom: 16 }} />
+            <Skeleton width="100%" height={160} />
+          </View>
+        </View>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView className="flex-1" style={{ paddingTop: insets.top }}>
@@ -102,7 +144,7 @@ export default function HomeScreen() {
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: 100, flexGrow: 1 }}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchData(true)} />}
         showsVerticalScrollIndicator={false}
       >
         {/* Stats Grid Section */}
@@ -120,7 +162,7 @@ export default function HomeScreen() {
             My Automations
           </ThemedText>
 
-          {areas.length === 0 && !loading ? (
+          {areas.length === 0 && !isInitialLoading ? (
             <EmptyState
               title="No AREAs Created Yet"
               description="Connect your services and create your first automation to see the magic happen."

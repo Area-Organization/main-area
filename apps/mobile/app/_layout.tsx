@@ -2,6 +2,7 @@ import "../global.css";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import { SessionProvider, useSession } from "@/ctx";
+import { DataProvider } from "@/ctx-data";
 import { ThemeProvider, DarkTheme, DefaultTheme } from "@react-navigation/native";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ActivityIndicator, View } from "react-native";
@@ -81,7 +82,9 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <SessionProvider>
-      <RootLayoutNav />
+      <DataProvider>
+        <RootLayoutNav />
+      </DataProvider>
     </SessionProvider>
   );
 }
