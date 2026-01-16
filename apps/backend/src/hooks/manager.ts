@@ -5,9 +5,9 @@ import { interpolate } from "../utils/interpolator"
 
 class HookManager {
   private intervalId: Timer | null = null
-  private checkIntervalMs: number = 60000
+  private checkIntervalMs: number = 5000
 
-  start(intervalMs: number = 60000) {
+  start(intervalMs: number = 5000) {
     if (this.intervalId) {
       console.log("Hook manager already running")
       return
