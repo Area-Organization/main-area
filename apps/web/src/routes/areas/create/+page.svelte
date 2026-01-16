@@ -11,11 +11,7 @@
   import { goto } from "$app/navigation";
   import type { PageProps } from "./$types";
   import { validateArea } from "@/area-utils";
-
-  type NodeData = {
-    info: { name: string };
-    paramValues?: Record<string, unknown>;
-  };
+  import type { ActionNodeData, ReactionNodeData } from "@/types";
 
   let { data }: PageProps = $props();
   let connections = $derived(data.connections.connections);
@@ -32,34 +28,53 @@
   let isDialogOpen = $state(false);
 
   async function createArea(name: string, desc: string) {
-    const actions = nodes.filter((n) => n.type == "action");
-    const reactions = nodes.filter((n) => n.type == "reaction");
-    const actionData = actions[0].data as NodeData;
-    const reactionData = reactions[0].data as NodeData;
+    const actionNode = nodes.find((n) => n.type == "action");
+    const reactionNodes = nodes.filter((n) => n.type == "reaction");
 
-    const actionServiceName = services.find((s) => {
-      return s.actions.find((a) => {
-        return a.name == actionData.info.name;
-      });
-    })?.name;
+    if (!actionNode || reactionNodes.length === 0) {
+      toast.error("Incomplete Area configuration");
+      return;
+    }
 
-    const reactionServiceName = services.find((s) => {
-      return s.reactions.find((r) => {
-        return r.name == reactionData.info.name;
-      });
-    })?.name;
+    const actionData = actionNode.data as ActionNodeData;
 
-    if (!actionServiceName || !reactionServiceName) {
-      toast.error("Could not identify services.");
+    const actionServiceName = services.find((s) => s.actions.find((a) => a.name === actionData.info.name))?.name;
+
+    if (!actionServiceName) {
+      toast.error("Could not identify action service.");
       return;
     }
 
     const actionConnectionId = getConnectionId(actionServiceName);
-    const reactionConnectionId = getConnectionId(reactionServiceName);
-
-    if (!actionConnectionId || !reactionConnectionId) {
-      toast.error("No connections.");
+    if (!actionConnectionId) {
+      toast.error(`No connection for ${actionServiceName}.`);
       return;
+    }
+
+    const mappedReactions = [];
+    for (const rNode of reactionNodes) {
+      const rData = rNode.data as ReactionNodeData;
+      const rServiceName = services.find((s) => s.reactions.find((r) => r.name === rData.info.name))?.name;
+
+      if (!rServiceName) {
+        toast.error(`Could not identify service for reaction: ${rData.info.name}`);
+        return;
+      }
+
+      const rConnectionId = getConnectionId(rServiceName);
+      if (!rConnectionId) {
+        toast.error(`No connection for ${rServiceName}.`);
+        return;
+      }
+
+      mappedReactions.push({
+        serviceName: rServiceName,
+        reactionName: rData.info.name,
+        params: rData.paramValues ?? {},
+        connectionId: rConnectionId,
+        posX: rNode.position.x,
+        posY: rNode.position.y
+      });
     }
 
     const { error } = await client.api.areas.post({
@@ -68,15 +83,12 @@
       action: {
         serviceName: actionServiceName,
         actionName: actionData.info.name,
-        params: actionData?.paramValues ?? [],
-        connectionId: actionConnectionId
+        params: actionData?.paramValues ?? {},
+        connectionId: actionConnectionId,
+        posX: actionNode.position.x,
+        posY: actionNode.position.y
       },
-      reaction: {
-        serviceName: reactionServiceName,
-        reactionName: reactionData.info.name,
-        params: reactionData?.paramValues ?? [],
-        connectionId: reactionConnectionId
-      }
+      reactions: mappedReactions
     });
 
     if (error) {

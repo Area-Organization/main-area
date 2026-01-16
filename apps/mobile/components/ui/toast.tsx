@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { View, Text } from "react-native";
-import Animated, { withSpring, withTiming, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import Animated, { withTiming, useAnimatedStyle, useSharedValue, Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { scheduleOnRN } from "react-native-worklets";
@@ -21,20 +21,26 @@ function DynamicIslandToast({ message, type, onHide }: { message: string; type: 
   const translateY = useSharedValue(-150);
 
   useEffect(() => {
-    // Slide down to position 0
-    translateY.value = withSpring(0, {
-      damping: 15,
-      stiffness: 150,
-      mass: 0.8
+    // Slide down with smooth deceleration
+    translateY.value = withTiming(0, {
+      duration: 400,
+      easing: Easing.out(Easing.poly(4))
     });
 
     // Wait, then slide up
     const timer = setTimeout(() => {
-      translateY.value = withTiming(-150, { duration: 300 }, (finished) => {
-        if (finished) {
-          scheduleOnRN(onHide);
+      translateY.value = withTiming(
+        -150,
+        {
+          duration: 300,
+          easing: Easing.in(Easing.poly(4))
+        },
+        (finished) => {
+          if (finished) {
+            scheduleOnRN(onHide);
+          }
         }
-      });
+      );
     }, 3000);
 
     return () => clearTimeout(timer);
@@ -84,7 +90,7 @@ function DynamicIslandToast({ message, type, onHide }: { message: string; type: 
           />
         </View>
         <Text
-          className={`font-semibold text-sm flex-1 ${
+          className={`font-sans-semibold text-sm flex-1 ${
             type === "success" ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"
           }`}
         >

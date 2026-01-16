@@ -7,6 +7,8 @@ import { spotifyService } from "./spotify"
 import { youtubeService } from "./youtube"
 import { googleDriveService } from "./drive"
 import { notionService } from "./notion"
+import { steamService } from "./steam"
+import { dropboxService } from "./dropbox"
 
 export class ServiceRegistry {
   private services: Map<string, IService> = new Map()
@@ -20,6 +22,8 @@ export class ServiceRegistry {
     this.register(youtubeService)
     this.register(googleDriveService)
     this.register(notionService)
+    this.register(steamService)
+    this.register(dropboxService)
   }
 
   register(service: IService): void {

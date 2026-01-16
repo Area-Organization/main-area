@@ -1,15 +1,15 @@
 <script lang="ts">
   import * as Form from "$lib/components/ui/form/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
-  import { registrationSchema } from "@/schemas/auth.schemas";
+  import { registrationSchema } from "$lib/schemas/auth.schemas";
   import PasswordInput from "./PasswordInput.svelte";
   import { typebox } from "sveltekit-superforms/adapters";
   import { superForm } from "sveltekit-superforms";
-  import { authClient } from "@/auth-client";
   import { page } from "$app/state";
   import * as Card from "$lib/components/ui/card/index.js";
   import { goto } from "$app/navigation";
   import OAuthButtons from "./OAuthButtons.svelte";
+  import { auth } from "$lib/auth-client";
 
   const redirectTo = page.url.searchParams.get("redirectTo")
     ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
@@ -29,12 +29,12 @@
             return;
           }
 
-          const { data, error } = await authClient.signUp.email({
-            name: form.data.name,
-            email: form.data.email,
-            password: form.data.password,
-            callbackURL: redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
-          });
+          const { data, error } = await auth.signUpEmail(
+            form.data.email,
+            form.data.password,
+            form.data.name,
+            redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
+          );
 
           if (error) {
             console.error("Registration failed:", error);

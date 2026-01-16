@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Network from "expo-network";
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
 import { ThemedText } from "@/components/themed-text";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
@@ -34,10 +34,15 @@ export function OfflineNotice() {
   useEffect(() => {
     if (!isConnected) {
       // Slide Down
-      translateY.value = withSpring(0, { damping: 15, stiffness: 100 });
+      translateY.value = withTiming(0, {
+        duration: 400,
+        easing: Easing.out(Easing.ease)
+      });
     } else {
       // Slide Up
-      translateY.value = withSpring(-150);
+      translateY.value = withTiming(-150, {
+        duration: 300
+      });
     }
   }, [isConnected]);
 

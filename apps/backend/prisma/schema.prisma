@@ -116,8 +116,8 @@ model Area {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
-  action   AreaAction?
-  reaction AreaReaction?
+  action    AreaAction?
+  reactions AreaReaction[]
 
   @@index([userId])
   @@index([enabled])
@@ -129,6 +129,9 @@ model AreaAction {
   serviceName String
   actionName  String
   params      Json
+
+  posX Float @default(0)
+  posY Float @default(0)
 
   area   Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
   areaId String @unique
@@ -145,8 +148,11 @@ model AreaReaction {
   reactionName String
   params       Json
 
+  posX Float @default(0)
+  posY Float @default(0)
+
   area   Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
-  areaId String @unique
+  areaId String
 
   connection   UserConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
   connectionId String
