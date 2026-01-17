@@ -1,6 +1,6 @@
 import { createAuthClient } from "better-auth/svelte";
+import { emailOTPClient } from "better-auth/client/plugins";
 import { PUBLIC_BACKEND_API_URL } from "$env/static/public";
-import { dev } from "$app/environment";
 
 // const url = dev ? "http://localhost:8080" : PUBLIC_BACKEND_API_URL;
 const url = PUBLIC_BACKEND_API_URL;
@@ -29,50 +29,17 @@ const authClient = createAuthClient({
         }
       }
     }
-  }
+  },
+  plugins: [
+    emailOTPClient()
+  ]
 });
 
 export const auth = {
-  signInEmail: async (email: string, password: string, rememberMe?: boolean, callbackURL?: string) => {
-    return authClient.signIn.email({
-      email: email,
-      password: password,
-      rememberMe: rememberMe ?? false,
-      callbackURL: callbackURL ?? ""
-    });
-  },
-
-  signInSocial: async (provider: string, callbackURL?: string) => {
-    return authClient.signIn.social({
-      provider,
-      callbackURL
-    });
-  },
-
-  signUpEmail: async (email: string, password: string, name: string, callbackURL?: string) => {
-    return authClient.signUp.email({
-      name: name,
-      email: email,
-      password: password,
-      callbackURL: callbackURL ?? ""
-    });
-  },
-
-  getSession: async (request?: Request) => {
-    if (request) {
-      return authClient.getSession({
-        fetchOptions: {
-          headers: {
-            cookie: request.headers.get("cookie") || ""
-          }
-        }
-      });
-    } else {
-      return authClient.getSession();
-    }
-  },
-
-  useSession: () => {
-    return authClient.useSession();
-  }
+  signInEmail: authClient.signIn.email,
+  signInSocial: authClient.signIn.social,
+  signUpEmail: authClient.signUp.email,
+  getSession: authClient.getSession,
+  useSession: authClient.useSession,
+  emailOtp: authClient.emailOtp
 };

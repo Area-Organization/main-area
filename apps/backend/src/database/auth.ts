@@ -2,17 +2,35 @@ import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { prisma } from "./prisma"
 import { expo } from "@better-auth/expo"
-import { openAPI, bearer } from "better-auth/plugins"
+import { openAPI, bearer, emailOTP } from "better-auth/plugins"
+import { Resend } from "resend"
+import { mailer } from "../utils/mailer"
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql"
   }),
   baseURL: process.env.BETTER_AUTH_URL,
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user }) => {
+      console.log(`[AUTH] Déclenchement de l'OTP pour : ${user.email}`);
+      await auth.api.sendVerificationOTP({
+        body: {
+          email: user.email,
+          type: "email-verification"
+        }
+      });
+    },
+  },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false
+    requireEmailVerification: true
   },
+
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_CLIENT_ID!,
@@ -23,6 +41,7 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!
     }
   },
+  
   advanced: {
     // Required for Dokploy/Traefik: tells Better-Auth to send Secure cookies
     // even if the internal connection between Traefik and Bun is HTTP
@@ -35,6 +54,16 @@ export const auth = betterAuth({
       sameSite: "Lax"
     }
   },
-  plugins: [openAPI(), expo(), bearer()],
+
+  plugins: [
+    openAPI(), 
+    expo(), 
+    bearer(), 
+    emailOTP({
+      async sendVerificationOTP({ email, otp, type }) {        
+        await mailer.sendVerificationCode(email, otp);
+      }
+    })
+  ],
   trustedOrigins: [process.env.FRONTEND_URL || "http://localhost:5173", "exp://", "area://"]
 })

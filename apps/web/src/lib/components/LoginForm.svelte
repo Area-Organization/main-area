@@ -25,12 +25,11 @@
         if (!form.valid) return;
 
         try {
-          const { data, error } = await auth.signInEmail(
-            form.data.email,
-            form.data.password,
-            form.data.rememberMe,
-            redirectTo ? `${decodeURIComponent(redirectTo)}` : "/profile"
-          );
+          const { data, error } = await auth.signInEmail({
+            email: form.data.email,
+            password: form.data.password,
+            callbackURL: redirectTo ? decodeURIComponent(redirectTo) : "/"
+          });
 
           if (error) {
             console.error("Login failed:", error);
