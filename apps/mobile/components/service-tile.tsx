@@ -1,6 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, TouchableOpacity } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing
+} from "react-native-reanimated";
 import { ThemedText } from "@/components/themed-text";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -15,6 +23,8 @@ interface ServiceTileProps {
   loading: boolean;
 }
 
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+
 export function ServiceTile({ item, isConnected, onPress, loading }: ServiceTileProps) {
   const cardColor = useThemeColor({}, "card");
   const borderColor = useThemeColor({}, "border");
@@ -22,28 +32,58 @@ export function ServiceTile({ item, isConnected, onPress, loading }: ServiceTile
 
   const brandColor = useServiceColor(item.name);
 
-  const dynamicStyle = isConnected
-    ? {
+  const glowOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (isConnected) {
+      glowOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.6, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0.2, { duration: 1500, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1, // Infinite loop
+        true // Reverse direction on loop
+      );
+    } else {
+      glowOpacity.value = 0;
+    }
+  }, [glowOpacity, isConnected]);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    if (isConnected) {
+      return {
         borderColor: brandColor,
         borderWidth: 2,
-        backgroundColor: cardColor
-      }
-    : {
-        borderColor: borderColor,
-        borderWidth: 1,
-        backgroundColor: cardColor
+        backgroundColor: cardColor,
+        shadowColor: brandColor,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: glowOpacity.value,
+        shadowRadius: 12,
+        elevation: 10
       };
+    }
+
+    return {
+      borderColor: borderColor,
+      borderWidth: 1,
+      backgroundColor: cardColor,
+      shadowOpacity: 0,
+      elevation: 0
+    };
+  });
 
   const iconColor = isConnected ? brandColor : "#888";
 
   return (
     <Animated.View entering={FadeInDown.duration(400)} className="flex-1">
-      <TouchableOpacity
+      <AnimatedTouchableOpacity
         onPress={onPress}
         disabled={loading}
         activeOpacity={0.7}
-        className="aspect-square rounded-xl p-5 items-center justify-center relative shadow-card"
-        style={dynamicStyle}
+        className={`aspect-square rounded-xl p-5 items-center justify-center relative ${
+          !isConnected ? "shadow-card" : ""
+        }`}
+        style={animatedStyle}
       >
         {isConnected && (
           <View
@@ -77,7 +117,7 @@ export function ServiceTile({ item, isConnected, onPress, loading }: ServiceTile
             </ThemedText>
           </View>
         )}
-      </TouchableOpacity>
+      </AnimatedTouchableOpacity>
     </Animated.View>
   );
 }
