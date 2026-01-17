@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Card from "$lib/components/ui/card/index.js";
   import * as Carousel from "$lib/components/ui/carousel/index.js";
-  import { LayoutGrid, Activity, PauseCircle, Zap, Settings, ArrowRight, Frown, Clock } from "lucide-svelte";
+  import { LayoutGrid, Activity, CirclePause, Zap, Settings, ArrowRight, Frown, Clock } from "lucide-svelte";
   import type { PageProps } from "./$types";
   import StatCard from "@/components/StatCard.svelte";
   import Autoplay from "embla-carousel-autoplay";
@@ -110,7 +110,7 @@
     </StatCard>
 
     <StatCard title="Inactive Areas" stat={stats.inactiveAreas} color="emerald" shadow="0,212,146,0.4">
-      <PauseCircle class="h-4 w-4 text-muted-foreground" />
+      <CirclePause class="h-4 w-4 text-muted-foreground" />
     </StatCard>
 
     <StatCard title="Total Triggers" stat={stats.totalTriggers} color="green" shadow="5,223,114,0.4">

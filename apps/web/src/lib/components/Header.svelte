@@ -1,6 +1,6 @@
 <script lang="ts">
   import { List, Plus, User } from "lucide-svelte";
-  import HeaderLink from "./HeaderLink.svelte";
+  import HeaderLink from "$lib/components/HeaderLink.svelte";
 </script>
 
 <div class="sticky flex items-center justify-between p-4 w-full">

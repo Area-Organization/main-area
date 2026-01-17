@@ -9,7 +9,7 @@
   import { goto } from "$app/navigation";
   import OAuthButtons from "./OAuthButtons.svelte";
   import { auth } from "$lib/auth-client";
-  import { ShieldCheck, Mail, Loader2, ArrowLeft, CheckCircle2 } from "lucide-svelte";
+  import { ShieldCheck, LoaderCircle, ArrowLeft, CircleCheck } from "lucide-svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import { toast } from "svelte-sonner";
 
@@ -133,7 +133,7 @@
 
         <Button type="submit" class="w-full mt-4" disabled={$delayed}>
           {#if $delayed}
-            <Loader2 class="mr-2 animate-spin" size={16} />
+            <LoaderCircle class="mr-2 animate-spin" size={16} />
             Creating account...
           {:else}
             Create Account
@@ -175,7 +175,7 @@
             disabled={isVerifying || otpCode.length < 6}
           >
             {#if isVerifying}
-              <Loader2 class="mr-2 animate-spin" size={20} />
+              <LoaderCircle class="mr-2 animate-spin" size={20} />
               Verifying...
             {:else}
               Confirm Code
@@ -195,7 +195,7 @@
       </div>
 
       <div class="mt-12 pt-6 border-t border-border w-full flex items-center justify-center gap-2">
-        <CheckCircle2 size={14} class="text-green-500" />
+        <CircleCheck size={14} class="text-green-500" />
         <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">Secure Verification</span>
       </div>
     </Card.Content>

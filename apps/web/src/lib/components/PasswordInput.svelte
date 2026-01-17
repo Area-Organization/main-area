@@ -1,7 +1,7 @@
 <script>
-	import { Eye, EyeClosed, Proportions } from 'lucide-svelte';
-	import Button from './ui/button/button.svelte';
-	import Input from './ui/input/input.svelte';
+	import { Eye, EyeClosed } from 'lucide-svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
 
 	let visible = $state(false);
 	let { value = $bindable(), ...others } = $props();

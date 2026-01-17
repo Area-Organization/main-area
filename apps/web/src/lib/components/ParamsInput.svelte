@@ -1,6 +1,6 @@
 <script lang="ts">
   import { type ParameterDTO } from "@area/types";
-  import { Input } from "./ui/input";
+  import { Input } from "$lib/components/ui/input";
 
   interface Props {
     key: string;

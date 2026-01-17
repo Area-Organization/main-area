@@ -23,8 +23,15 @@
     baseDesc?: string;
   }>();
 
-  let name = $derived(baseName);
-  let desc = $derived(baseDesc);
+  // Use state instead of derived so the inputs are writable
+  let name = $state(baseName);
+  let desc = $state(baseDesc);
+
+  // Sync state when props change (e.g. when opening "Modify" with existing data)
+  $effect(() => {
+    name = baseName;
+    desc = baseDesc;
+  });
 
   function handleSubmit() {
     onsubmit(name, desc);
@@ -42,12 +49,31 @@
     <Dialog.Header>
       <Dialog.Title>{dialogTitle}</Dialog.Title>
     </Dialog.Header>
-    <div class="flex flex-col items-center gap-2">
-      <Input id="area-name" placeholder="Area Name" bind:value={name} />
-      <Input id="area-desc" placeholder="Description" bind:value={desc} />
+    <div class="flex flex-col gap-4 py-2">
+      <div class="space-y-1">
+        <label
+          for="area-name"
+          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Area Name <span class="text-red-500">*</span>
+        </label>
+        <Input id="area-name" placeholder="e.g. Daily Sync" bind:value={name} />
+      </div>
+
+      <div class="space-y-1">
+        <label
+          for="area-desc"
+          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Description <span class="text-muted-foreground font-normal text-xs">(optional)</span>
+        </label>
+        <Input id="area-desc" placeholder="What does this area do?" bind:value={desc} />
+      </div>
     </div>
     <Dialog.Footer class="flex justify-center items-center sm:justify-center">
-      <Button variant="default" disabled={name == "" || desc == ""} onclick={handleSubmit}>{validateButtonText}</Button>
+      <Button variant="default" disabled={!name || name.trim() === ""} onclick={handleSubmit}>
+        {validateButtonText}
+      </Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

@@ -2,7 +2,7 @@
   import type { AreaActionType, AreaReactionType } from "@area/types";
   import { onMount } from "svelte";
   import gsap from "gsap";
-  import ServiceIcon from "./ServiceIcon.svelte";
+  import ServiceIcon from "$lib/components/ServiceIcon.svelte";
 
   let { action, reactions }: { action: AreaActionType; reactions: AreaReactionType[] } = $props();
 

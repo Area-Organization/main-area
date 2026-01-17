@@ -2,11 +2,11 @@
   import * as Card from "$lib/components/ui/card/index.js";
   import { draggable } from "@thisux/sveltednd";
   import { type Edge, type NodeProps, Position, useSvelteFlow } from "@xyflow/svelte";
-  import ParamsInput from "./ParamsInput.svelte";
-  import NodeHeader from "./NodeHeader.svelte";
-  import ResizedHandle from "./ResizedHandle.svelte";
-  import { validateNode } from "@/area-utils";
-  import type { ReactionNodeData } from "@/types";
+  import ParamsInput from "$lib/components/ParamsInput.svelte";
+  import NodeHeader from "$lib/components/NodeHeader.svelte";
+  import ResizedHandle from "$lib/components/ResizedHandle.svelte";
+  import { validateNode } from "$lib/area-utils";
+  import type { ReactionNodeData } from "$lib/types";
   import { getContext } from "svelte";
 
   interface Props extends NodeProps {

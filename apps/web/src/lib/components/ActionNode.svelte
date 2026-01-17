@@ -9,7 +9,7 @@
   import NodeHeader from "$lib/components/NodeHeader.svelte";
   import ResizedHandle from "$lib/components/ResizedHandle.svelte";
   import type { ActionNodeData } from "$lib/types";
-  import { validateNode } from "@/area-utils";
+  import { validateNode } from "$lib/area-utils";
   import { slide } from "svelte/transition";
 
   interface Props extends NodeProps {
