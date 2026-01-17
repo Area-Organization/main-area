@@ -95,7 +95,7 @@
   </Card.Root>
 {/snippet}
 
-<div class="container mx-auto p-6 space-y-8">
+<div class="container mx-auto p-6 space-y-8 flex flex-col min-h-[85vh] justify-center">
   <div class="flex items-center justify-between">
     <h2 class="text-3xl font-bold tracking-tight">Dashboard</h2>
   </div>

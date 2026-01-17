@@ -12,6 +12,7 @@
   import PasswordInput from "./PasswordInput.svelte";
   import { client } from "$lib/api";
   import Button from "./ui/button/button.svelte";
+  import { cn } from "$lib/utils";
 
   interface Props {
     service: ServiceDTO;
@@ -20,7 +21,7 @@
 
   let { service, connections }: Props = $props();
 
-  const connection = $derived(connections.find(c => c.serviceName === service.name));
+  const connection = $derived(connections.find((c) => c.serviceName === service.name));
   const isLinked = $derived(!!connection);
 
   let authPromise = $state<Promise<OAuth2AuthUrlResponseType>>();
@@ -56,109 +57,130 @@
     if (!connection) return;
 
     try {
-        await client.api.connections({ id: connection.id }).delete();
-        await invalidate('app:connections');
-        isConfirmDeletionOpen = false;
+      await client.api.connections({ id: connection.id }).delete();
+      await invalidate("app:connections");
+      isConfirmDeletionOpen = false;
     } catch (error) {
-        console.error("Failed to delete connection:", error);
+      console.error("Failed to delete connection:", error);
     }
-}
+  }
 </script>
 
-{#snippet cardContent()}
-  <Card.Root class="w-xs h-full {isLinked ? 'bg-muted text-muted-foreground' : 'cursor-pointer group-hover:border-primary transition-colors'}">
-    <Card.Header>
-      <div class="flex w-full justify-between items-center">
-        <div class="flex gap-5 items-center">
-          <ServiceIcon name={service.name} />
-          <Card.Title class="capitalize">{service.name}</Card.Title>
-        </div>
-        <Dialog.Root bind:open={isConfirmDeletionOpen}>
-          <Dialog.Trigger>
-            <Switch
-              checked={isLinked}
-              onclick={(e: MouseEvent) => {
-                e.stopPropagation();
-                e.preventDefault();
-                if (isLinked) {
-                  isConfirmDeletionOpen = true;
-                }
-              }}
-            />
-          </Dialog.Trigger>
-          <Dialog.Content>
-            <Dialog.Header>
-              <Dialog.Title>Are you sure?</Dialog.Title>
-              <Dialog.Description>
-                This action will delete the connection to this service and cannot be undone.
-              </Dialog.Description>
-            </Dialog.Header>
-            <Dialog.Footer class="flex sm:justify-center sm:items-center">
-              <Button variant="destructive" onclick={deleteConnection}>Confirm Deletion</Button>
-            </Dialog.Footer>
-          </Dialog.Content>
-        </Dialog.Root>
-      </div>
-      <Card.Description>{service.description}</Card.Description>
-    </Card.Header>
-  </Card.Root>
-{/snippet}
+<div class="h-full w-full">
+  {#snippet cardContent()}
+    <Card.Root
+      class={cn(
+        "h-full min-h-48 relative overflow-hidden transition-all duration-300 border",
+        isLinked
+          ? "bg-muted/50 border-muted-foreground/20"
+          : "group hover:border-indigo-400 hover:shadow-[0_0_20px_rgba(129,140,248,0.3)] bg-card"
+      )}
+    >
+      {#if !isLinked}
+        <div
+          class="absolute inset-0 bg-linear-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        ></div>
+      {/if}
+      <Card.Header class="relative z-10 flex flex-col h-full justify-between gap-4 p-6">
+        <div class="flex w-full justify-between items-start">
+          <div class="flex items-center gap-3">
+            <ServiceIcon name={service.name} />
+            <div class="space-y-1">
+              <Card.Title class="text-lg font-semibold capitalize leading-none tracking-tight">{service.name}</Card.Title>
+              <div class="flex items-center gap-2">
+                <span
+                  class={cn(
+                    "text-xs px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1",
+                    isLinked ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {isLinked ? "Connected" : "Available"}
+                </span>
+              </div>
+            </div>
+          </div>
 
-{#if isLinked}
-  {@render cardContent()}
-{:else if service.authType == "oauth2"}
-  {#await authPromise}
+          <Dialog.Root bind:open={isConfirmDeletionOpen}>
+              <Switch
+                checked={isLinked}
+                onclick={(e: MouseEvent) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  if (isLinked) {
+                    isConfirmDeletionOpen = true;
+                  }
+                }}
+                class={cn("data-[state=checked]:bg-green-500")}
+              />
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>Are you sure?</Dialog.Title>
+                <Dialog.Description>
+                  This action will delete the connection to this service and cannot be undone.
+                </Dialog.Description>
+              </Dialog.Header>
+              <Dialog.Footer class="flex sm:justify-center sm:items-center">
+                <Button variant="destructive" onclick={deleteConnection}>Confirm Deletion</Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Root>
+        </div>
+        <Card.Description class="line-clamp-2 text-sm text-muted-foreground/80 mt-2">
+          {service.description}
+        </Card.Description>
+      </Card.Header>
+    </Card.Root>
+  {/snippet}
+
+  {#if isLinked}
     {@render cardContent()}
-  {:then auth}
-    <a aria-label="{service.name} connection" href={auth?.authUrl} class="group transition-all">
+  {:else if service.authType == "oauth2"}
+    {#await authPromise}
       {@render cardContent()}
-    </a>
-  {/await}
-{:else}
-  <Dialog.Root bind:open={isApiKeyDialogOpen}>
-    <Dialog.Trigger>
-      <button
-        class="group"
-        onclick={() => {
-          isApiKeyDialogOpen = true;
-        }}
-      >
+    {:then auth}
+      <a aria-label="{service.name} connection" href={auth?.authUrl} class="group transition-all h-full block">
         {@render cardContent()}
-      </button>
-    </Dialog.Trigger>
-    <Dialog.Content>
-      <Dialog.Header class="mb-2">
-        <Dialog.Title>Linking {service.name}</Dialog.Title>
-      </Dialog.Header>
+      </a>
+    {/await}
+  {:else}
+    <Dialog.Root bind:open={isApiKeyDialogOpen}>
+      <Dialog.Trigger class="group h-full w-full text-left">
+          {@render cardContent()}
+      </Dialog.Trigger>
+      <Dialog.Content>
+        <Dialog.Header class="mb-2">
+          <Dialog.Title>Linking {service.name}</Dialog.Title>
+        </Dialog.Header>
 
-      {#each service.authFields as field, i}
-        <div class="flex justify-between items-center">
-          <Label class="text-md" for={i.toString()}>{field.label}</Label>
-          {#if field.required}
-            <p class="text-red-400">Required</p>
+        {#each service.authFields as field, i}
+          <div class="flex justify-between items-center">
+            <Label class="text-md" for={i.toString()}>{field.label}</Label>
+            {#if field.required}
+              <p class="text-red-400">Required</p>
+            {/if}
+          </div>
+          {#if field.type == "password"}
+            <PasswordInput id={i.toString()} placeholder={field.description} bind:value={values[field.key]} />
+          {:else}
+            <Input id={i.toString()} placeholder={field.description} bind:value={values[field.key]} />
           {/if}
-        </div>
-        {#if field.type == "password"}
-          <PasswordInput id={i.toString()} placeholder={field.description} bind:value={values[field.key]} />
-        {:else}
-          <Input id={i.toString()} placeholder={field.description} bind:value={values[field.key]} />
-        {/if}
-      {/each}
+        {/each}
 
-      <Dialog.Footer class="flex sm:justify-center sm:items-center">
-        <Button
-          variant="secondary"
-          disabled={!checkValidity()}
-          onclick={() => {
-            onSubmit().then(() => {
-              invalidate('app:connections');
-              isApiKeyDialogOpen = false;
-            });
-          }}
-        >
-          Connect
-        </Button>
-      </Dialog.Footer>
-    </Dialog.Content>
-  </Dialog.Root>
-{/if}
+        <Dialog.Footer class="flex sm:justify-center sm:items-center">
+          <Button
+            variant="secondary"
+            disabled={!checkValidity()}
+            onclick={() => {
+              onSubmit().then(() => {
+                invalidate("app:connections");
+                isApiKeyDialogOpen = false;
+              });
+            }}
+          >
+            Connect
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog.Root>
+  {/if}
+</div>

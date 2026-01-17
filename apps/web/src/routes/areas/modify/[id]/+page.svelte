@@ -38,8 +38,11 @@
 
   $effect(() => {
     untrack(() => {
+      const _nodes: Node[] = [];
+      const _edges: Edge[] = [];
+
       const actionNodeId = `${Math.random()}`;
-      nodes.push({
+      _nodes.push({
         id: actionNodeId,
         type: "action",
         position: { x: curArea.action?.posX ?? 100, y: curArea.action?.posY ?? 200 },
@@ -53,7 +56,7 @@
 
       curArea.reactions.forEach((reaction, index) => {
         const reactionNodeId = `${Math.random()}`;
-        nodes.push({
+        _nodes.push({
           id: reactionNodeId,
           type: "reaction",
           position: { x: reaction.posX ?? 600, y: reaction.posY ?? 100 + index * 200 },
@@ -65,12 +68,15 @@
           origin: [0.5, 0.0]
         } satisfies Node);
 
-        edges.push({
+        _edges.push({
           id: `${Math.random()}`,
           source: actionNodeId,
           target: reactionNodeId
         });
       });
+
+      nodes = _nodes;
+      edges = _edges;
     });
   });
 
@@ -158,22 +164,28 @@
 </script>
 
 <SvelteFlowProvider>
-  <div class="h-full w-full flex justify-center items-center">
-    <div class="grid grid-cols-[1fr_65%_1fr] h-full w-full gap-5 p-5">
+  <div class="h-full w-full flex justify-center items-center overflow-hidden">
+    <div class="grid grid-cols-[1fr_65%_1fr] h-[92vh] w-full gap-5 p-5">
       <ServiceSidebar title="Actions" type="action" services={services ?? []} userConnections={connections} />
 
-      <EditorCanvas bind:nodes bind:edges>
-        <CreateAreaDialog
-          bind:open={isDialogOpen}
-          disabled={!validateArea(nodes, edges)}
-          onsubmit={modifyArea}
-          buttonText="Modify Area"
-          dialogTitle="Modify your Area"
-          validateButtonText="Modify"
-          baseName={curArea.name}
-          baseDesc={curArea.description}
-        />
-      </EditorCanvas>
+      {#if nodes.length > 0}
+        <EditorCanvas bind:nodes bind:edges>
+          <CreateAreaDialog
+            bind:open={isDialogOpen}
+            disabled={!validateArea(nodes, edges)}
+            onsubmit={modifyArea}
+            buttonText="Modify Area"
+            dialogTitle="Modify your Area"
+            validateButtonText="Modify"
+            baseName={curArea.name}
+            baseDesc={curArea.description}
+          />
+        </EditorCanvas>
+      {:else}
+        <div class="w-full h-full flex items-center justify-center">
+          <p class="text-muted-foreground animate-pulse">Loading Editor...</p>
+        </div>
+      {/if}
 
       <ServiceSidebar title="Reactions" type="reaction" services={services ?? []} userConnections={connections} />
     </div>
