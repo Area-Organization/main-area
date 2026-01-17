@@ -1,17 +1,17 @@
 <script lang="ts">
   import type { OAuth2AuthUrlResponseType, ServiceDTO, UserConnectionSchemaType } from "@area/types";
-  import ServiceIcon from "./ServiceIcon.svelte";
+  import ServiceIcon from "$lib/components/ServiceIcon.svelte";
   import * as Card from "$lib/components/ui/card/index.js";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
-  import { Switch } from "./ui/switch";
+  import { Switch } from "$lib/components/ui/switch";
   import { getServiceAuthUrl } from "$lib/api/getServiceAuthUrl";
   import { onMount } from "svelte";
   import { invalidate } from "$app/navigation";
-  import Label from "./ui/label/label.svelte";
-  import Input from "./ui/input/input.svelte";
-  import PasswordInput from "./PasswordInput.svelte";
+  import Label from "$lib/components/ui/label/label.svelte";
+  import Input from "$lib/components/ui/input/input.svelte";
+  import PasswordInput from "$lib/components/PasswordInput.svelte";
   import { client } from "$lib/api";
-  import Button from "./ui/button/button.svelte";
+  import Button from "$lib/components/ui/button/button.svelte";
   import { cn } from "$lib/utils";
   import { toast } from "svelte-sonner";
 
@@ -33,17 +33,17 @@
   onMount(() => {
     if (service.authType == "oauth2") authPromise = getServiceAuthUrl(service.name, window.location.href);
   });
-  
+
   async function activateNoneService() {
     try {
       await client.api.connections.post({
         serviceName: service.name,
         metadata: { activated: true }
-      })
-      await invalidate('app:connections')
-      toast.success(`${service.name} activated !`)
+      });
+      await invalidate("app:connections");
+      toast.success(`${service.name} activated !`);
     } catch (error) {
-      toast.error("Failed to activate service")
+      toast.error("Failed to activate service");
     }
   }
 
@@ -100,7 +100,9 @@
           <div class="flex items-center gap-3">
             <ServiceIcon name={service.name} />
             <div class="space-y-1">
-              <Card.Title class="text-lg font-semibold capitalize leading-none tracking-tight">{service.name}</Card.Title>
+              <Card.Title class="text-lg font-semibold capitalize leading-none tracking-tight"
+                >{service.name}</Card.Title
+              >
               <div class="flex items-center gap-2">
                 <span
                   class={cn(
@@ -115,17 +117,17 @@
           </div>
 
           <Dialog.Root bind:open={isConfirmDeletionOpen}>
-              <Switch
-                checked={isLinked}
-                onclick={(e: MouseEvent) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  if (isLinked) {
-                    isConfirmDeletionOpen = true;
-                  }
-                }}
-                class={cn("data-[state=checked]:bg-green-500")}
-              />
+            <Switch
+              checked={isLinked}
+              onclick={(e: MouseEvent) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (isLinked) {
+                  isConfirmDeletionOpen = true;
+                }
+              }}
+              class={cn("data-[state=checked]:bg-green-500")}
+            />
             <Dialog.Content>
               <Dialog.Header>
                 <Dialog.Title>Are you sure?</Dialog.Title>
@@ -146,15 +148,12 @@
     </Card.Root>
   {/snippet}
 
-{#if isLinked}
-  {@render cardContent()}
-{:else if service.authType == "none"}
-  <button class="group text-left w-full" onclick={activateNoneService}>
+  {#if isLinked}
     {@render cardContent()}
-  </button>
-{:else if service.authType == "oauth2"}
-  {#await authPromise}
-    {@render cardContent()}
+  {:else if service.authType == "none"}
+    <button class="group text-left w-full" onclick={activateNoneService}>
+      {@render cardContent()}
+    </button>
   {:else if service.authType == "oauth2"}
     {#await authPromise}
       {@render cardContent()}
@@ -166,7 +165,7 @@
   {:else}
     <Dialog.Root bind:open={isApiKeyDialogOpen}>
       <Dialog.Trigger class="group h-full w-full text-left">
-          {@render cardContent()}
+        {@render cardContent()}
       </Dialog.Trigger>
       <Dialog.Content>
         <Dialog.Header class="mb-2">
