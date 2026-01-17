@@ -6,7 +6,6 @@ import { authClient } from "@/lib/auth";
 import { useRouter } from "expo-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useSession } from "@/ctx";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -54,7 +53,6 @@ const AnimatedLetter = ({ letter, index }: { letter: string; index: number }) =>
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { signIn } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -87,8 +85,10 @@ export default function RegisterScreen() {
       if (error) {
         setErrors({ general: error.message || "Registration failed" });
       } else {
-        await signIn();
-        router.replace("/(tabs)");
+        router.push({
+          pathname: "/(auth)/verify-otp",
+          params: { email }
+        });
       }
     } catch (err: any) {
       setErrors({ general: err.message || "Network error" });
