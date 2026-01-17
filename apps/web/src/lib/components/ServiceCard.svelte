@@ -12,6 +12,7 @@
   import PasswordInput from "./PasswordInput.svelte";
   import { client } from "$lib/api";
   import Button from "./ui/button/button.svelte";
+  import { toast } from "svelte-sonner";
 
   interface Props {
     service: ServiceDTO;
@@ -31,6 +32,19 @@
   onMount(() => {
     if (service.authType == "oauth2") authPromise = getServiceAuthUrl(service.name, window.location.href);
   });
+  
+  async function activateNoneService() {
+    try {
+      await client.api.connections.post({
+        serviceName: service.name,
+        metadata: { activated: true }
+      })
+      await invalidate('app:connections')
+      toast.success(`${service.name} activated !`)
+    } catch (error) {
+      toast.error("Failed to activate service")
+    }
+  }
 
   function checkValidity() {
     if (
@@ -106,6 +120,10 @@
 
 {#if isLinked}
   {@render cardContent()}
+{:else if service.authType == "none"}
+  <button class="group text-left w-full" onclick={activateNoneService}>
+    {@render cardContent()}
+  </button>
 {:else if service.authType == "oauth2"}
   {#await authPromise}
     {@render cardContent()}
