@@ -10,6 +10,7 @@
   import ResizedHandle from "$lib/components/ResizedHandle.svelte";
   import type { ActionNodeData } from "$lib/types";
   import { validateNode } from "@/area-utils";
+  import { slide } from "svelte/transition";
 
   interface Props extends NodeProps {
     data: ActionNodeData;
@@ -58,7 +59,7 @@
         </div>
 
         {#if isConnected}
-          <div class="flex flex-col mt-3 gap-2">
+          <div transition:slide class="flex flex-col mt-3 gap-2">
             <h3 class="text-md font-bold">Variables</h3>
             {#each data.info.variables as variable, i}
               <div class="border border-muted-foreground/20 rounded-2xl p-3 flex justify-between items-center gap-2">
