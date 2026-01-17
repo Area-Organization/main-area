@@ -232,6 +232,27 @@ export default function ServicesScreen() {
       }
     ]);
   };
+  
+  const handleNoneConnect = async (serviceName: string) => {
+    setActionLoading(serviceName);
+    try {
+      const { error } = await client.api.connections.post({
+        serviceName: serviceName,
+        metadata: { activated: true }
+      });
+  
+      if (error) {
+        toast.error("Failed to activate service");
+      } else {
+        toast.success(`${serviceName} enabled`);
+        fetchData();
+      }
+    } catch (e) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   const handleTilePress = (item: Service, connection: Connection | undefined) => {
     if (connection) {
@@ -242,8 +263,8 @@ export default function ServicesScreen() {
       } else if (item.authType === "api_key") {
         setSelectedService(item);
         setModalVisible(true);
-      } else {
-        toast.success("No authentication required for this service");
+      } else if (item.authType === "none"){
+        handleNoneConnect(item.name);
       }
     }
   };
