@@ -1,21 +1,21 @@
 <script lang="ts">
-  import { Plus, User } from "lucide-svelte";
+  import { List, Plus, User } from "lucide-svelte";
+  import HeaderLink from "./HeaderLink.svelte";
 </script>
 
-<div class="sticky flex items-center justify-center w-full h-20">
-  <div class="h-[80%] w-[15%] bg-card rounded-2xl grid grid-cols-3 mx-5 justify-items-center items-center">
-    <a href="/create" aria-label="create new area">
-      <div class="size-11 rounded-xl bg-background flex justify-center items-center">
-        <Plus />
-      </div>
-    </a>
-    <a href="/">
-      <h1>Logo</h1>
-    </a>
-    <a href="/profile" aria-label="profile">
-      <div class="size-11 rounded-xl bg-background flex justify-center items-center">
-        <User />
-      </div>
-    </a>
+<div class="sticky flex items-center justify-between p-4 w-full">
+  <a href="/" class="flex items-center justify-center mx-2">
+    <h1>Logo</h1>
+  </a>
+  <div class="flex gap-2 justify-center items-center group/icons">
+    <HeaderLink link="/areas/create">
+      <Plus />
+    </HeaderLink>
+    <HeaderLink link="/areas">
+      <List />
+    </HeaderLink>
+    <HeaderLink link="/profile">
+      <User />
+    </HeaderLink>
   </div>
 </div>

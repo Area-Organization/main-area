@@ -41,5 +41,5 @@
       {@render children()}
     {/if}
   </div>
-  <Toaster />
+  <Toaster richColors position="top-center"/>
 </div>
