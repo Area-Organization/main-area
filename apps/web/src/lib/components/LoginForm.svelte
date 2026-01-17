@@ -11,6 +11,7 @@
   import { page } from "$app/state";
   import { auth } from "$lib/auth-client";
   import { goto } from "$app/navigation";
+  import { toast } from "svelte-sonner";
 
   const redirectTo = page.url.searchParams.get("redirectTo")
     ? encodeURIComponent(page.url.searchParams.get("redirectTo")!)
@@ -32,13 +33,13 @@
           });
 
           if (error) {
-            console.error("Login failed:", error);
+            toast.error(`Login failed: ${error.message}.`);
             return;
           }
 
           goto(redirectTo ? decodeURIComponent(redirectTo) : "/");
         } catch (error) {
-          console.error("Login error:", error);
+          toast.error(`Login error: ${error}.`);
         }
       }
     }

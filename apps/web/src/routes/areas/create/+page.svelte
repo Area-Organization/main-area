@@ -106,8 +106,8 @@
 </script>
 
 <SvelteFlowProvider>
-  <div class="h-full w-full flex justify-center items-center">
-    <div class="grid grid-cols-[1fr_65%_1fr] h-full w-full gap-5 p-5">
+  <div class="h-full w-full grow justify-center items overflow-hidden">
+    <div class="grid grid-cols-[1fr_65%_1fr] h-[92vh] gap-5 p-5">
       <ServiceSidebar title="Actions" type="action" services={services ?? []} userConnections={connections} />
 
       <EditorCanvas bind:nodes bind:edges>
