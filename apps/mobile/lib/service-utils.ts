@@ -6,12 +6,14 @@ export const BRAND_COLORS: Record<string, string> = {
   spotify: "#1DB954",
   github: "#181717",
   twitch: "#9146FF",
-  gmail: "#e94538",
+  gmail: "#EA4335",
   slack: "#4A154B",
   notion: "#000000",
   trello: "#0079BF",
   youtube: "#FF0000",
-  "google drive": "#1FA463"
+  "google drive": "#1FA463",
+  dropbox: "#0061FE",
+  steam: "#171a21"
 };
 
 export const SERVICE_ICONS: Record<string, { lib: any; name: string }> = {
@@ -22,7 +24,9 @@ export const SERVICE_ICONS: Record<string, { lib: any; name: string }> = {
   spotify: { lib: FontAwesome5, name: "spotify" },
   youtube: { lib: FontAwesome5, name: "youtube" },
   "google drive": { lib: MaterialCommunityIcons, name: "google-drive" },
-  notion: { lib: MaterialCommunityIcons, name: "notebook-edit-outline" }
+  notion: { lib: MaterialCommunityIcons, name: "notebook-edit-outline" },
+  dropbox: { lib: FontAwesome, name: "dropbox" },
+  steam: { lib: FontAwesome5, name: "steam" }
 };
 
 /**
