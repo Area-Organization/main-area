@@ -41,5 +41,6 @@ export const auth = {
   signUpEmail: authClient.signUp.email,
   getSession: authClient.getSession,
   useSession: authClient.useSession,
-  emailOtp: authClient.emailOtp
+  emailOtp: authClient.emailOtp,
+  signOut: authClient.signOut
 };

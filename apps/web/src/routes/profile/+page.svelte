@@ -3,7 +3,10 @@
   import type { PageProps } from "./$types";
   import { auth } from "$lib/auth-client";
   import StatCard from "$lib/components/StatCard.svelte";
-  import { Blocks, Link2 } from "lucide-svelte";
+  import { Blocks, Link2, LogOut } from "lucide-svelte";
+  import { Button } from "$lib/components/ui/button/index.js";
+  import { toast } from "svelte-sonner";
+  import { goto } from "$app/navigation";
 
   const session = auth.useSession();
   const username = $derived($session.data?.user?.name ?? "User");
@@ -13,12 +16,32 @@
   const services = $derived(data.services);
   const connections = $derived(data.connections?.connections ?? []);
   const totalLinked = $derived(data.connections?.total ?? 0);
+
+  async function handleLogout() {
+    try {
+      await auth.signOut();
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("area-auth-token");
+      }
+      toast.success("Logged out successfully");
+      goto("/login");
+    } catch (e) {
+      toast.error("Failed to log out");
+    }
+  }
 </script>
 
 <div class="container mx-auto p-6 space-y-8">
-  <div class="flex flex-col gap-2">
-    <h2 class="text-3xl font-bold tracking-tight">Profile</h2>
-    <p class="text-muted-foreground">Manage your connected services and account settings.</p>
+  <div class="flex items-start justify-between">
+    <div class="flex flex-col gap-2">
+      <h2 class="text-3xl font-bold tracking-tight">Profile</h2>
+      <p class="text-muted-foreground">Manage your connected services and account settings.</p>
+    </div>
+
+    <Button variant="destructive" onclick={handleLogout}>
+      <LogOut class="mr-2 h-4 w-4" />
+      Logout
+    </Button>
   </div>
 
   <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
