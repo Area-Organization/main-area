@@ -82,7 +82,7 @@
         <Form.Control>
           {#snippet children()}
             <div class="flex w-full justify-center gap-2 mt-5">
-              <Checkbox onCheckedChange={() => ($formData.rememberMe = !$formData.rememberMe)} />
+              <Checkbox aria-label="Remember Me" onCheckedChange={() => ($formData.rememberMe = !$formData.rememberMe)} />
               <Form.Label>Remember me?</Form.Label>
             </div>
           {/snippet}
@@ -94,7 +94,7 @@
           No account?
           <a href={`/register${redirectTo ? `?redirectTo=${redirectTo}` : ""}`} class="underline"> Register</a>
         </p>
-        <Form.Button class="flex-1 w-full">Login</Form.Button>
+        <Form.Button class="flex-1 w-full text-card">Login</Form.Button>
       </div>
 
       <OAuthButtons />

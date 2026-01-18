@@ -32,7 +32,7 @@
               <p class="text-muted-foreground max-w-lg">Click here to create one!</p>
             </div>
           </div>
-          <div class="flex items-center gap-2 text-blue-500 font-medium mt-6 group/link">
+          <div class="flex items-center gap-2 text-primary font-medium mt-6 group/link">
             <span>Create a New Area</span>
             <ArrowRight class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </div>
@@ -141,7 +141,7 @@
               <p class="text-muted-foreground max-w-lg">View, configure, and monitor your automation workflows!</p>
             </div>
           </div>
-          <div class="flex items-center gap-2 text-indigo-500 font-medium mt-6 group/link">
+          <div class="flex items-center gap-2 text-primary font-medium mt-6 group/link">
             <span>Open Area Manager</span>
             <ArrowRight class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </div>

@@ -23,11 +23,9 @@
     baseDesc?: string;
   }>();
 
-  // Use state instead of derived so the inputs are writable
   let name = $state(baseName);
   let desc = $state(baseDesc);
 
-  // Sync state when props change (e.g. when opening "Modify" with existing data)
   $effect(() => {
     name = baseName;
     desc = baseDesc;
@@ -40,7 +38,7 @@
 
 <Dialog.Root bind:open>
   <Dialog.Trigger
-    class={`${buttonVariants({ variant: "default" })} absolute bottom-5 left-1/2 -translate-x-1/2 z-10`}
+    class={`${buttonVariants({ variant: "default" })} absolute bottom-5 left-1/2 -translate-x-1/2 z-10 text-card!`}
     {disabled}
   >
     {buttonText}
@@ -71,7 +69,7 @@
       </div>
     </div>
     <Dialog.Footer class="flex justify-center items-center sm:justify-center">
-      <Button variant="default" disabled={!name || name.trim() === ""} onclick={handleSubmit}>
+      <Button variant="default" disabled={!name || name.trim() === ""} onclick={handleSubmit} class="text-card!">
         {validateButtonText}
       </Button>
     </Dialog.Footer>

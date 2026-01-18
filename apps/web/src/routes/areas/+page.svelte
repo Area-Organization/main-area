@@ -53,7 +53,7 @@
                 <p class="text-muted-foreground max-w-lg">Click here to create one!</p>
               </div>
             </div>
-            <div class="flex items-center gap-2 text-blue-500 font-medium mt-6 group/link">
+            <div class="flex items-center gap-2 text-primary font-medium mt-6 group/link">
               <span>Create a New Area</span>
               <ArrowRight class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </div>
@@ -145,7 +145,7 @@
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
               <div class="pl-6 relative z-10">
-                <button class="p-2 hover:bg-muted rounded-md transition-colors">
+                <button class="p-2 hover:bg-muted rounded-md transition-colors" aria-label="Area Options">
                   <Ellipsis class="w-5 h-5 text-muted-foreground" />
                 </button>
               </div>

@@ -38,7 +38,7 @@
       <p class="text-muted-foreground">Manage your connected services and account settings.</p>
     </div>
 
-    <Button variant="destructive" onclick={handleLogout}>
+    <Button variant="destructive" onclick={handleLogout} class="hover:bg-destructive/80 cursor-pointer">
       <LogOut class="mr-2 h-4 w-4" />
       Logout
     </Button>

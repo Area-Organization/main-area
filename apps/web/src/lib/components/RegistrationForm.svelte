@@ -131,7 +131,7 @@
           <Form.FieldErrors />
         </Form.Field>
 
-        <Button type="submit" class="w-full mt-4" disabled={$delayed}>
+        <Button type="submit" class="w-full mt-4 text-card" disabled={$delayed}>
           {#if $delayed}
             <LoaderCircle class="mr-2 animate-spin" size={16} />
             Creating account...
@@ -139,7 +139,7 @@
             Create Account
           {/if}
         </Button>
-        
+
         <p class="text-center text-sm text-muted-foreground mt-2">
           Already have an account?
           <a href="/login" class="text-primary hover:underline font-medium">Login</a>
@@ -150,7 +150,9 @@
     </Card.Content>
   {:else}
     <Card.Content class="pt-10 pb-8 flex flex-col items-center text-center animate-in fade-in zoom-in duration-300">
-      <div class="size-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-6 border border-primary/20 shadow-sm">
+      <div
+        class="size-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-6 border border-primary/20 shadow-sm"
+      >
         <ShieldCheck size={40} strokeWidth={1.5} />
       </div>
       <Card.Title class="text-3xl font-bold mb-2">Verify your identity</Card.Title>
@@ -160,20 +162,16 @@
       </p>
 
       <div class="w-full space-y-6">
-        <Input 
+        <Input
           type="text"
-          maxlength={6} 
+          maxlength={6}
           bind:value={otpCode}
           placeholder="000000"
           class="text-center text-4xl h-20 tracking-[0.5em] font-mono border-2 focus:ring-primary"
         />
-        
+
         <div class="flex flex-col gap-3">
-          <Button 
-            class="w-full h-12 text-lg" 
-            onclick={handleVerifyOTP} 
-            disabled={isVerifying || otpCode.length < 6}
-          >
+          <Button class="w-full h-12 text-lg text-card" onclick={handleVerifyOTP} disabled={isVerifying || otpCode.length < 6}>
             {#if isVerifying}
               <LoaderCircle class="mr-2 animate-spin" size={20} />
               Verifying...
@@ -181,12 +179,12 @@
               Confirm Code
             {/if}
           </Button>
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
+
+          <Button
+            variant="ghost"
+            size="sm"
             class="text-muted-foreground hover:text-foreground"
-            onclick={() => step = "register"}
+            onclick={() => (step = "register")}
           >
             <ArrowLeft size={14} class="mr-2" />
             Use a different email

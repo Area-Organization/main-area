@@ -34,7 +34,7 @@
   <link rel="icon" href={favicon} />
 </svelte:head>
 
-<div class="dark bg-background min-h-screen text-foreground flex flex-col">
+<div title="Area" class="dark bg-background min-h-screen text-foreground flex flex-col">
   <Header />
   <div class="flex-1 flex flex-col w-full">
     {#if !isChecking}

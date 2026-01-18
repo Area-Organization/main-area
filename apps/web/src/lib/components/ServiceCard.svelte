@@ -118,6 +118,7 @@
 
           <Dialog.Root bind:open={isConfirmDeletionOpen}>
             <Switch
+              aria-label={`${service.name} Toggle Switch`}
               checked={isLinked}
               onclick={(e: MouseEvent) => {
                 e.stopPropagation();
@@ -126,7 +127,7 @@
                   isConfirmDeletionOpen = true;
                 }
               }}
-              class={cn("data-[state=checked]:bg-primary")}
+              class={cn("data-[state=checked]:bg-primary scale-130")}
             />
             <Dialog.Content>
               <Dialog.Header>
@@ -141,7 +142,7 @@
             </Dialog.Content>
           </Dialog.Root>
         </div>
-        <Card.Description class="line-clamp-2 text-sm text-muted-foreground/80 mt-2">
+        <Card.Description class="line-clamp-2 text-sm text-muted-foreground mt-2">
           {service.description}
         </Card.Description>
       </Card.Header>
