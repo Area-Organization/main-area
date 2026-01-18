@@ -40,6 +40,7 @@ export function useAreaWizard(editAreaId?: string) {
   const [tempReactionService, setTempReactionService] = useState<Service | null>(null);
   const [tempSelectedReaction, setTempSelectedReaction] = useState<any>(null);
   const [tempReactionParams, setTempReactionParams] = useState<Record<string, any>>({});
+  const [testingReaction, setTestingReaction] = useState(false);
 
   // Meta State
   const [areaName, setAreaName] = useState("");
@@ -212,6 +213,38 @@ export function useAreaWizard(editAreaId?: string) {
     setConfiguredReactions((prev) => prev.filter((r) => r.id !== id));
   };
 
+  const handleTestReaction = async () => {
+    if (!validateParams(tempSelectedReaction, tempReactionParams)) return;
+    setTestingReaction(true);
+
+    const connection = connections.find((c) => c.serviceName === tempReactionService!.name);
+
+    if (!connection) {
+      toast.error("Service not connected");
+      setTestingReaction(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await client.api.areas["test-reaction"].post({
+        serviceName: tempReactionService!.name,
+        reactionName: tempSelectedReaction!.name,
+        connectionId: connection.id,
+        params: tempReactionParams
+      });
+
+      if (error) {
+        toast.error(typeof error.value === "string" ? error.value : (error.value as any).message || "Preview failed");
+      } else {
+        toast.success("Preview successful!");
+      }
+    } catch (e: any) {
+      toast.error("Network error during test");
+    } finally {
+      setTestingReaction(false);
+    }
+  };
+
   const goBackSubStep = () => {
     if (wizardStep === 3) {
       setWizardStep(2);
@@ -358,6 +391,7 @@ export function useAreaWizard(editAreaId?: string) {
     loading: isGlobalLoading,
     isFetchingInitialData,
     services,
+    testingReaction,
 
     // Handlers
     handleServiceSelect,
@@ -367,6 +401,7 @@ export function useAreaWizard(editAreaId?: string) {
     handleDeleteReaction,
     handleCreate,
     goBackSubStep,
-    resetForm
+    resetForm,
+    handleTestReaction
   };
 }
