@@ -1,6 +1,6 @@
 import type { IService } from "../../interfaces/service"
 import { newSpecialsAction } from "./actions/new-specials"
-//import { topSellersAction } from "./actions/top-sellers"
+import { topSellersAction } from "./actions/top-sellers"
 
 export const steamService: IService = {
     name: "steam",
@@ -9,7 +9,7 @@ export const steamService: IService = {
     authType: "none",
     actions: [
         newSpecialsAction,
-        //topSellersAction
+        topSellersAction
     ],
     reactions: []
 }

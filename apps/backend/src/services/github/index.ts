@@ -1,5 +1,6 @@
 import type { IService } from "../../interfaces/service"
 import { newIssueAction } from "./actions/new-issue"
+import { newReleaseAction } from "./actions/new-release"
 import { newStarAction } from "./actions/new-star"
 import { createIssueReaction } from "./reactions/create-issue"
 
@@ -17,7 +18,8 @@ export const githubService: IService = {
   },
   actions: [
     newIssueAction,
-    newStarAction
+    newStarAction,
+    newReleaseAction
   ],
   reactions: [
     createIssueReaction
