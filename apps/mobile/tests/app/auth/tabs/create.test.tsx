@@ -2,7 +2,7 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import CreateAreaWizard from "@/app/(tabs)/create";
 
-// Mock Services Hook
+// Mock Data
 const mockServices = [
   {
     name: "github",
@@ -28,21 +28,22 @@ const mockServices = [
   }
 ];
 
-// Mock Connections
 const mockConnections = [
   { id: "conn_1", serviceName: "github" },
   { id: "conn_2", serviceName: "discord" }
 ];
 
-jest.mock("@/hooks/use-services", () => ({
-  useServices: () => ({
+// Mock Data Context
+jest.mock("@/ctx-data", () => ({
+  useData: () => ({
     services: mockServices,
-    loading: false,
-    refresh: jest.fn()
+    connections: mockConnections,
+    isLoading: false,
+    refreshData: jest.fn()
   })
 }));
 
-// Mock API Client
+// Mock Session Context
 const mockPostArea = jest.fn();
 jest.mock("@/ctx", () => ({
   useSession: () => ({
@@ -94,11 +95,11 @@ describe("Screen: Create Area Wizard", () => {
     fireEvent.press(getByText("Continue"));
 
     // --- STEP 2: REACTION ---
-    // 1. We are now on the Reaction List screen. We need to click "Add Reaction" to see the services.
+    // 1. We are now on the Reaction List screen. Click "Add Reaction".
     await waitFor(() => expect(getByText("Add Reaction")).toBeTruthy());
     fireEvent.press(getByText("Add Reaction"));
 
-    // 2. Select Service from grid
+    // 2. Select Service
     await waitFor(() => expect(getByText("discord")).toBeTruthy());
     fireEvent.press(getByText("discord"));
 
@@ -111,7 +112,7 @@ describe("Screen: Create Area Wizard", () => {
     fireEvent.changeText(getByPlaceholderText("Enter Content"), "Hello World");
     fireEvent.press(getByText("Continue"));
 
-    // 5. We are back on the Reaction List. Now "Next Step" is enabled.
+    // 5. Back on List. Click "Next Step".
     await waitFor(() => expect(getByText("Next Step")).toBeTruthy());
     fireEvent.press(getByText("Next Step"));
 

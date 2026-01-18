@@ -10,6 +10,12 @@ let CACHED_SERVICES: Service[] = [];
 let TIMESTAMP = 0;
 const CACHE_DURATION = 1000 * 60 * 5;
 
+// Exported for testing purposes
+export const resetServiceCache = () => {
+  CACHED_SERVICES = [];
+  TIMESTAMP = 0;
+};
+
 export function useServices() {
   const { client } = useSession();
   // Initialize state with cache if available

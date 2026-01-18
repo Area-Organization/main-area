@@ -1,5 +1,5 @@
-import { renderHook, waitFor } from "@testing-library/react-native";
-import { useServices } from "@/hooks/use-services";
+import { waitFor, renderHook } from "@testing-library/react-native";
+import { useServices, resetServiceCache } from "@/hooks/use-services";
 
 // Mock the Session Context
 const mockClient = {
@@ -17,9 +17,10 @@ jest.mock("@/ctx", () => ({
 describe("Hook: useServices", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetServiceCache(); // Reset global cache to ensure tests are isolated
   });
 
-  it("initializes with default states", () => {
+  it("initializes with default states", async () => {
     mockClient["about.json"].get.mockImplementation(() => new Promise(() => {}));
 
     const { result } = renderHook(() => useServices());

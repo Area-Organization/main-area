@@ -1,4 +1,6 @@
 import "react-native-gesture-handler/jestSetup";
+import React from "react";
+import { View } from "react-native";
 
 // Mock Reanimated
 jest.mock("react-native-reanimated", () => {
@@ -69,9 +71,19 @@ jest.mock("expo-font", () => ({
 }));
 
 // Mock Vector Icons
-jest.mock("@expo/vector-icons/MaterialIcons", () => "MaterialIcons");
+const MockIcon = (props: any) => {
+  return React.createElement(View, props);
+};
+
+jest.mock("@expo/vector-icons/MaterialIcons", () => MockIcon);
 jest.mock("@expo/vector-icons", () => ({
-  MaterialIcons: "MaterialIcons",
-  FontAwesome: "FontAwesome",
-  Ionicons: "Ionicons"
+  MaterialIcons: MockIcon,
+  FontAwesome: MockIcon,
+  FontAwesome5: MockIcon,
+  Ionicons: MockIcon,
+  MaterialCommunityIcons: MockIcon,
+  Entypo: MockIcon,
+  Feather: MockIcon,
+  AntDesign: MockIcon,
+  Octicons: MockIcon
 }));

@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import ServicesScreen from "@/app/(tabs)/services";
 
 const mockServices = [
@@ -38,10 +38,23 @@ jest.mock("@/components/ui/toast", () => ({
 }));
 
 describe("Screen: Services", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it("opens modal and connects service with API key", async () => {
     mockPostConnection.mockResolvedValue({ error: null });
 
     const { getByText, getByPlaceholderText } = render(<ServicesScreen />);
+
+    // Run timers to clear FlatList initial rendering batches to avoid "not wrapped in act" warnings
+    await act(async () => {
+      jest.runAllTimers();
+    });
 
     await waitFor(() => expect(getByText("openai")).toBeTruthy());
     fireEvent.press(getByText("openai"));
