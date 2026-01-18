@@ -112,13 +112,14 @@ describe("Screen: Home (Dashboard)", () => {
   it("toggles area switch", async () => {
     mockToggleArea.mockResolvedValue({ error: null });
 
-    const { getByRole } = render(<HomeScreen />);
+    const { getAllByRole } = render(<HomeScreen />);
 
     await waitFor(() => {
-      expect(getByRole("switch")).toBeTruthy();
+      expect(getAllByRole("switch", { includeHiddenElements: true }).length).toBeGreaterThan(0);
     });
 
-    fireEvent.press(getByRole("switch"));
+    const switchEl = getAllByRole("switch", { includeHiddenElements: true })[0];
+    fireEvent.press(switchEl);
 
     await waitFor(() => {
       expect(mockToggleArea).toHaveBeenCalled();

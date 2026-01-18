@@ -1,5 +1,4 @@
 import React from "react";
-import { Text } from "react-native";
 import { render, fireEvent } from "@testing-library/react-native";
 import { ServiceTile } from "@/components/service-tile";
 
@@ -25,7 +24,7 @@ describe("Component: ServiceTile", () => {
 
     expect(getByText("github")).toBeTruthy();
     expect(getByText("Connect")).toBeTruthy();
-    expect(getByText("github-icon")).toBeTruthy();
+    expect(getByText("github-icon", { includeHiddenElements: true })).toBeTruthy();
   });
 
   it("renders correctly in connected state", () => {

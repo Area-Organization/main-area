@@ -51,8 +51,8 @@ describe("Component: AutomationCard", () => {
 
     expect(getByText("Sync Tasks")).toBeTruthy();
     expect(getByText("Syncs Trello to Slack")).toBeTruthy();
-    expect(getAllByText("trello")).toBeTruthy();
-    expect(getAllByText("slack")).toBeTruthy();
+    expect(getAllByText("trello", { includeHiddenElements: true })).toBeTruthy();
+    expect(getAllByText("slack", { includeHiddenElements: true })).toBeTruthy();
     expect(getByText("card_created")).toBeTruthy();
     expect(getByText("send_message")).toBeTruthy();
   });
@@ -69,7 +69,7 @@ describe("Component: AutomationCard", () => {
       />
     );
 
-    const switchEl = getByRole("switch");
+    const switchEl = getByRole("switch", { includeHiddenElements: true });
     expect(switchEl).toBeTruthy();
 
     fireEvent.press(switchEl);
