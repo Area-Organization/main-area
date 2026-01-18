@@ -1,22 +1,22 @@
 ---
-title: Introduction au Client Mobile
+title: Mobile Client Introduction
 ---
 
-# Introduction au Client Mobile
+# Mobile Client Introduction
 
-L'application mobile permet de créer et gérer ses automatisations AREA depuis un smartphone. Elle met l'accent sur une expérience utilisateur fluide et animée.
+The mobile application allows users to create and manage their AREA automations from a smartphone. It focuses on a smooth and animated user experience.
 
-## Technologies Clés
+## Key Technologies
 
 - **Framework**: React Native 0.81 (via **Expo SDK 54**).
-- **Langage**: TypeScript.
-- **UI Library**: **React 19** (Utilisation des dernières fonctionnalités React).
-- **Styling**: **NativeWind** (TailwindCSS pour React Native).
-- **Animations**: **React Native Reanimated 4** pour les interactions complexes (drag, swipe, wizard).
-- **Navigation**: Expo Router (Routing basé sur les fichiers).
-- **API Client**: `@elysiajs/eden` (Client type-safe généré depuis le backend).
-- **Authentification**: Better Auth (Client React + plugin Expo + SecureStore).
+- **Language**: TypeScript.
+- **UI Library**: **React 19** (using the latest React features).
+- **Styling**: **NativeWind** (TailwindCSS for React Native).
+- **Animations**: **React Native Reanimated 4** for complex interactions (drag, swipe, wizard).
+- **Navigation**: Expo Router (file-based routing).
+- **API Client**: `@elysiajs/eden` (type-safe client generated from the backend).
+- **Authentication**: Better Auth (React client + Expo plugin + SecureStore).
 
-## Configuration Dynamique
+## Dynamic Configuration
 
-Pour faciliter le développement et les tests sur appareil physique, l'application inclut un composant `UrlConfigModal`. Il permet de changer l'URL de l'API backend à la volée (stocké dans `AsyncStorage`), évitant de recompiler l'application pour changer d'environnement (localhost vs IP locale).
+To simplify development and testing on physical devices, the application includes a `UrlConfigModal` component. It allows changing the backend API URL on the fly (stored in `AsyncStorage`), avoiding the need to rebuild the application when switching environments (localhost vs local IP).

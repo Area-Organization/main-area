@@ -1,43 +1,43 @@
 ---
-title: Architecture & Schéma de Données
+title: Architecture & Data Schema
 ---
 
-# Architecture & Schéma de Données
+# Architecture & Data Schema
 
-## Structure des Dossiers
+## Folder Structure
 
-Le mobile suit une architexture modulaire :
+The mobile app follows a modular architecture:
 
 ```text
 apps/mobile/
-├── app/                    # Système de navigation (Expo Router)
-│   ├── (auth)/             # Groupe de routes pour l'authentification (Login/Register)
-│   ├── (tabs)/             # Navigation principale par onglets (Dashboard, Explore)
-│   ├── edit-area/          # Écran de modification d'une automatisation
+├── app/                    # Navigation system (Expo Router)
+│   ├── (auth)/             # Route group for authentication (Login/Register)
+│   ├── (tabs)/             # Main tab-based navigation (Dashboard, Explore)
+│   ├── edit-area/          # Screen to edit an automation
 │   ├── _layout.tsx
 │   ├── +not-found.tsx
-│   ├── index.tsx           # Point d'entrée
+│   ├── index.tsx           # Entry point
 │   ├── modal.tsx
-│   └── oauth-callback.tsx  # Capture du Deep Link après connexion OAuth tiers
-├── assets/                 # Images, polices de caractères et splash screen
-│   └── images/             # Icônes des services (Discord, GitHub, etc.)
-├── components/             # Composants React Native (Cards, Custom Inputs, Loaders)
-│   ├── ui/                 # Composants User Interface
+│   └── oauth-callback.tsx  # Captures the deep link after third-party OAuth login
+├── assets/                 # Images, fonts, and splash screen
+│   └── images/             # Service icons (Discord, GitHub, etc.)
+├── components/             # React Native components (Cards, Custom Inputs, Loaders)
+│   ├── ui/                 # User Interface components
 │   └── wizard/
-├── constants/              # Couleurs, URLs API, et clés de configuration
+├── constants/              # Colors, API URLs, and configuration keys
 │   └── theme.tsx
-├── hooks/                  # Hooks React personnalisés
+├── hooks/                  # Custom React hooks
 │   ├── use-area-wizard.ts
 │   ├── user-color-scheme.ts
 │   ├── use-color-scheme.web.ts
 │   ├── use-service.ts
-│   └──use-theme-color.ts
-├── lib/                    # Logique partagée (Client API)
-├── scripts/                # Scripts utilitaires pour le développement/build
-└── tests/                  # Tests unitaires (Jest) et intégration (Testing Library)
+│   └── use-theme-color.ts
+├── lib/                    # Shared logic (API client)
+├── scripts/                # Utility scripts for development/build
+└── tests/                  # Unit tests (Jest) and integration tests (Testing Library)
 ```
 
-## Diagramme de Navigation Mobile
+## Mobile Navigation Diagram
 
 ```mermaid
 graph TD

@@ -2,34 +2,35 @@
 title: Build & Distribution
 ---
 
-# Build et Distribution Android
+# Android Build and Distribution
 
-Le projet utilise **EAS Build** (Expo Application Services) pour générer les binaires natifs (APK/AAB).
+The project uses **EAS Build** (Expo Application Services) to generate native binaries (APK/AAB).
 
-## Stratégie Docker
+## Docker Strategy
 
-Le fichier `Dockerfile` présent dans `apps/mobile` n'est pas utilisé pour exécuter l'application mobile (car React Native tourne sur le périphérique utilisateur), mais pour **servir l'APK généré**.
+The `Dockerfile` located in `apps/mobile` is not used to run the mobile application (since React Native runs on the end user’s device), but to **serve the generated APK**.
 
-Le conteneur utilise une image légère (Alpine Linux) pour copier l'APK pré-construit (`client.apk`) vers un volume partagé, permettant ainsi de le rendre accessible (par exemple via un serveur web Nginx ou pour le téléchargement direct dans un pipeline CI/CD).
+The container uses a lightweight image (Alpine Linux) to copy the pre-built APK (`client.apk`) to a shared volume, making it accessible (for example via a web server like Nginx, or for direct download in a CI/CD pipeline).
 
 ```dockerfile
-# Extrait du Dockerfile Mobile
+# Mobile Dockerfile snippet
 FROM alpine:latest
 WORKDIR /app
 COPY client.apk /app/client.apk
-# Copie vers le volume partagé au démarrage
+# Copy to the shared volume at startup
 CMD cp /app/client.apk /dist/client.apk && tail -f /dev/null
 ```
 
-## Générer l'APK
+## Generate the APK
 
-Pour générer l'APK en local (sans utiliser la file d'attente Cloud d'Expo), la commande suivante est configurée :
+To generate the APK locally (without using Expo’s Cloud build queue), the following command is configured:
 
 ```bash
 bun run build:preview
 ```
 
-Cette commande exécute en interne :
+This command internally runs:
 `eas build --local --profile preview --platform android`
 
-L'APK résultant peut ensuite être renommé en `client.apk` pour être utilisé par le Dockerfile.
+The resulting APK can then be renamed to client.apk to be used by the Dockerfile.
+

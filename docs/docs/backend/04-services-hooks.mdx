@@ -1,81 +1,81 @@
 ---
-title: Services & Moteur d'Automatisation
+title: Services & Automation Engine
 ---
 
-# Services et Moteur d'Automatisation
+# Services and Automation Engine
 
-## Services Supportés
+## Supported Services
 
-Le backend implémente actuellement les services suivants dans `src/services/` :
+The backend currently implements the following services in `src/services/`:
 
-1.  **GitHub**:
-    - _Actions_: `new_issue`, `new_star`.
-    - _Réaction_: `create_issue`.
-    - _Auth_: OAuth2.
-2.  **Gmail**:
-    - _Actions_: `new_email`, `new_email_with_attachment`.
-    - _Réaction_: `send_email`.
-    - _Auth_: OAuth2 (Google).
-3.  **Discord**:
-    - _Action_: `on_message` (Surveille un canal).
-    - _Réaction_: `send_message`.
-    - _Auth_: Bot Token (API Key).
-4.  **Spotify**:
-    - _Action_: `new_saved_track`.
-    - _Réaction_: `add_to_playlist`.
-    - _Auth_: OAuth2.
-5.  **Trello**:
-    - _Action_: `new_card_in_list`.
-    - _Réaction_: `create_card`.
-    - _Auth_: API Key + Token.
-6.  **Steam**:
-    - _Actions_: `new_specials_game`, `top_sellers`.
-    - _Réaction_: none.
-    - _Auth_: none.
-7.  **Dropbox**:
-    - _Action_: `new_file`.
-    - _Réaction_: `upload_file`.
-    - _Auth_: API Key + Token.
-8.  **Drive**:
-    - _Action_: `new_file`.
-    - _Réaction_: `create_folder`.
-    - _Auth_: API Key + Token.
-9.  **Notion**:
-    - _Action_: `new_page`.
-    - _Réaction_: `create_page`.
-    - _Auth_: API Key + Token.
-10.  **Youtube**:
+1. **GitHub**:
+   - _Actions_: `new_issue`, `new_star`.
+   - _Reaction_: `create_issue`.
+   - _Auth_: OAuth2.
+2. **Gmail**:
+   - _Actions_: `new_email`, `new_email_with_attachment`.
+   - _Reaction_: `send_email`.
+   - _Auth_: OAuth2 (Google).
+3. **Discord**:
+   - _Action_: `on_message` (watches a channel).
+   - _Reaction_: `send_message`.
+   - _Auth_: Bot Token (API Key).
+4. **Spotify**:
+   - _Action_: `new_saved_track`.
+   - _Reaction_: `add_to_playlist`.
+   - _Auth_: OAuth2.
+5. **Trello**:
+   - _Action_: `new_card_in_list`.
+   - _Reaction_: `create_card`.
+   - _Auth_: API Key + Token.
+6. **Steam**:
+   - _Actions_: `new_specials_game`, `top_sellers`.
+   - _Reaction_: none.
+   - _Auth_: none.
+7. **Dropbox**:
+   - _Action_: `new_file`.
+   - _Reaction_: `upload_file`.
+   - _Auth_: API Key + Token.
+8. **Drive**:
+   - _Action_: `new_file`.
+   - _Reaction_: `create_folder`.
+   - _Auth_: API Key + Token.
+9. **Notion**:
+   - _Action_: `new_page`.
+   - _Reaction_: `create_page`.
+   - _Auth_: API Key + Token.
+10. **YouTube**:
     - _Action_: `new_video`.
-    - _Réaction_: `add_to_playlist`.
+    - _Reaction_: `add_to_playlist`.
     - _Auth_: API Key + Token.
 
-## Interpolation de Variables
+## Variable Interpolation
 
-Le système permet de passer des données dynamiques de l'action vers la réaction grâce au module `src/utils/interpolator.ts`.
-Chaque action définit des `variables` disponibles.
+The system allows passing dynamic data from the action to the reaction using the module `src/utils/interpolator.ts`.
+Each action defines available `variables`.
 
-**Exemple :**
-L'action GitHub `new_issue` expose les variables `{{title}}` et `{{url}}`.
-L'utilisateur peut configurer la réaction Discord avec le message :
+**Example:**
+The GitHub action `new_issue` exposes the variables `{{title}}` and `{{url}}`.
+The user can configure a Discord reaction with the message:
 
-> "Nouvelle issue créée : `{{title}}`. Lien : `{{url}}`"
+> "New issue created: `{{title}}`. Link: `{{url}}`"
 
-Lors de l'exécution, le `HookManager` remplacera ces placeholders par les vraies valeurs.
+During execution, the `HookManager` replaces these placeholders with the actual values.
 
-## Le HookManager (`src/hooks/manager.ts`)
+## HookManager (`src/hooks/manager.ts`)
 
-C'est le cœur du système :
+This is the core of the system:
 
-1.  **Démarrage**: Appelé dans `index.ts`, il lance une boucle (`setInterval`) par défaut toutes les 60 secondes.
-2.  **Polling**:
-    - Récupère toutes les `AREA` actives (`enabled: true`).
-    - Pour chaque AREA, instancie le service d'action concerné.
-    - Appelle `action.check(params, context)`.
-3.  **Vérification (`check`)**:
-    - L'action compare l'état actuel de l'API externe avec les métadonnées stockées (`lastCheckedId`, `lastTimestamp`).
-    - Si une nouveauté est détectée, `check` retourne `true` et remplit `context.actionData`.
-    - Le `HookManager` met à jour les métadonnées en base de données.
-4.  **Exécution (`execute`)**:
-    - Si `check` est positif, le `HookManager` interpolate les paramètres de la réaction avec `actionData`.
-    - Il appelle `reaction.execute(processedParams, context)`.
-    - Il incrémente le compteur de déclenchements.
+1. **Startup**: Called in `index.ts`, it launches a loop (`setInterval`) by default every 60 seconds.
+2. **Polling**:
+   - Fetches all active AREAs (`enabled: true`).
+   - For each AREA, instantiates the corresponding action service.
+   - Calls `action.check(params, context)`.
+3. **Check (`check`)**:
+   - The action compares the current state of the external API with stored metadata (`lastCheckedId`, `lastTimestamp`).
+   - If a new event is detected, `check` returns `true` and fills `context.actionData`.
+   - The `HookManager` updates the metadata in the database.
+4. **Execution (`execute`)**:
+   - If `check` is positive, the `HookManager` interpolates the reaction parameters with `actionData`.
+   - It calls `reaction.execute(processedParams, context)`.
+   - It increments the trigger count.
