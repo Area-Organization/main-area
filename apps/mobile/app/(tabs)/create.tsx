@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, TouchableOpacity, View, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
+import { ScrollView, TouchableOpacity, View, KeyboardAvoidingView, Platform } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Service } from "@/hooks/use-services";
@@ -108,34 +108,58 @@ export default function CreateAreaWizard() {
     );
   };
 
-  const renderConfig = (item: any, params: any, setParams: any, onNext: () => void, availableVars: any[] = []) => (
-    <Animated.View entering={SlideInRight} exiting={SlideOutRight} className="flex-1 flex flex-col">
-      <View className="px-5 py-2 flex-row items-center gap-2">
-        <TouchableOpacity onPress={wizard.goBackSubStep}>
-          <IconSymbol name="chevron.right" size={24} color={iconColor} style={{ transform: [{ rotate: "180deg" }] }} />
-        </TouchableOpacity>
-        <ThemedText type="subtitle">Configure</ThemedText>
-      </View>
+  const renderConfig = (item: any, params: any, setParams: any, onNext: () => void, availableVars: any[] = []) => {
+    const isReaction = wizard.wizardStep === 2 && wizard.subStep === "CONFIG";
 
-      <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
-        <View className="p-5 rounded-xl border mb-6" style={{ backgroundColor: cardColor, borderColor }}>
-          <ThemedText type="defaultSemiBold" className="text-primary mb-2">
-            Selected: {item.name}
-          </ThemedText>
-          <ParamInputs
-            params={item.params}
-            values={params}
-            onChange={(k, v) => setParams((prev: any) => ({ ...prev, [k]: v }))}
-            availableVariables={availableVars}
-          />
+    return (
+      <Animated.View entering={SlideInRight} exiting={SlideOutRight} className="flex-1 flex flex-col">
+        <View className="px-5 py-2 flex-row items-center gap-2">
+          <TouchableOpacity onPress={wizard.goBackSubStep}>
+            <IconSymbol
+              name="chevron.right"
+              size={24}
+              color={iconColor}
+              style={{ transform: [{ rotate: "180deg" }] }}
+            />
+          </TouchableOpacity>
+          <ThemedText type="subtitle">Configure</ThemedText>
         </View>
-      </ScrollView>
 
-      <View className="p-5 border-t" style={{ borderColor }}>
-        <Button title="Continue" onPress={onNext} />
-      </View>
-    </Animated.View>
-  );
+        <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
+          <View className="p-5 rounded-xl border mb-6" style={{ backgroundColor: cardColor, borderColor }}>
+            <ThemedText type="defaultSemiBold" className="text-primary mb-2">
+              Selected: {item.name}
+            </ThemedText>
+            <ParamInputs
+              params={item.params}
+              values={params}
+              onChange={(k, v) => setParams((prev: any) => ({ ...prev, [k]: v }))}
+              availableVariables={availableVars}
+            />
+          </View>
+
+          {isReaction && (
+            <View className="mb-6">
+              <Button
+                title={wizard.testingReaction ? "Testing..." : "Preview Action"}
+                variant="secondary"
+                onPress={wizard.handleTestReaction}
+                loading={wizard.testingReaction}
+                className="border-dashed border-2 border-primary/30"
+              />
+              <ThemedText className="text-xs text-center mt-2 opacity-50">
+                This will execute the reaction immediately with mock data.
+              </ThemedText>
+            </View>
+          )}
+        </ScrollView>
+
+        <View className="p-5 border-t" style={{ borderColor }}>
+          <Button title="Continue" onPress={onNext} />
+        </View>
+      </Animated.View>
+    );
+  };
 
   const renderReactionList = () => (
     <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1">
