@@ -1,6 +1,7 @@
-import { renderHook, act } from "@testing-library/react-native";
+import { renderHook, act, waitFor } from "@testing-library/react-native";
 import { useAreaWizard } from "@/hooks/use-area-wizard";
 import { useData } from "@/ctx-data";
+import { useSession } from "@/ctx";
 
 // --- Mocks ---
 
@@ -50,15 +51,7 @@ jest.mock("@/ctx-data", () => ({
 }));
 
 jest.mock("@/ctx", () => ({
-  useSession: () => ({
-    client: {
-      api: {
-        areas: {
-          post: jest.fn()
-        }
-      }
-    }
-  })
+  useSession: jest.fn()
 }));
 
 jest.mock("@/lib/haptics", () => ({
@@ -69,10 +62,34 @@ jest.mock("@/lib/haptics", () => ({
 
 describe("Hook: useAreaWizard", () => {
   const mockUseData = useData as jest.Mock;
+  const mockUseSession = useSession as jest.Mock;
+
+  // define API mocks
+  const mockPostArea = jest.fn();
+  const mockGetArea = jest.fn();
+  const mockPatchArea = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default: Github connected, Discord NOT connected
+
+    // Setup stable client object
+    const mockClient = {
+      api: {
+        areas: Object.assign(
+          (params: any) => ({
+            get: mockGetArea,
+            patch: mockPatchArea
+          }),
+          { post: mockPostArea }
+        )
+      }
+    };
+
+    mockUseSession.mockReturnValue({
+      client: mockClient
+    });
+
+    // Default Data: Github connected, Discord NOT connected
     mockUseData.mockReturnValue({
       services: mockServices,
       connections: [{ id: "conn_1", serviceName: "github" }],
@@ -109,7 +126,7 @@ describe("Hook: useAreaWizard", () => {
     });
 
     expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining("Please connect discord"));
-    expect(result.current.actionService).toBeNull();
+    expect(result.current.actionService?.name).toBeUndefined();
   });
 
   it("validates parameters before adding a reaction", async () => {
@@ -161,5 +178,54 @@ describe("Hook: useAreaWizard", () => {
     });
 
     expect(result.current.configuredReactions).toHaveLength(1);
+  });
+
+  it("initializes in edit mode and populates data", async () => {
+    // 1. Mock GET area response
+    const mockArea = {
+      id: "123",
+      name: "Existing Area",
+      description: "Desc",
+      action: {
+        serviceName: "github",
+        actionName: "push",
+        params: { branch: "main" }
+      },
+      reactions: [
+        {
+          id: "r1",
+          serviceName: "discord",
+          reactionName: "message",
+          params: { content: "hi" }
+        }
+      ]
+    };
+
+    mockGetArea.mockResolvedValue({ data: { area: mockArea }, error: null });
+
+    mockUseData.mockReturnValue({
+      services: mockServices,
+      connections: [
+        { id: "conn_1", serviceName: "github" },
+        { id: "conn_2", serviceName: "discord" }
+      ],
+      refreshData: jest.fn(),
+      isLoading: false
+    });
+
+    const { result } = renderHook(() => useAreaWizard("123"));
+
+    expect(result.current.isFetchingInitialData).toBe(true);
+
+    await waitFor(() => {
+      expect(result.current.isFetchingInitialData).toBe(false);
+    });
+
+    expect(result.current.areaName).toBe("Existing Area");
+    expect(result.current.actionService?.name).toBe("github");
+    expect(result.current.configuredReactions).toHaveLength(1);
+    expect(result.current.configuredReactions[0].service.name).toBe("discord");
+
+    expect(result.current.wizardStep).toBe(3);
   });
 });

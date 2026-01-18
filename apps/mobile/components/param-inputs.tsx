@@ -98,6 +98,7 @@ export function ParamInputs({ params, values, onChange, availableVariables }: Pa
 
                 {hasVariables && config.type === "string" && (
                   <TouchableOpacity
+                    testID={`var-btn-${key}`}
                     onPress={() => openVariableModal(key)}
                     className="p-3 mr-1 opacity-80 active:opacity-100"
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
