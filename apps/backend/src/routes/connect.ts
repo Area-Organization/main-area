@@ -268,7 +268,7 @@ export const connectRoutes = new Elysia({ prefix: "/api/connections" })
         where: {
           OR: [
             { action: { connectionId: params.id } },
-            { reaction: { connectionId: params.id }}
+            { reactions: { some: { connectionId: params.id } } }
           ]
         }
       })

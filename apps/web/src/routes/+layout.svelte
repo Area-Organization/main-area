@@ -28,6 +28,19 @@
 
     isChecking = false;
   });
+
+  import { onNavigate } from "$app/navigation";
+
+  onNavigate((navigation) => {
+    if (!document.startViewTransition) return;
+
+    return new Promise((resolve) => {
+      document.startViewTransition(async () => {
+        resolve();
+        await navigation.complete;
+      });
+    });
+  });
 </script>
 
 <svelte:head>
@@ -41,5 +54,5 @@
       {@render children()}
     {/if}
   </div>
-  <Toaster richColors position="top-center"/>
+  <Toaster richColors position="top-center" />
 </div>

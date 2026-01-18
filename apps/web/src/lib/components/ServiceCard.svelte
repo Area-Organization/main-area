@@ -87,7 +87,7 @@
         "h-full min-h-48 relative overflow-hidden transition-all duration-300 border",
         isLinked
           ? "bg-muted/50 border-muted-foreground/20"
-          : "group hover:border-primary hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)] bg-card"
+          : "group hover:border-primary hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)] bg-card cursor-pointer"
       )}
     >
       {#if !isLinked}
@@ -127,7 +127,7 @@
                   isConfirmDeletionOpen = true;
                 }
               }}
-              class={cn("data-[state=checked]:bg-primary scale-130")}
+              class={cn("data-[state=checked]:bg-primary scale-130 cursor-pointer")}
             />
             <Dialog.Content>
               <Dialog.Header>
