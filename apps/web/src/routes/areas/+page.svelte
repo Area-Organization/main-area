@@ -111,12 +111,12 @@
               <span>Status</span>
               <span
                 class={`flex items-center gap-1 ${
-                  area.enabled ? "text-green-500 font-medium" : "text-muted-foreground font-medium"
+                  area.enabled ? "text-primary font-medium" : "text-muted-foreground font-medium"
                 }`}
               >
                 {area.enabled ? "Active" : "Disabled"}
                 <div
-                  class={`w-1.5 h-1.5 rounded-full ${area.enabled ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse" : "bg-muted-foreground"}`}
+                  class={`w-1.5 h-1.5 rounded-full ${area.enabled ? "bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.8)] animate-pulse" : "bg-muted-foreground"}`}
                 ></div>
               </span>
             </div>

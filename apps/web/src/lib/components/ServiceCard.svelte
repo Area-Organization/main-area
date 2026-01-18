@@ -87,12 +87,12 @@
         "h-full min-h-48 relative overflow-hidden transition-all duration-300 border",
         isLinked
           ? "bg-muted/50 border-muted-foreground/20"
-          : "group hover:border-indigo-400 hover:shadow-[0_0_20px_rgba(129,140,248,0.3)] bg-card"
+          : "group hover:border-primary hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)] bg-card"
       )}
     >
       {#if !isLinked}
         <div
-          class="absolute inset-0 bg-linear-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+          class="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         ></div>
       {/if}
       <Card.Header class="relative z-10 flex flex-col h-full justify-between gap-4 p-6">
@@ -107,7 +107,7 @@
                 <span
                   class={cn(
                     "text-xs px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1",
-                    isLinked ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"
+                    isLinked ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                   )}
                 >
                   {isLinked ? "Connected" : "Available"}
@@ -126,7 +126,7 @@
                   isConfirmDeletionOpen = true;
                 }
               }}
-              class={cn("data-[state=checked]:bg-green-500")}
+              class={cn("data-[state=checked]:bg-primary")}
             />
             <Dialog.Content>
               <Dialog.Header>
