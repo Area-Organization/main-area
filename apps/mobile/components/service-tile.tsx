@@ -84,17 +84,22 @@ export function ServiceTile({ item, isConnected, onPress, loading }: ServiceTile
           !isConnected ? "shadow-card" : ""
         }`}
         style={animatedStyle}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.name} service`}
+        accessibilityState={{ checked: isConnected, busy: loading }}
+        accessibilityHint={isConnected ? "Double tap to disconnect" : "Double tap to connect"}
       >
         {isConnected && (
           <View
             className="absolute top-3 right-3 w-6 h-6 rounded-full items-center justify-center z-10"
             style={{ backgroundColor: brandColor }}
+            accessibilityElementsHidden={true}
           >
             <IconSymbol name="checkmark.circle.fill" size={14} color="#FFF" />
           </View>
         )}
 
-        <View className="flex-1 justify-center items-center mb-2">
+        <View className="flex-1 justify-center items-center mb-2" accessibilityElementsHidden={true}>
           <ServiceIcon serviceName={item.name} size={48} color={iconColor} />
         </View>
 

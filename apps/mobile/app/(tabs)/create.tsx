@@ -34,7 +34,7 @@ export default function CreateAreaWizard() {
     <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1">
       <View className="px-5 py-2 flex-row items-center gap-2">
         {(wizard.wizardStep > 1 || (wizard.wizardStep === 1 && wizard.subStep !== "SERVICE")) && (
-          <TouchableOpacity onPress={wizard.goBackSubStep}>
+          <TouchableOpacity onPress={wizard.goBackSubStep} accessibilityRole="button" accessibilityLabel="Back">
             <IconSymbol
               name="chevron.right"
               size={24}
@@ -58,6 +58,9 @@ export default function CreateAreaWizard() {
                 onPress={() => wizard.handleServiceSelect(s, type)}
                 className="w-[48%] aspect-square rounded-2xl border items-center justify-center p-4 gap-3"
                 style={{ backgroundColor: cardColor, borderColor }}
+                accessibilityRole="button"
+                accessibilityLabel={`Select ${s.name}`}
+                accessibilityHint={`Choose ${s.name} as the ${type} service`}
               >
                 <View className="w-12 h-12 items-center justify-center">
                   <ServiceIcon serviceName={s.name} size={40} color={color} />
@@ -76,7 +79,7 @@ export default function CreateAreaWizard() {
     return (
       <Animated.View entering={SlideInRight} exiting={SlideOutRight} className="flex-1">
         <View className="px-5 py-2 flex-row items-center gap-2 mb-2">
-          <TouchableOpacity onPress={wizard.goBackSubStep}>
+          <TouchableOpacity onPress={wizard.goBackSubStep} accessibilityRole="button" accessibilityLabel="Back">
             <IconSymbol
               name="chevron.right"
               size={24}
@@ -95,6 +98,9 @@ export default function CreateAreaWizard() {
               onPress={() => wizard.handleEventSelect(item, type)}
               className="p-4 rounded-xl border flex-row items-center justify-between"
               style={{ backgroundColor: cardColor, borderColor }}
+              accessibilityRole="button"
+              accessibilityLabel={item.name}
+              accessibilityHint={item.description}
             >
               <View className="flex-1 mr-2">
                 <ThemedText type="defaultSemiBold">{item.name}</ThemedText>
@@ -114,7 +120,7 @@ export default function CreateAreaWizard() {
     return (
       <Animated.View entering={SlideInRight} exiting={SlideOutRight} className="flex-1 flex flex-col">
         <View className="px-5 py-2 flex-row items-center gap-2">
-          <TouchableOpacity onPress={wizard.goBackSubStep}>
+          <TouchableOpacity onPress={wizard.goBackSubStep} accessibilityRole="button" accessibilityLabel="Back">
             <IconSymbol
               name="chevron.right"
               size={24}
@@ -164,7 +170,7 @@ export default function CreateAreaWizard() {
   const renderReactionList = () => (
     <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1">
       <View className="px-5 py-2 flex-row items-center gap-2">
-        <TouchableOpacity onPress={wizard.goBackSubStep}>
+        <TouchableOpacity onPress={wizard.goBackSubStep} accessibilityRole="button" accessibilityLabel="Back">
           <IconSymbol name="chevron.right" size={24} color={iconColor} style={{ transform: [{ rotate: "180deg" }] }} />
         </TouchableOpacity>
         <ThemedText type="subtitle">Reactions</ThemedText>
@@ -175,6 +181,8 @@ export default function CreateAreaWizard() {
           onPress={() => wizard.setSubStep("SERVICE")}
           className="p-4 rounded-xl border border-dashed flex-row items-center justify-center gap-2"
           style={{ borderColor: primaryColor, backgroundColor: primaryColor + "10" }}
+          accessibilityRole="button"
+          accessibilityLabel="Add Reaction"
         >
           <IconSymbol name="plus.circle.fill" size={24} color={primaryColor} />
           <ThemedText className="text-primary font-bold">Add Reaction</ThemedText>
@@ -185,6 +193,7 @@ export default function CreateAreaWizard() {
             key={r.id}
             className="p-4 rounded-xl border flex-row items-center justify-between"
             style={{ backgroundColor: cardColor, borderColor }}
+            accessible={true}
           >
             <View className="flex-1">
               <ThemedText type="defaultSemiBold" className="capitalize">
@@ -196,6 +205,8 @@ export default function CreateAreaWizard() {
               onPress={() => wizard.handleDeleteReaction(r.id)}
               className="w-10 h-10 rounded-full items-center justify-center"
               style={{ backgroundColor: `${destructiveColor}15` }}
+              accessibilityRole="button"
+              accessibilityLabel={`Delete ${r.reaction.name} reaction`}
             >
               <MaterialIcons name="delete" size={22} color={destructiveColor} />
             </TouchableOpacity>
@@ -237,6 +248,7 @@ export default function CreateAreaWizard() {
                   Name your Area <ThemedText className="text-red-500">*</ThemedText>
                 </ThemedText>
                 <Input
+                  label="Area Name"
                   placeholder="e.g. Sync Tweets to Discord"
                   value={wizard.areaName}
                   onChangeText={wizard.setAreaName}
@@ -246,6 +258,7 @@ export default function CreateAreaWizard() {
               <View className="gap-1.5">
                 <ThemedText type="defaultSemiBold">Description</ThemedText>
                 <Input
+                  label="Description"
                   placeholder="Optional"
                   value={wizard.areaDescription}
                   onChangeText={wizard.setAreaDescription}

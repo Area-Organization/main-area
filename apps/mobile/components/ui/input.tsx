@@ -15,9 +15,10 @@ export interface InputProps extends TextInputProps {
   icon?: React.ReactNode;
   error?: string;
   className?: string;
+  label?: string;
 }
 
-export function Input({ className, style, icon, error, ...props }: InputProps) {
+export function Input({ className, style, icon, error, label, ...props }: InputProps) {
   const focusProgress = useSharedValue(0);
   const scale = useSharedValue(1);
 
@@ -60,7 +61,11 @@ export function Input({ className, style, icon, error, ...props }: InputProps) {
         className={`flex-row items-center border rounded-lg px-4 h-[52px] ${className || ""}`}
         style={[{ backgroundColor: inputBg, borderWidth: 1 }, animatedStyle, style]}
       >
-        {icon && <View className="mr-3 opacity-50">{icon}</View>}
+        {icon && (
+          <View className="mr-3 opacity-50" accessibilityElementsHidden={true}>
+            {icon}
+          </View>
+        )}
         <TextInput
           {...props}
           placeholderTextColor={placeholderColor}
@@ -68,6 +73,8 @@ export function Input({ className, style, icon, error, ...props }: InputProps) {
           style={{ color: textColor }}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          accessibilityLabel={label || props.placeholder}
+          accessibilityHint={error ? `Error: ${error}` : undefined}
         />
       </Animated.View>
 
@@ -77,6 +84,7 @@ export function Input({ className, style, icon, error, ...props }: InputProps) {
           exiting={FadeOutUp.duration(150)}
           style={{ color: errorColor }}
           className="text-xs ml-4 mt-1 font-sans-medium"
+          accessibilityLiveRegion="polite"
         >
           {error}
         </Animated.Text>

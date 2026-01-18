@@ -127,11 +127,18 @@ export default function LoginScreen() {
             <TouchableOpacity
               onPress={() => setConfigVisible(true)}
               className="absolute top-0 right-6 z-50 p-2 rounded-full bg-muted/50"
+              accessibilityRole="button"
+              accessibilityLabel="Configuration"
             >
               <MaterialIcons name="settings" size={24} color={iconColor} />
             </TouchableOpacity>
 
-            <View className="mb-10 items-center z-10">
+            <View
+              className="mb-10 items-center z-10"
+              accessible={true}
+              accessibilityLabel="Area Automation Platform"
+              accessibilityRole="header"
+            >
               <View className="flex-row">
                 {["A", "R", "E", "A"].map((l, i) => (
                   <AnimatedLetter key={i} letter={l} index={i} />
@@ -143,14 +150,17 @@ export default function LoginScreen() {
             </View>
 
             <Animated.View entering={SlideInLeft.duration(400)} className="gap-4">
-              <ThemedText type="defaultSemiBold" className="mb-2">
+              <ThemedText type="defaultSemiBold" className="mb-2" accessibilityRole="header">
                 Welcome Back
               </ThemedText>
               {errors.general && (
-                <ThemedText className="text-red-500 mb-2 text-center text-sm">{errors.general}</ThemedText>
+                <ThemedText className="text-red-500 mb-2 text-center text-sm" accessibilityLiveRegion="polite">
+                  {errors.general}
+                </ThemedText>
               )}
 
               <Input
+                label="Email address"
                 placeholder="Email address"
                 value={email}
                 onChangeText={(text) => {
@@ -164,6 +174,7 @@ export default function LoginScreen() {
               />
 
               <Input
+                label="Password"
                 placeholder="Password"
                 value={password}
                 onChangeText={(text) => {
@@ -180,6 +191,7 @@ export default function LoginScreen() {
                 onPress={handleLogin}
                 loading={loading}
                 className="mt-2"
+                accessibilityLabel="Sign in"
               />
 
               {/* Social Login Section */}
@@ -194,6 +206,8 @@ export default function LoginScreen() {
                   onPress={() => handleSocialLogin("github")}
                   className="flex-1 h-[50px] flex-row items-center justify-center rounded-2xl border bg-card"
                   style={{ borderColor }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign in with GitHub"
                 >
                   <FontAwesome name="github" size={24} color={iconColor} />
                   <ThemedText className="ml-2 font-semibold">GitHub</ThemedText>
@@ -203,6 +217,8 @@ export default function LoginScreen() {
                   onPress={() => handleSocialLogin("google")}
                   className="flex-1 h-[50px] flex-row items-center justify-center rounded-2xl border bg-card"
                   style={{ borderColor }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign in with Google"
                 >
                   <FontAwesome name="google" size={22} color={iconColor} />
                   <ThemedText className="ml-2 font-semibold">Google</ThemedText>
@@ -215,7 +231,11 @@ export default function LoginScreen() {
               className="flex-row justify-center gap-2 mt-8"
             >
               <ThemedText>Don&apos;t have an account?</ThemedText>
-              <TouchableOpacity onPress={() => router.replace("/(auth)/register")}>
+              <TouchableOpacity
+                onPress={() => router.replace("/(auth)/register")}
+                accessibilityRole="link"
+                accessibilityLabel="Create account"
+              >
                 <ThemedText type="link">Create account</ThemedText>
               </TouchableOpacity>
             </Animated.View>

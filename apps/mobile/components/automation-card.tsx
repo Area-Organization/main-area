@@ -92,7 +92,7 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
 
   return (
     <Animated.View entering={FadeInDown.delay(index * 100).duration(400)} className="mb-4 relative">
-      <View className="absolute inset-0 flex-row overflow-hidden rounded-lg">
+      <View className="absolute inset-0 flex-row overflow-hidden rounded-lg" accessibilityElementsHidden={true}>
         <Animated.View
           style={[
             { width: BUTTON_WIDTH, backgroundColor: "#3b82f6", justifyContent: "center", alignItems: "center" },
@@ -136,6 +136,30 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
               padding: 20
             }
           ]}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel={`${item.name || "Untitled Area"}, ${item.enabled ? "Active" : "Inactive"}. ${
+            item.description || ""
+          }`}
+          accessibilityHint="Double tap to toggle status. Use actions to edit or delete."
+          accessibilityActions={[
+            { name: "activate", label: item.enabled ? "Disable" : "Enable" },
+            { name: "edit", label: "Edit Area" },
+            { name: "delete", label: "Delete Area" }
+          ]}
+          onAccessibilityAction={(event) => {
+            switch (event.nativeEvent.actionName) {
+              case "activate":
+                onToggle(item.id, item.enabled);
+                break;
+              case "edit":
+                handleEditPress();
+                break;
+              case "delete":
+                handleDeletePress();
+                break;
+            }
+          }}
         >
           {/* Header Row */}
           <View className="flex-row justify-between mb-4">
@@ -145,7 +169,7 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
               </View>
               <MaterialIcons name="arrow-forward" size={16} color={mutedForeground} />
 
-              <View className="flex-row -space-x-2">
+              <View className="flex-row -space-x-2" importantForAccessibility="no-hide-descendants">
                 {reactions.slice(0, 3).map((r: any, i: number) => {
                   const rColor = BRAND_COLORS[r.serviceName.toLowerCase()] || primaryColor;
                   return (
@@ -169,11 +193,14 @@ export function AutomationCard({ item, index, onDelete, onToggle, onEdit, primar
               </View>
             </View>
 
-            <CustomSwitch
-              value={item.enabled}
-              onValueChange={(val) => onToggle(item.id, item.enabled)}
-              primaryColor={primaryColor}
-            />
+            {/* Hidden from screen reader because parent container handles toggle via actions */}
+            <View importantForAccessibility="no-hide-descendants">
+              <CustomSwitch
+                value={item.enabled}
+                onValueChange={(val) => onToggle(item.id, item.enabled)}
+                primaryColor={primaryColor}
+              />
+            </View>
           </View>
 
           {/* Title & Description */}

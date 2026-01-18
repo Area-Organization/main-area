@@ -11,11 +11,23 @@ type ButtonProps = {
   loading?: boolean;
   style?: ViewStyle;
   className?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 };
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export function Button({ onPress, title, variant = "primary", disabled, loading, style, className }: ButtonProps) {
+export function Button({
+  onPress,
+  title,
+  variant = "primary",
+  disabled,
+  loading,
+  style,
+  className,
+  accessibilityLabel,
+  accessibilityHint
+}: ButtonProps) {
   const scale = useSharedValue(1);
 
   let bgClass = "bg-primary shadow-sm";
@@ -63,6 +75,10 @@ export function Button({ onPress, title, variant = "primary", disabled, loading,
       className={`h-[52px] flex-row items-center justify-center px-6 rounded-lg ${bgClass} ${borderClass} ${
         className || ""
       }`}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel || title}
+      accessibilityState={{ disabled: !!disabled, busy: !!loading }}
+      accessibilityHint={accessibilityHint || (loading ? "Please wait" : undefined)}
     >
       {loading ? (
         <ActivityIndicator color={variant === "outline" || variant === "secondary" ? "#000" : "#FFF"} />
