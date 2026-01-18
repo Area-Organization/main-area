@@ -3,38 +3,38 @@ title: Introduction
 sidebar_position: 1
 ---
 
-# Bienvenue sur la Documentation Technique du Projet AREA
+# Welcome to the AREA Project Technical Documentation
 
-Ce site contient la documentation technique complète pour le projet **AREA (Action-REAction)**, une plateforme d'automatisation inspirée par des services comme IFTTT et Zapier.
+This site contains the complete technical documentation for the **AREA (Action-REAction)** project, an automation platform inspired by services such as IFTTT and Zapier.
 
-## Objectif du Projet
+## Project Goal
 
-L'objectif est de permettre aux utilisateurs de connecter différents services (GitHub, Gmail, Spotify, etc.) en créant des **AREA**s. Chaque AREA est composée de :
+The objective is to allow users to connect different services (GitHub, Gmail, Spotify, etc.) by creating **AREA**s. Each AREA consists of:
 
-- **Une Action :** Un déclencheur provenant d'un service (ex: "Un nouveau ticket Jira est créé" ou "Une nouvelle musique est likée sur Spotify").
-- **Une Réaction :** Une conséquence exécutée sur un autre service (ex: "Envoyer un message sur Discord").
+- **An Action:** A trigger originating from a service (e.g., "A new Jira ticket is created" or "A new song is liked on Spotify").
+- **A Reaction:** A consequence executed on another service (e.g., "Send a message on Discord").
 
-## Architecture Globale
+## Global Architecture
 
-Le projet est structuré en **monorepo** géré par **Bun Workspaces** et se divise en quatre composants principaux :
+The project is structured as a **monorepo** managed by **Bun Workspaces** and is divided into four main components:
 
-1.  **Serveur Backend (`apps/backend`)**:
-    - API REST développée avec **ElysiaJS**.
-    - Gère la logique métier, l'authentification, les connexions aux services et le moteur d'exécution (Polling).
-    - Base de données **PostgreSQL** gérée via **Prisma**.
+1.  **Backend Server (`apps/backend`)**:
+    - REST API developed with **ElysiaJS**.
+    - Handles business logic, authentication, service connections, and the execution engine (Polling).
+    - **PostgreSQL** database managed via **Prisma**.
 
-2.  **Client Web (`apps/web`)**:
-    - Interface utilisateur développée avec **SvelteKit** et **TailwindCSS**.
-    - Dispose d'un éditeur de flux visuel (Node Editor) pour créer des automatisations.
+2.  **Web Client (`apps/web`)**:
+    - User interface developed with **SvelteKit** and **TailwindCSS**.
+    - Features a visual flow editor (Node Editor) to create automations.
 
-3.  **Client Mobile (`apps/mobile`)**:
-    - Application native développée avec **React Native (Expo)** et **NativeWind**.
-    - Propose un assistant de création interactif et animé.
+3.  **Mobile Client (`apps/mobile`)**:
+    - Native application developed with **React Native (Expo)** and **NativeWind**.
+    - Offers an interactive and animated creation assistant.
 
-4.  **Package Partagé (`packages/types`)**:
-    - Contient les définitions de types TypeScript partagées (DTOs, Schémas TypeBox) entre le backend et les clients pour garantir la cohérence des données.
+4.  **Shared Package (`packages/types`)**:
+    - Contains shared TypeScript type definitions (DTOs, TypeBox Schemas) between the backend and clients to ensure data consistency.
 
-## Diagramme de Classes
+## Class Diagram
 ```mermaid
 classDiagram
     class Area {
@@ -79,7 +79,7 @@ classDiagram
     IService "1" *-- "0..*" IReaction
 ```
 
-## Diagramme de Séquence
+## Sequence Diagram
 ```mermaid
 sequenceDiagram
     participant Manager as Hooks/Manager.ts
@@ -103,7 +103,7 @@ sequenceDiagram
     end
 ```
 
-## Diagramme de Séquence (OAuth)
+## Sequence Diagram (OAuth)
 ```mermaid
 sequenceDiagram
     actor User
@@ -125,7 +125,7 @@ sequenceDiagram
     API-->>App: Success Connection
 ```
 
-## Diagramme de Création d'une AREA
+## Area Creation Diagram
 ```mermaid
 sequenceDiagram
     actor User
@@ -148,4 +148,4 @@ sequenceDiagram
     end
 ```
 
-Cette documentation est divisée en sections correspondant à chaque composant pour faciliter la navigation et la compréhension.
+This documentation is divided into sections corresponding to each component to facilitate navigation and understanding.

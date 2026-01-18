@@ -1,36 +1,36 @@
 ---
-title: Architecture & Schéma de Données
+title: Architecture & Data Schema
 ---
 
-# Architecture & Schéma de Données
+# Architecture & Data Schema
 
-## Structure des Dossiers
+## Folder Structure
 
-Le frontend suit une architecture modulaire :
+The frontend follows a modular architecture:
 
 ```text
 apps/web/
 ├── src/
 │   ├── lib/
-│   │   ├── api/            # Sous-modules pour les appels API spécifiques
-│   │   ├── assets/         # Ressources statiques (images, SVGs, icônes des services)
-│   │   ├── components/     # Composants UI réutilisables (Boutons, Cards AREA, Navbar)
-│   │   ├── schemas/        # Schémas de validation TypeBox (Login, Register, Création d'AREA)
-│   │   ├── api.ts          # Configuration du client fetch centralisé
-│   │   ├── area-utils.ts   # Logique de manipulation des données Action/Reaction
-│   │   ├── auth-client.ts  # Configuration du client Better Auth (côté client)
-│   │   ├── index.ts        # Point d'entrée des exports du lib
-│   │   ├── types.ts        # Interfaces et types TypeScript globaux
-│   │   └── utils.ts        # Fonctions utilitaires (formatage de date, parsing)
-│   ├── routes/             # Système de routage basé sur le système de fichiers
-│   │   ├── create/         # Page de création d'une nouvelle AREA
-│   │   ├── login/          # Page de connexion
-│   │   ├── modify/         # Page d'édition d'une AREA existante
-│   │   ├── profile/        # Gestion du compte et services connectés
-│   │   └── register/       # Page d'inscription
-│   ├── app.d.ts            # Définitions de types globaux pour le framework
-│   ├── app.html            # Template HTML de base de l'application
+│   │   ├── api/            # Sub-modules for specific API calls
+│   │   ├── assets/         # Static assets (images, SVGs, service icons)
+│   │   ├── components/     # Reusable UI components (Buttons, AREA Cards, Navbar)
+│   │   ├── schemas/        # TypeBox validation schemas (Login, Register, AREA creation)
+│   │   ├── api.ts          # Centralized fetch client configuration
+│   │   ├── area-utils.ts   # Logic for manipulating Action/Reaction data
+│   │   ├── auth-client.ts  # Better Auth client configuration (client-side)
+│   │   ├── index.ts        # Entry point for lib exports
+│   │   ├── types.ts        # Global TypeScript interfaces and types
+│   │   └── utils.ts        # Utility functions (date formatting, parsing)
+│   ├── routes/             # File-based routing system
+│   │   ├── create/         # Page for creating a new AREA
+│   │   ├── login/          # Login page
+│   │   ├── modify/         # Page for editing an existing AREA
+│   │   ├── profile/        # Account management and connected services
+│   │   └── register/       # Registration page
+│   ├── app.d.ts            # Global type definitions for the framework
+│   ├── app.html            # Base HTML template for the application
 │   └── plugins/
 ├── static/
-└── tests/                  # Tests unitaires et d'intégration
+└── tests/                  # Unit and integration tests
 ```

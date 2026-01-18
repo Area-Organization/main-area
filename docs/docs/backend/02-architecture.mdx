@@ -1,25 +1,25 @@
 ---
-title: Architecture & Schéma de Données
+title: Architecture & Data Schema
 ---
 
-# Architecture & Schéma de Données
+# Architecture & Data Schema
 
-## Structure des Dossiers
+## Folder Structure
 
-Le backend suit une architecture modulaire :
+The backend follows a modular architecture:
 
 ```text
 apps/backend/
 ├── prisma/
-│   └── schema.prisma       # Définition des modèles de données
+│   └── schema.prisma       # Data model definitions
 ├── src/
-│   ├── database/           # Client Prisma et configuration Better Auth
-│   ├── hooks/              # Moteur de polling (manager.ts)
-│   ├── interfaces/         # Définitions TypeScript des Services (IAction, IReaction)
-│   ├── middlewares/        # Vérification d'authentification (session/token)
-│   ├── plugins/            # Plugins Elysia (Swagger, Better Auth handler)
-│   ├── routes/             # Contrôleurs API (areas, connect, about)
-│   ├── services/           # Implémentation des services tiers
+│   ├── database/           # Prisma client and Better Auth configuration
+│   ├── hooks/              # Polling engine (manager.ts)
+│   ├── interfaces/         # TypeScript service definitions (IAction, IReaction)
+│   ├── middlewares/        # Authentication checks (session/token)
+│   ├── plugins/            # Elysia plugins (Swagger, Better Auth handler)
+│   ├── routes/             # API controllers (areas, connect, about)
+│   ├── services/           # Third-party service implementations
 │   │   ├── discord/
 │   │   ├── drive/
 │   │   ├── dropbox/
@@ -30,31 +30,31 @@ apps/backend/
 │   │   ├── steam/
 │   │   ├── trello/
 │   │   ├── youtube/
-│   │   └── registry.ts     # Singleton centralisant tous les services
-│   ├── utils/              # Utilitaires (ex: interpolator.ts)
-│   ├── app.ts              # Configuration de l'application Elysia
-│   └── index.ts            # Point d'entrée
-└── tests/                  # Tests unitaires et d'intégration
+│   │   └── registry.ts     # Singleton centralizing all services
+│   ├── utils/              # Utilities (e.g., interpolator.ts)
+│   ├── app.ts              # Elysia app configuration
+│   └── index.ts            # Entry point
+└── tests/                  # Unit and integration tests
 ```
 
-## Bibliothèques Clés
+## Key Libraries
 
-Outre les technologies principales, le backend s'appuie sur des librairies spécifiques pour assurer la robustesse et la sécurité des types :
+Beyond the core technologies, the backend relies on specific libraries to ensure robustness and type safety:
 
-- **@sinclair/typebox**: Utilisé pour la validation des données à l'exécution et la génération de schémas JSON. Il garantit que les données entrantes (body, query params) respectent le format attendu.
-- **@elysiajs/eden**: Permet de générer un client API type-safe pour les frontends (Web et Mobile). Cela assure une cohérence totale ("End-to-End Type Safety") : si le backend change une route, le frontend ne compile plus tant qu'il n'est pas mis à jour.
+- **@sinclair/typebox**: Used for runtime data validation and JSON schema generation. It ensures that incoming data (body, query params) conforms to the expected format.
+- **@elysiajs/eden**: Generates a type-safe API client for the frontends (Web and Mobile). This guarantees full end-to-end type safety: if the backend changes a route, the frontend will fail to compile until it is updated.
 
-## Schéma de la Base de Données (Prisma)
+## Database Schema (Prisma)
 
-Les modèles principaux définis dans `schema.prisma` sont :
+The main models defined in `schema.prisma` are:
 
-- **User**: L'utilisateur central.
-- **Session / Account**: Gérés par Better Auth pour les sessions actives et les liaisons OAuth.
-- **UserConnection**: Stocke les crédentials (`accessToken`, `refreshToken`, `metadata`) pour un service spécifique (ex: "spotify") lié à un utilisateur. C'est ce qui permet au backend d'agir au nom de l'utilisateur.
-- **Area**: Représente une automatisation active. Contient le compteur de déclenchements (`triggerCount`) et la date de dernière exécution (`lastTriggered`).
-- **AreaAction**: Configuration du déclencheur (stocke les paramètres spécifiques comme `repoName`).
-- **AreaReaction**: Configuration de la conséquence (stocke les paramètres comme `playlistId`).
+- **User**: The central user entity.
+- **Session / Account**: Managed by Better Auth for active sessions and OAuth connections.
+- **UserConnection**: Stores credentials (`accessToken`, `refreshToken`, `metadata`) for a specific service (e.g., "spotify") linked to a user. This allows the backend to act on behalf of the user.
+- **Area**: Represents an active automation. Contains the trigger count (`triggerCount`) and the date of the last execution (`lastTriggered`).
+- **AreaAction**: Trigger configuration (stores specific parameters such as `repoName`).
+- **AreaReaction**: Reaction configuration (stores parameters such as `playlistId`).
 
-## Types Partagés
+## Shared Types
 
-Le backend dépend du package interne `@area/types` (situé dans `packages/types`) pour assurer que les DTOs (Data Transfer Objects) envoyés par l'API correspondent exactement à ce que les clients attendent.
+The backend depends on the internal package `@area/types` (located in `packages/types`) to ensure that the DTOs (Data Transfer Objects) sent by the API exactly match what the clients expect.
