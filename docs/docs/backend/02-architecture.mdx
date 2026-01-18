@@ -21,15 +21,80 @@ apps/backend/
 │   ├── routes/             # Contrôleurs API (areas, connect, about)
 │   ├── services/           # Implémentation des services tiers
 │   │   ├── discord/
+│   │   ├── drive/
+│   │   ├── dropbox/
 │   │   ├── github/
 │   │   ├── gmail/
+│   │   ├── notion/
 │   │   ├── spotify/
+│   │   ├── steam/
 │   │   ├── trello/
+│   │   ├── youtube/
 │   │   └── registry.ts     # Singleton centralisant tous les services
 │   ├── utils/              # Utilitaires (ex: interpolator.ts)
 │   ├── app.ts              # Configuration de l'application Elysia
 │   └── index.ts            # Point d'entrée
 └── tests/                  # Tests unitaires et d'intégration
+```
+
+Le frontend suit une architecture modulaire :
+
+```text
+apps/web/
+├── src/
+│   ├── lib/
+│   │   ├── api/            # Sous-modules pour les appels API spécifiques
+│   │   ├── assets/         # Ressources statiques (images, SVGs, icônes des services)
+│   │   ├── components/     # Composants UI réutilisables (Boutons, Cards AREA, Navbar)
+│   │   ├── schemas/        # Schémas de validation TypeBox (Login, Register, Création d'AREA)
+│   │   ├── api.ts          # Configuration du client fetch centralisé
+│   │   ├── area-utils.ts   # Logique de manipulation des données Action/Reaction
+│   │   ├── auth-client.ts  # Configuration du client Better Auth (côté client)
+│   │   ├── index.ts        # Point d'entrée des exports du lib
+│   │   ├── types.ts        # Interfaces et types TypeScript globaux
+│   │   └── utils.ts        # Fonctions utilitaires (formatage de date, parsing)
+│   ├── routes/             # Système de routage basé sur le système de fichiers
+│   │   ├── create/         # Page de création d'une nouvelle AREA
+│   │   ├── login/          # Page de connexion
+│   │   ├── modify/         # Page d'édition d'une AREA existante
+│   │   ├── profile/        # Gestion du compte et services connectés
+│   │   └── register/       # Page d'inscription
+│   ├── app.d.ts            # Définitions de types globaux pour le framework
+│   ├── app.html            # Template HTML de base de l'application
+│   └── plugins/
+├── static/
+└── tests/                  # Tests unitaires et d'intégration
+```
+
+Le mobile suit une architexture modulaire :
+
+```text
+apps/mobile/
+├── app/                    # Système de navigation (Expo Router)
+│   ├── (auth)/             # Groupe de routes pour l'authentification (Login/Register)
+│   ├── (tabs)/             # Navigation principale par onglets (Dashboard, Explore)
+│   ├── edit-area/          # Écran de modification d'une automatisation
+│   ├── _layout.tsx
+│   ├── +not-found.tsx
+│   ├── index.tsx           # Point d'entrée
+│   ├── modal.tsx
+│   └── oauth-callback.tsx  # Capture du Deep Link après connexion OAuth tiers
+├── assets/                 # Images, polices de caractères et splash screen
+│   └── images/             # Icônes des services (Discord, GitHub, etc.)
+├── components/             # Composants React Native (Cards, Custom Inputs, Loaders)
+│   ├── ui/                 # Composants User Interface
+│   └── wizard/
+├── constants/              # Couleurs, URLs API, et clés de configuration
+│   └── theme.tsx
+├── hooks/                  # Hooks React personnalisés
+│   ├── use-area-wizard.ts
+│   ├── user-color-scheme.ts
+│   ├── use-color-scheme.web.ts
+│   ├── use-service.ts
+│   └──use-theme-color.ts
+├── lib/                    # Logique partagée (Client API)
+├── scripts/                # Scripts utilitaires pour le développement/build
+└── tests/                  # Tests unitaires (Jest) et intégration (Testing Library)
 ```
 
 ## Bibliothèques Clés
