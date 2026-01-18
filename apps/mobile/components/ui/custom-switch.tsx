@@ -50,7 +50,7 @@ export function CustomSwitch({ value, onValueChange, primaryColor }: CustomSwitc
   }));
 
   return (
-    <Pressable onPress={toggleSwitch} hitSlop={10}>
+    <Pressable onPress={toggleSwitch} hitSlop={10} accessibilityRole="switch" accessibilityState={{ checked: value }}>
       <Animated.View style={[{ width: 50, height: 30, borderRadius: 15, justifyContent: "center" }, trackStyle]}>
         <Animated.View
           style={[
