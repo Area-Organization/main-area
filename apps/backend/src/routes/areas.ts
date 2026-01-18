@@ -11,8 +11,10 @@ import {
   AreaToggleResponse,
   CreateAreaBody,
   ListAreasQuery,
+  TestReactionBody,
   UpdateAreaBody
 } from "@area/types"
+import { interpolate } from "../utils/interpolator"
 
 export const areasRoutes = new Elysia({ prefix: "/api/areas" })
   .use(authMiddleware)
@@ -706,6 +708,62 @@ export const areasRoutes = new Elysia({ prefix: "/api/areas" })
         tags: ["Areas"],
         summary: "Get AREA statistics",
         description: "Retrieves overview statistics for user's automation areas"
+      }
+    }
+  )
+  .post("/test-reaction",
+    async ({ body, user, set }) => {
+      try {
+        const service = serviceRegistry.get(body.serviceName)
+        if (!service) {
+          set.status = 400
+          return { error: "Service not found" }
+        }
+        const reaction = service.reactions.find((r) => r.name === body.reactionName)
+        if (!reaction) {
+          set.status = 400
+          return { error: "Reaction not found" }
+        }
+        const connection = await prisma.userConnection.findUnique({
+          where: { id: body.connectionId, userId: user.id }
+        })
+        if (!connection) {
+          set.status = 404
+          return { error: "Connection not found" }
+        }
+        const mockData = body.mockData || {
+          author: "Test User",
+          content: "Ceci est un message de test provenant de AREA",
+          title: "Notification de test",
+          url: "https://epi-area.me",
+          messageId: "12345",
+          fileName: "test.txt"
+        }
+        const processedParams = interpolate(body.params, mockData)
+        const context = {
+          userId: user.id,
+          tokens: {
+            accessToken: connection.accessToken || undefined,
+            refreshToken: connection.refreshToken || undefined,
+            expiresAt: connection.expiresAt?.getTime()
+          },
+          actionData: mockData,
+          metadata: {}
+        }
+        await reaction.execute(processedParams, context)
+        return { success: true, message: "Reaction executed successfully" }
+      } catch (error) {
+        set.status = 500
+        return { error: "Execution failed", message: String(error) }
+      }
+    },
+    {
+      auth: true,
+      body: TestReactionBody,
+      detail: {
+        tags: ["Areas"],
+        summary: "Test a reaction",
+        description: "Executes a reaction immediately with mock data for testing purposes"
       }
     }
   )

@@ -25,6 +25,14 @@ export const AreaReactionSchema = t.Object({
   posY: t.Number()
 });
 
+export const TestReactionBody = t.Object({
+  serviceName: t.String(),
+  reactionName: t.String(),
+  params: t.Record(t.String(), t.Any()),
+  connectionId: t.String(),
+  mockData: t.Optional(t.Record(t.String(), t.Any()))
+});
+
 export const AreaSchema = t.Object({
   id: t.String(),
   name: t.String(),
@@ -140,6 +148,7 @@ export const AreaErrorResponse = t.Object({
 export type AreaStatusType = Static<typeof AreaStatus>;
 export type AreaActionType = Static<typeof AreaActionSchema>;
 export type AreaReactionType = Static<typeof AreaReactionSchema>;
+export type TestReactionBodyType = Static<typeof TestReactionBody>;
 export type AreaType = Static<typeof AreaSchema>;
 export type CreateAreaBodyType = Static<typeof CreateAreaBody>;
 export type UpdateAreaType = Static<typeof UpdateAreaBody>;
