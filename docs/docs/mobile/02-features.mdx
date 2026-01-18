@@ -1,36 +1,36 @@
 ---
-title: Fonctionnalités et UI
+title: Features & UI
 ---
 
-# Fonctionnalités et Interface
+# Features and Interface
 
-### Flux de Création (Wizard)
+### Creation Flow (Wizard)
 
-La création d'une AREA se fait via un assistant étape par étape (`app/(tabs)/create.tsx`) immersif :
+Creating an AREA is done through an immersive, step-by-step wizard (`app/(tabs)/create.tsx`):
 
-1.  **Sélection du Trigger**: Grille de services disponibles.
-2.  **Configuration**: Formulaire dynamique (`ParamInputs.tsx`) basé sur les types de paramètres requis (texte, nombre, booléen).
-3.  **Sélection de la Réaction**: Idem que pour le trigger.
-4.  **Connexion (Review)**:
-    - Une animation SVG (`react-native-svg` + `reanimated`) visualise la connexion entre les deux services (câble qui pulse).
-    - L'utilisateur nomme son AREA et valide.
-    - Une animation de "Confetti" confirme la création.
+1. **Trigger Selection**: Grid of available services.
+2. **Configuration**: Dynamic form (`ParamInputs.tsx`) based on the required parameter types (text, number, boolean).
+3. **Reaction Selection**: Same process as for the trigger.
+4. **Connection (Review)**:
+   - An SVG animation (`react-native-svg` + `reanimated`) visualizes the connection between the two services (a pulsing cable).
+   - The user names their AREA and confirms.
+   - A “Confetti” animation confirms successful creation.
 
-### Dashboard Interactif
+### Interactive Dashboard
 
-L'écran d'accueil (`app/(tabs)/index.tsx`) liste les AREAs sous forme de cartes :
+The home screen (`app/(tabs)/index.tsx`) displays AREAs as cards:
 
-- **Swipe Gestures**: Glisser une carte vers la droite pour éditer, vers la gauche pour supprimer.
-- **Toggle Switch**: Un switch animé personnalisé permet d'activer/désactiver une AREA instantanément.
-- **Statistiques**: Des cartes "Glassmorphism" affichent les stats globales en haut de page.
+- **Swipe Gestures**: Swipe a card to the right to edit, to the left to delete.
+- **Toggle Switch**: A custom animated switch allows instantly enabling/disabling an AREA.
+- **Statistics**: “Glassmorphism” cards display global stats at the top of the page.
 
-### Gestion des Services
+### Service Management
 
-L'écran Services (`app/(tabs)/services.tsx`) gère deux types d'authentification :
+The Services screen (`app/(tabs)/services.tsx`) handles two types of authentication:
 
-1.  **OAuth2**: Ouvre une session `WebBrowser`. Le callback redirige vers l'app (`area://oauth-callback`) qui valide le token auprès du backend.
-2.  **API Key**: Ouvre une modale pour saisir manuellement les clés (ex: Token Discord, Clé Trello).
+1. **OAuth2**: Opens a `WebBrowser` session. The callback redirects back to the app (`area://oauth-callback`), which validates the token with the backend.
+2. **API Key**: Opens a modal to manually enter keys (e.g. Discord token, Trello key).
 
-### Gestion Offline
+### Offline Management
 
-Un composant `OfflineNotice` surveille l'état du réseau (`expo-network`) et affiche une bannière animée si la connexion internet est perdue.
+An `OfflineNotice` component monitors network status (`expo-network`) and displays an animated banner if the internet connection is lost.

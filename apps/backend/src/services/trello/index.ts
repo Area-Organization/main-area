@@ -1,12 +1,13 @@
 import type { IService } from "../../interfaces/service";
 import { newCardAction } from "./actions/new-card";
+import { createBoardReaction } from "./reactions/create-board";
 import { createCardReaction } from "./reactions/create-card";
 
 export const trelloService: IService = {
   name: "trello",
   description: "Connect to Trello to manage your project boards.",
   requiresAuth: true,
-  authType: "api_key", // API Key + Token
+  authType: "api_key",
   authFields: [
     {
       key: "accessToken",
@@ -20,6 +21,7 @@ export const trelloService: IService = {
     newCardAction
   ],
   reactions: [
-    createCardReaction
+    createCardReaction,
+    createBoardReaction
   ]
 };

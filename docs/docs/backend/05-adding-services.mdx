@@ -1,96 +1,96 @@
 ---
-title: "Guide Développeur : Ajouter un Service"
+title: "Developer Guide: Adding a Service"
 ---
 
-# Ajouter un Nouveau Service
+# Adding a New Service
 
-L'architecture du projet AREA est conçue pour être extensible. Ce guide explique les étapes pour ajouter un nouveau service (ex: Slack, Notion) de A à Z.
+The AREA project architecture is designed to be extensible. This guide explains step-by-step how to add a new service (e.g., Slack, Notion) from A to Z.
 
 ## 1. Backend
 
-### Créer le Service
+### Create the Service
 
-Créez un dossier dans `apps/backend/src/services/<nom-du-service>/`.
-Il doit contenir :
+Create a folder in `apps/backend/src/services/<service-name>/`.
+It should contain:
 
-- `index.ts`: La définition du service.
-- `actions/`: Vos fichiers d'actions.
-- `reactions/`: Vos fichiers de réactions.
+- `index.ts`: The service definition.
+- `actions/`: Your action files.
+- `reactions/`: Your reaction files.
 
-Exemple de structure `index.ts` :
+Example `index.ts` structure:
 
 ```typescript
 import type { IService } from "../../interfaces/service";
-// Importez vos actions/reactions ici
+// Import your actions/reactions here
 
 export const myService: IService = {
   name: "myservice",
   description: "Description...",
   requiresAuth: true,
-  authType: "oauth2", // ou "api_key"
-  // Configuration OAuth ou AuthFields...
+  authType: "oauth2", // or "api_key"
+  // OAuth configuration or AuthFields...
   actions: [
-    /* vos actions importées */
+    /* your imported actions */
   ],
   reactions: [
-    /* vos réactions importées */
+    /* your imported reactions */
   ]
 };
 ```
 
-### Enregistrer le Service
+### Register the Service
 
-Dans `apps/backend/src/services/registry.ts`, importez votre service et ajoutez-le au registre :
+In `apps/backend/src/services/registry.ts`, import your service and add it to the registry :
 
 ```typescript
 import { myService } from "./myservice";
 
 export class ServiceRegistry {
   constructor() {
-    // ... autres services
-    this.register(myService); // <--- Ajouter ici
+    // ... other services
+    this.register(myService); // <--- Add it here
   }
 }
 ```
 
-C'est tout pour le backend ! L'endpoint `/about.json` exposera automatiquement votre nouveau service.
+That’s it for the backend! The `/about.json` endpoint will automatically expose your new service.
 
 ## 2. Frontend Web
 
-Le client web a besoin d'une icône pour votre service.
+The web client needs an icon for your service.
 
-### Ajouter l'icône
+### Add the Icon
 
-Modifiez `apps/web/src/lib/components/ServiceIcon.svelte`. Ajoutez une condition pour votre service dans le bloc `if/else` :
+Edit `apps/web/src/lib/components/ServiceIcon.svelte`. Add a condition for your service in the `if/else` block :
 
 ```svelte
 <!-- apps/web/src/lib/components/ServiceIcon.svelte -->
 {:else if saneName == "myservice"}
-  <!-- Votre SVG ici -->
+  <!-- Your SVG here -->
   <svg>...</svg>
 ```
 
-## 3. Client Mobile
+## 3. Mobile Client
 
-Le client mobile utilise des couleurs de marque spécifiques pour les tuiles de services.
+The mobile client uses brand colors for service tiles.
 
-### Configurer la couleur
+Configure the Color
 
-Modifiez `apps/mobile/app/(tabs)/services.tsx`. Ajoutez votre service à la constante `BRAND_COLORS` :
+Edit `apps/mobile/app/(tabs)/services.tsx`. Add your service to the `BRAND_COLORS` constant :
 
 ```typescript
 // apps/mobile/app/(tabs)/services.tsx
 const BRAND_COLORS: Record<string, string> = {
   discord: "#5865F2",
   // ...
-  myservice: "#FF5733" // <--- Votre couleur hexadécimale
+  myservice: "#FF5733" // <--- Your hex color
 };
 ```
 
-## Résumé
+## Summary
 
-Pour ajouter un service complet, vous devez toucher à 3 endroits :
+To add a complete service, you need to touch 3 areas:
 
-1.  **Backend** : Implémentation logique et enregistrement (`registry.ts`).
-2.  **Web** : Ajout de l'icône SVG (`ServiceIcon.svelte`).
-3.  **Mobile** : Ajout de la couleur de marque (`services.tsx`).
+1.  **Backend** : Implement the logic and register it (`registry.ts`).
+2.  **Web** : Add the SVG icon (`ServiceIcon.svelte`).
+3.  **Mobile** : Add the brand color (`services.tsx`).

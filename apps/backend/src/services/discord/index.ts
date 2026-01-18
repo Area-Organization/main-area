@@ -1,5 +1,6 @@
 import type { IService } from "../../interfaces/service"
 import { onMessageAction } from "./actions/on-message"
+import { createChannelReaction } from "./reactions/create-channel"
 import { sendMessageReaction } from "./reactions/send-message"
 
 export const discordService: IService = {
@@ -20,6 +21,7 @@ export const discordService: IService = {
     onMessageAction
   ],
   reactions: [
-    sendMessageReaction
+    sendMessageReaction,
+    createChannelReaction
   ]
 }

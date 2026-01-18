@@ -1,20 +1,58 @@
 <script lang="ts">
   import "./layout.css";
   import favicon from "$lib/assets/favicon.svg";
-  import Header from "@/components/Header.svelte";
-  import { Toaster } from "@/components/ui/sonner";
+  import Header from "$lib/components/Header.svelte";
+  import { Toaster } from "$lib/components/ui/sonner";
+  import { goto } from "$app/navigation";
+  import { page } from "$app/state";
+  import { onMount } from "svelte";
+  import { auth } from "$lib/auth-client";
 
   let { children } = $props();
+  let isChecking = $state(true);
+
+  onMount(async () => {
+    const publicRoutes = ["/login", "/register"];
+    const path = page.url.pathname;
+    const isPublic = publicRoutes.some((route) => path.startsWith(route));
+
+    const { data: session } = await auth.getSession();
+
+    if (!session && !isPublic) {
+      const fromUrl = page.url.pathname + page.url.search;
+      goto(`/login?redirectTo=${encodeURIComponent(fromUrl)}`);
+    } else if (session && isPublic) {
+      const redirectTo = page.url.searchParams.get("redirectTo");
+      goto(redirectTo ? decodeURIComponent(redirectTo) : "/");
+    }
+
+    isChecking = false;
+  });
+
+  import { onNavigate } from "$app/navigation";
+
+  onNavigate((navigation) => {
+    if (!document.startViewTransition) return;
+
+    return new Promise((resolve) => {
+      document.startViewTransition(async () => {
+        resolve();
+        await navigation.complete;
+      });
+    });
+  });
 </script>
 
 <svelte:head>
   <link rel="icon" href={favicon} />
 </svelte:head>
 
-<div class="dark bg-background min-h-screen text-foreground flex flex-col h-screen">
+<div title="Area" class="dark bg-background min-h-screen text-foreground flex flex-col">
   <Header />
-  <div class="flex-1 flex justify-center items-center w-full">
-    {@render children()}
+  <div class="flex-1 flex flex-col w-full">
+    {#if !isChecking}
+      {@render children()}
+    {/if}
   </div>
-  <Toaster />
+  <Toaster richColors position="top-center" />
 </div>

@@ -9,42 +9,54 @@ jest.mock("react-native-safe-area-context", () => ({
 describe("Component: ParamInputs", () => {
   const mockOnChange = jest.fn();
   const paramsSchema = {
-    repoName: { type: "string", label: "Repository Name", required: true },
-    isPrivate: { type: "boolean", label: "Private Repo", required: false }
+    message: { type: "string", label: "Message", required: true },
+    isPrivate: { type: "boolean", label: "Private", required: false }
   };
+  const availableVars = [{ name: "author", description: "The author name" }];
 
   beforeEach(() => {
     mockOnChange.mockClear();
   });
 
-  it("renders correct input types based on schema", () => {
+  it("renders correct input types", () => {
     const { getByPlaceholderText, getByRole } = render(
       <ParamInputs params={paramsSchema} values={{}} onChange={mockOnChange} />
     );
-
-    expect(getByPlaceholderText("Enter Repository Name")).toBeTruthy();
+    expect(getByPlaceholderText("Enter Message")).toBeTruthy();
     expect(getByRole("switch")).toBeTruthy();
   });
 
   it("calls onChange when text is entered", () => {
     const { getByPlaceholderText } = render(
-      <ParamInputs params={paramsSchema} values={{ repoName: "" }} onChange={mockOnChange} />
+      <ParamInputs params={paramsSchema} values={{ message: "" }} onChange={mockOnChange} />
     );
 
-    const input = getByPlaceholderText("Enter Repository Name");
-    fireEvent.changeText(input, "my-new-repo");
+    const input = getByPlaceholderText("Enter Message");
+    fireEvent.changeText(input, "hello");
 
-    expect(mockOnChange).toHaveBeenCalledWith("repoName", "my-new-repo");
+    expect(mockOnChange).toHaveBeenCalledWith("message", "hello");
   });
 
-  it("calls onChange when switch is toggled", () => {
-    const { getByRole } = render(
-      <ParamInputs params={paramsSchema} values={{ isPrivate: false }} onChange={mockOnChange} />
+  it("opens modal and inserts variable", () => {
+    const { getByTestId, getByText } = render(
+      <ParamInputs
+        params={paramsSchema}
+        values={{ message: "Hello " }}
+        onChange={mockOnChange}
+        availableVariables={availableVars}
+      />
     );
 
-    const switchEl = getByRole("switch");
-    fireEvent(switchEl, "onValueChange", true);
+    // Open Modal
+    fireEvent.press(getByTestId("var-btn-message"));
 
-    expect(mockOnChange).toHaveBeenCalledWith("isPrivate", true);
+    // Check modal visibility
+    expect(getByText("Insert Variable")).toBeTruthy();
+
+    // Click variable
+    fireEvent.press(getByText("{{author}}"));
+
+    // Expect inserted variable
+    expect(mockOnChange).toHaveBeenCalledWith("message", expect.stringContaining("{{author}}"));
   });
 });

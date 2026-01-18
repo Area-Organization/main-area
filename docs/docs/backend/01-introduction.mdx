@@ -1,25 +1,25 @@
 ---
-title: Introduction au Backend
+title: Backend Introduction
 ---
 
-# Introduction au Backend
+# Backend Introduction
 
-Le backend est le cerveau du projet AREA. Il orchestre les authentifications, gère les connexions aux APIs tierces et exécute les tâches d'automatisation via un système de polling.
+The backend is the brain of the AREA project. It orchestrates authentications, manages connections to third-party APIs, and executes automation tasks via a polling system.
 
-## Technologies Clés
+## Key Technologies
 
-- **Runtime**: [Bun](https://bun.sh/) - Utilisé pour ses performances et son outillage intégré (test, package manager).
-- **Framework API**: [ElysiaJS](https://elysiajs.com/) - Framework haute performance avec support complet de TypeScript et validation via TypeBox.
-- **Base de Données**: PostgreSQL.
-- **ORM**: [Prisma](https://www.prisma.io/) - Gère le schéma de la base de données et les migrations.
-- **Authentification**: [Better Auth](https://better-auth.dev/) - Gère l'authentification locale (Email/Password) et OAuth2, avec persistance via Prisma Adapter.
-- **Documentation API**: Plugin `@elysiajs/openapi` pour générer une documentation Swagger conforme aux standards.
-- **Tests**: `bun:test` pour les tests unitaires et d'intégration.
+- **Runtime**: [Bun](https://bun.sh/) – Used for its performance and built-in tooling (testing, package management).
+- **API Framework**: [ElysiaJS](https://elysiajs.com/) – High-performance framework with full TypeScript support and validation via TypeBox.
+- **Database**: PostgreSQL.
+- **ORM**: [Prisma](https://www.prisma.io/) – Manages the database schema and migrations.
+- **Authentication**: [Better Auth](https://better-auth.dev/) – Handles local authentication (Email/Password) and OAuth2, with persistence via Prisma Adapter.
+- **API Documentation**: `@elysiajs/openapi` plugin to generate Swagger-compliant documentation.
+- **Testing**: `bun:test` for unit and integration tests.
 
-## Responsabilités Principales
+## Main Responsibilities
 
-1.  **API Gateway**: Expose les routes pour les clients Web et Mobile via `src/app.ts`.
-2.  **Service Registry**: Centralise la logique des intégrations (GitHub, Gmail, Spotify, Trello, Discord).
-3.  **Moteur d'Automatisation (HookManager)**: Un processus en arrière-plan qui vérifie périodiquement si les actions des utilisateurs sont déclenchées.
-4.  **Gestion des Connexions**: Stocke et rafraîchit les tokens d'accès (OAuth2) ou les clés API des services tiers.
-5.  **Interpolation de Données**: Permet de passer des données dynamiques de l'Action vers la Réaction (ex: `{{authorName}}` dans un message Discord).
+1. **API Gateway**: Exposes routes for Web and Mobile clients via `src/app.ts`.
+2. **Service Registry**: Centralizes integration logic (GitHub, Gmail, Spotify, Trello, Discord).
+3. **Automation Engine (HookManager)**: A background process that periodically checks if user actions are triggered.
+4. **Connection Management**: Stores and refreshes access tokens (OAuth2) or API keys for third-party services.
+5. **Data Interpolation**: Allows passing dynamic data from an Action to a Reaction (e.g., `{{authorName}}` in a Discord message).

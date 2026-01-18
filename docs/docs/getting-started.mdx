@@ -1,52 +1,52 @@
 ---
-title: Installation & Démarrage
+title: Installation & Startup
 sidebar_position: 2
 ---
 
-# Installation et Démarrage
+# Installation and Startup
 
-Cette section explique comment installer, configurer et lancer le projet AREA complet (Monorepo).
+This section explains how to install, configure, and run the complete AREA project (Monorepo).
 
-## Prérequis
+## Prerequisites
 
 - **Runtime**: [Bun](https://bun.sh/) (v1.1+)
 - **Containerization**: Docker & Docker Compose
-- **Base de données**: PostgreSQL (si lancé hors Docker)
+- **Database**: PostgreSQL (if run outside Docker)
 
 ## Installation
 
-Le projet est structuré comme un **Bun Workspaces** monorepo. Installez les dépendances à la racine :
+The project is structured as a **Bun Workspaces** monorepo. Install the dependencies from the root:
 
 ```bash
-# À la racine du projet (main-area/)
+# At the project root (main-area/)
 bun install
 ```
 
-Cette commande installera les dépendances pour le backend, le web, le mobile et les paquets partagés.
+This command will install dependencies for the backend, web, mobile, and shared packages.
 
 ## Configuration (.env)
 
-Créez un fichier `.env` à la racine du monorepo (`main-area/.env`). Voici les variables requises basées sur la configuration du backend :
+Create a `.env` file at the root of the monorepo (main-area/.env). Below are the required variables based on the backend configuration:
 
 ```ini
-# --- Base de Données ---
+# --- Database ---
 # Format: postgresql://user:password@host:port/db_name
 DATABASE_URL="postgresql://user:password@localhost:5432/area_db"
 
-# --- URLs de l'Application ---
-# Utilisé pour les callbacks OAuth et les CORS
+# --- Application URLs ---
+# Used for OAuth callbacks and CORS
 PUBLIC_BACKEND_API_URL="http://localhost:8080"
 FRONTEND_URL="http://localhost:8081"
 
-# --- Authentification (Better Auth) ---
-# Obtenez ces clés via les consoles développeurs respectives
+# --- Authentication (Better Auth) ---
+# Obtain these keys via the respective developer consoles
 GITHUB_CLIENT_ID="your_github_client_id"
 GITHUB_CLIENT_SECRET="your_github_client_secret"
 
 GOOGLE_CLIENT_ID="your_google_client_id"
 GOOGLE_CLIENT_SECRET="your_google_client_secret"
 
-# --- Services Tiers (AREA) ---
+# --- Third-Party Services (AREA) ---
 # Gmail (OAuth2 Client)
 GMAIL_CLIENT_ID="your_gmail_client_id"
 GMAIL_CLIENT_SECRET="your_gmail_client_secret"
@@ -56,33 +56,33 @@ SPOTIFY_CLIENT_ID="your_spotify_client_id"
 SPOTIFY_CLIENT_SECRET="your_spotify_client_secret"
 
 # Trello (API Key)
-# Les utilisateurs fourniront leur propre token via l'interface,
-# mais l'API Key globale de l'application est requise ici.
+# Users will provide their own token via the interface,
+# but the global application API Key is required here.
 TRELLO_API_KEY="your_trello_api_key"
 ```
 
-## Lancement
+## Startup
 
-### 1. Base de Données
+### 1. Data Base
 
-Avant de lancer le serveur, assurez-vous que le schéma de la base de données est à jour via Prisma :
+Before launching the server, ensure the database schema is up to date via Prisma:
 
 ```bash
-# Génère le client Prisma et pousse le schéma vers la DB
+# Generate a Prisma client and push the schema to the DB
 bun db:push
 ```
 
-### 2. Mode Développement
+### 2. Development Mode
 
-Vous pouvez lancer tous les services en parallèle ou individuellement.
+You can launch all services in parallel or individually.
 
-**Lancement global :**
+**Global Launch :**
 
 ```bash
 bun dev
 ```
 
-**Lancement individuel :**
+**Individual Launch :**
 
 ```bash
 # Backend (Port 8080)
@@ -95,9 +95,9 @@ bun run --filter '@area/web' dev
 bun run --filter 'mobile' start
 ```
 
-### 3. Tests
+### 3. Testing
 
-Pour exécuter la suite de tests (Unitaires et Intégration) :
+To run the test suite (Unit and Integration):
 
 ```bash
 bun test

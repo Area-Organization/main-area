@@ -11,14 +11,30 @@
     type Edge
   } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
-  import ActionNode from "../ActionNode.svelte";
-  import ReactionNode from "../ReactionNode.svelte";
+  import ActionNode from "$lib/components/ActionNode.svelte";
+  import ReactionNode from "$lib/components/ReactionNode.svelte";
   import { setContext } from "svelte";
-  import type { DndItem } from "@/types";
+  import type { DndItem, ReactionNodeData } from "$lib/types";
   import { toast } from "svelte-sonner";
-  import type { Snippet } from 'svelte';
+  import type { Snippet } from "svelte";
+  import Button from "../ui/button/button.svelte";
+  import { getConnectionId, validateArea } from "@/area-utils";
+  import { getAreaPreview } from "@/api/getPreview";
+  import type { ServiceDTO, UserConnectionSchemaType } from "@area/types";
 
-  let { children, nodes = $bindable(), edges = $bindable() }: { children: Snippet; [key: string]: any } = $props();
+  let {
+    children,
+    nodes = $bindable(),
+    edges = $bindable(),
+    services,
+    connections
+  }: {
+    children: Snippet;
+    nodes: Node[];
+    [key: string]: any;
+    services: ServiceDTO[];
+    connections: UserConnectionSchemaType[];
+  } = $props();
 
   const { screenToFlowPosition } = useSvelteFlow();
 
@@ -37,6 +53,45 @@
   let isDeleting = false;
 
   let actionNb = $derived(nodes.filter((n: Node) => n.type === "action").length);
+
+  async function previewArea() {
+    const reactionNodes = nodes.filter((n) => n.type == "reaction");
+
+    const mappedReactions = [];
+    for (const rNode of reactionNodes) {
+      const rData = rNode.data as ReactionNodeData;
+      const rServiceName = services.find((s) => s.reactions.find((r) => r.name === rData.info.name))?.name;
+
+      if (!rServiceName) {
+        toast.error(`Could not identify service for reaction: ${rData.info.name}`);
+        return;
+      }
+
+      const rConnectionId = getConnectionId(rServiceName, connections);
+      if (!rConnectionId) {
+        toast.error(`No connection for ${rServiceName}.`);
+        return;
+      }
+
+      mappedReactions.push({
+        serviceName: rServiceName,
+        reactionName: rData.info.name,
+        params: rData.paramValues ?? {},
+        connectionId: rConnectionId
+      });
+    }
+
+    try {
+      await getAreaPreview(mappedReactions);
+      toast.success("Area previewed!");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
+    }
+  }
 
   function handleDragOver(event: DragEvent) {
     mouseCoords = { clientX: event.clientX, clientY: event.clientY };
@@ -70,7 +125,7 @@
       type: draggedItem.type,
       position,
       data: {
-        label: `node`,
+        label: draggedItem.type,
         info: draggedItem.info
       },
       origin: [0.5, 0.0]
@@ -81,6 +136,13 @@
 </script>
 
 <div class="rounded-2xl overflow-hidden relative h-full w-full">
+  <Button
+    class="absolute top-2 left-1/2 -translate-x-1/2 z-10 text-card! scale-75 text-xl"
+    disabled={!validateArea(nodes, edges)}
+    onclick={previewArea}
+  >
+    Preview Area
+  </Button>
   <div
     role="button"
     tabindex="0"

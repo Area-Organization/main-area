@@ -5,9 +5,9 @@ import { interpolate } from "../utils/interpolator"
 
 class HookManager {
   private intervalId: Timer | null = null
-  private checkIntervalMs: number = 60000
+  private checkIntervalMs: number = 5000
 
-  start(intervalMs: number = 60000) {
+  start(intervalMs: number = 5000) {
     if (this.intervalId) {
       console.log("Hook manager already running")
       return
@@ -34,7 +34,7 @@ class HookManager {
         where: { enabled: true },
         include: {
           action: true,
-          reaction: true,
+          reactions: true,
           user: true
         }
       })
@@ -52,18 +52,16 @@ class HookManager {
   }
 
   private async checkArea(area: any) {
-    if (!area.action || !area.reaction) {
+    if (!area.action || !area.reactions || area.reactions.length === 0) {
       return
     }
     const actionService = serviceRegistry.get(area.action.serviceName)
-    const reactionService = serviceRegistry.get(area.reaction.serviceName)
-    if (!actionService || !reactionService) {
+    if (!actionService) {
       console.error(`Service not found for AREA ${area.id}`)
       return
     }
     const action = actionService.actions.find((a) => a.name === area.action.actionName)
-    const reaction = reactionService.reactions.find((r) => r.name === area.reaction.reactionName)
-    if (!action || !reaction) {
+    if (!action) {
       console.error(`Action or reaction not found for AREA ${area.id}`)
       return
     }
@@ -74,13 +72,7 @@ class HookManager {
       console.error(`Action connection not found for AREA ${area.id}`)
       return
     }
-    const reactionConnection = await prisma.userConnection.findUnique({
-      where: { id: area.reaction.connectionId }
-    })
-    if (!reactionConnection) {
-      console.error(`Reaction connection not found for AREA ${area.id}`)
-      return
-    }
+
     const storedParams = area.action.params as any
     const { metadata: storedMetadata, ...actionParams } = storedParams
 
@@ -111,32 +103,53 @@ class HookManager {
 
     if (triggered) {
       console.log(`Action triggered for AREA ${area.id}: ${area.name}`)
-      const reactionContext: IContext = {
-        userId: area.userId,
-        tokens: {
-          accessToken: reactionConnection.accessToken || undefined,
-          refreshToken: reactionConnection.refreshToken || undefined,
-          expiresAt: reactionConnection.expiresAt?.getTime()
-        },
-        actionData: actionContext.actionData,
-        metadata: {}
-      }
-      try {
-        const reactionParamsRaw = area.reaction.params as Record<string, any>
-        const processedParams = interpolate(reactionParamsRaw, actionContext.actionData || {})
 
-        await reaction.execute(processedParams, reactionContext)
+      await prisma.area.update({
+        where: { id: area.id },
+        data: {
+          lastTriggered: new Date(),
+          triggerCount: { increment: 1 }
+        }
+      })
 
-        await prisma.area.update({
-          where: { id: area.id },
-          data: {
-            lastTriggered: new Date(),
-            triggerCount: { increment: 1 }
+      for (const reactionItem of area.reactions) {
+        try {
+          const reactionService = serviceRegistry.get(reactionItem.serviceName)
+          if (!reactionService) {
+            console.error(`Service not found for Reaction ${reactionItem.id}`)
+            continue
           }
-        })
-        console.log(`Reaction executed for AREA ${area.id}`)
-      } catch (error) {
-        console.error(`Error executing reaction for AREA ${area.id}:`, error)
+          const reaction = reactionService.reactions.find((r) => r.name === reactionItem.reactionName)
+          if (!reaction) {
+            console.error(`Reaction not found for Reaction ${reactionItem.id}`)
+            continue
+          }
+          const reactionConnection = await prisma.userConnection.findUnique({
+            where: { id: reactionItem.connectionId }
+          })
+          if (!reactionConnection) {
+            console.error(`Reaction connection not found for Reaction ${reactionItem.id}`)
+            continue
+          }
+
+          const reactionContext: IContext = {
+            userId: area.userId,
+            tokens: {
+              accessToken: reactionConnection.accessToken || undefined,
+              refreshToken: reactionConnection.refreshToken || undefined,
+              expiresAt: reactionConnection.expiresAt?.getTime()
+            },
+            actionData: actionContext.actionData,
+            metadata: {}
+          }
+          const reactionParamsRaw = reactionItem.params as Record<string, any>
+          const processedParams = interpolate(reactionParamsRaw, actionContext.actionData || {})
+
+          await reaction.execute(processedParams, reactionContext)
+          console.log(`Reaction executed for AREA ${area.id} (${reactionItem.serviceName})`)
+        } catch (error) {
+          console.error(`Error executing reaction for AREA ${area.id}:`, error)
+        }
       }
     }
   }

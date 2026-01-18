@@ -4,8 +4,10 @@ import RegisterScreen from "@/app/(auth)/register";
 
 // Mocks
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
+
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ replace: mockReplace })
+  useRouter: () => ({ replace: mockReplace, push: mockPush })
 }));
 
 const mockSignUpEmail = jest.fn();
@@ -15,13 +17,6 @@ jest.mock("@/lib/auth", () => ({
       email: (...args: any[]) => mockSignUpEmail(...args)
     }
   }
-}));
-
-const mockCtxSignIn = jest.fn();
-jest.mock("@/ctx", () => ({
-  useSession: () => ({
-    signIn: mockCtxSignIn
-  })
 }));
 
 describe("Screen: Register", () => {
@@ -38,7 +33,7 @@ describe("Screen: Register", () => {
     expect(getByText("Name is required")).toBeTruthy();
   });
 
-  it("calls authClient and navigates on successful registration", async () => {
+  it("calls authClient and navigates to verify-otp on successful registration", async () => {
     mockSignUpEmail.mockResolvedValue({ error: null });
 
     const { getByPlaceholderText, getByText } = render(<RegisterScreen />);
@@ -56,8 +51,10 @@ describe("Screen: Register", () => {
       });
     });
 
-    expect(mockCtxSignIn).toHaveBeenCalled();
-    expect(mockReplace).toHaveBeenCalledWith("/(tabs)");
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/(auth)/verify-otp",
+      params: { email: "john@test.com" }
+    });
   });
 
   it("displays backend error message on failure", async () => {
@@ -76,6 +73,7 @@ describe("Screen: Register", () => {
       expect(getByText("Email already in use")).toBeTruthy();
     });
 
+    expect(mockPush).not.toHaveBeenCalled();
     expect(mockReplace).not.toHaveBeenCalled();
   });
 });

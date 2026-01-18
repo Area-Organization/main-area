@@ -2,7 +2,7 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import CreateAreaWizard from "@/app/(tabs)/create";
 
-// Mock Services Hook
+// Mock Data
 const mockServices = [
   {
     name: "github",
@@ -28,21 +28,22 @@ const mockServices = [
   }
 ];
 
-// Mock Connections
 const mockConnections = [
   { id: "conn_1", serviceName: "github" },
   { id: "conn_2", serviceName: "discord" }
 ];
 
-jest.mock("@/hooks/use-services", () => ({
-  useServices: () => ({
+// Mock Data Context
+jest.mock("@/ctx-data", () => ({
+  useData: () => ({
     services: mockServices,
-    loading: false,
-    refresh: jest.fn()
+    connections: mockConnections,
+    isLoading: false,
+    refreshData: jest.fn()
   })
 }));
 
-// Mock API Client
+// Mock Session Context
 const mockPostArea = jest.fn();
 jest.mock("@/ctx", () => ({
   useSession: () => ({
@@ -65,7 +66,8 @@ jest.mock("expo-router", () => {
   const { useEffect } = require("react");
   return {
     useRouter: () => ({ navigate: mockNavigate }),
-    useFocusEffect: (cb: any) => useEffect(cb, [])
+    useFocusEffect: (cb: any) => useEffect(cb, []),
+    useSegments: () => []
   };
 });
 
@@ -90,17 +92,28 @@ describe("Screen: Create Area Wizard", () => {
 
     await waitFor(() => expect(getByPlaceholderText("Enter Branch")).toBeTruthy());
     fireEvent.changeText(getByPlaceholderText("Enter Branch"), "main");
-    fireEvent.press(getByText("Next Step"));
+    fireEvent.press(getByText("Continue"));
 
     // --- STEP 2: REACTION ---
+    // 1. We are now on the Reaction List screen. Click "Add Reaction".
+    await waitFor(() => expect(getByText("Add Reaction")).toBeTruthy());
+    fireEvent.press(getByText("Add Reaction"));
+
+    // 2. Select Service
     await waitFor(() => expect(getByText("discord")).toBeTruthy());
     fireEvent.press(getByText("discord"));
 
+    // 3. Select Event
     await waitFor(() => expect(getByText("message")).toBeTruthy());
     fireEvent.press(getByText("message"));
 
+    // 4. Configure Reaction
     await waitFor(() => expect(getByPlaceholderText("Enter Content")).toBeTruthy());
     fireEvent.changeText(getByPlaceholderText("Enter Content"), "Hello World");
+    fireEvent.press(getByText("Continue"));
+
+    // 5. Back on List. Click "Next Step".
+    await waitFor(() => expect(getByText("Next Step")).toBeTruthy());
     fireEvent.press(getByText("Next Step"));
 
     // --- STEP 3: REVIEW & CONNECT ---
@@ -120,12 +133,14 @@ describe("Screen: Create Area Wizard", () => {
           params: { branch: "main" },
           connectionId: "conn_1"
         },
-        reaction: {
-          serviceName: "discord",
-          reactionName: "message",
-          params: { content: "Hello World" },
-          connectionId: "conn_2"
-        }
+        reactions: [
+          {
+            serviceName: "discord",
+            reactionName: "message",
+            params: { content: "Hello World" },
+            connectionId: "conn_2"
+          }
+        ]
       });
     });
 

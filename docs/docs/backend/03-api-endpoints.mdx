@@ -4,17 +4,17 @@ title: API Endpoints
 
 # API Endpoints
 
-L'API est documentée via Swagger/OpenAPI.
+The API is documented via Swagger/OpenAPI.
 
 ### Discovery (`/about.json`)
 
 - **`GET /about.json`**
-  - Retourne la liste des services supportés, leurs actions/réactions, et les paramètres requis (type, description).
-  - Utilisé par les clients pour générer dynamiquement les formulaires de création d'AREA.
+  - Returns the list of supported services, their actions/reactions, and required parameters (type, description).
+  - Used by clients to dynamically generate AREA creation forms.
 
-### Authentification (`/api/auth/*`)
+### Authentication (`/api/auth/*`)
 
-Géré par **Better Auth**. Routes principales :
+Managed by **Better Auth**. Main routes:
 
 - `POST /api/auth/sign-up/email`
 - `POST /api/auth/sign-in/email`
@@ -22,21 +22,21 @@ Géré par **Better Auth**. Routes principales :
 - `POST /api/auth/sign-out`
 - `GET /api/auth/session`
 
-### Gestion des Connexions (`/api/connections`)
+### Connection Management (`/api/connections`)
 
-- **`GET /`**: Liste les services connectés par l'utilisateur.
-- **`POST /`**: Connecte un service via Clé API (ex: Trello, Discord Bot).
-- **`DELETE /:id`**: Supprime une connexion.
-- **`GET /oauth2/:serviceName/auth-url`**: Démarre le flux OAuth2.
-- **`GET /oauth2/callback`**: Callback standard pour l'échange de code OAuth2.
+- **`GET /`**: Lists the services connected by the user.
+- **`POST /`**: Connects a service via API Key (e.g., Trello, Discord Bot).
+- **`DELETE /:id`**: Deletes a connection.
+- **`GET /oauth2/:serviceName/auth-url`**: Starts the OAuth2 flow.
+- **`GET /oauth2/callback`**: Standard callback for exchanging OAuth2 code.
 
-### Gestion des AREAs (`/api/areas`)
+### AREA Management (`/api/areas`)
 
-- **`GET /`**: Liste les AREAs (pagination, recherche).
-- **`POST /`**: Crée une nouvelle AREA.
-  - _Validation_: Vérifie que l'utilisateur est connecté aux services requis et exécute la méthode `setup` de l'action si nécessaire (ex: vérifier l'existence d'un repo).
-- **`GET /:id`**: Détails d'une AREA.
-- **`PATCH /:id`**: Mise à jour.
-- **`DELETE /:id`**: Suppression.
-- **`POST /:id/toggle`**: Active/Désactive une AREA sans la supprimer.
-- **`GET /stats/overview`**: Statistiques globales (nombre d'exécutions, AREAs actives).
+- **`GET /`**: Lists AREAs (supports pagination and search).
+- **`POST /`**: Creates a new AREA.
+  - _Validation_: Ensures the user is connected to the required services and executes the action's `setup` method if needed (e.g., check if a repository exists).
+- **`GET /:id`**: Retrieves details of an AREA.
+- **`PATCH /:id`**: Updates an AREA.
+- **`DELETE /:id`**: Deletes an AREA.
+- **`POST /:id/toggle`**: Activates/Deactivates an AREA without deleting it.
+- **`GET /stats/overview`**: Global statistics (number of executions, active AREAs).

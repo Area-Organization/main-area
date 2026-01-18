@@ -1,0 +1,36 @@
+---
+title: Architecture & Data Schema
+---
+
+# Architecture & Data Schema
+
+## Folder Structure
+
+The frontend follows a modular architecture:
+
+```text
+apps/web/
+├── src/
+│   ├── lib/
+│   │   ├── api/            # Sub-modules for specific API calls
+│   │   ├── assets/         # Static assets (images, SVGs, service icons)
+│   │   ├── components/     # Reusable UI components (Buttons, AREA Cards, Navbar)
+│   │   ├── schemas/        # TypeBox validation schemas (Login, Register, AREA creation)
+│   │   ├── api.ts          # Centralized fetch client configuration
+│   │   ├── area-utils.ts   # Logic for manipulating Action/Reaction data
+│   │   ├── auth-client.ts  # Better Auth client configuration (client-side)
+│   │   ├── index.ts        # Entry point for lib exports
+│   │   ├── types.ts        # Global TypeScript interfaces and types
+│   │   └── utils.ts        # Utility functions (date formatting, parsing)
+│   ├── routes/             # File-based routing system
+│   │   ├── create/         # Page for creating a new AREA
+│   │   ├── login/          # Login page
+│   │   ├── modify/         # Page for editing an existing AREA
+│   │   ├── profile/        # Account management and connected services
+│   │   └── register/       # Registration page
+│   ├── app.d.ts            # Global type definitions for the framework
+│   ├── app.html            # Base HTML template for the application
+│   └── plugins/
+├── static/
+└── tests/                  # Unit and integration tests
+```

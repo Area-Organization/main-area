@@ -1,4 +1,4 @@
-import { setApiUrl, getApiUrl } from "@/lib/url-store";
+import { setApiUrl, getApiUrl, initApiUrl, onUrlChange } from "@/lib/url-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 describe("Lib: URL Store", () => {
@@ -20,5 +20,38 @@ describe("Lib: URL Store", () => {
   it("preserves https if present", async () => {
     await setApiUrl("https://secure.api.com");
     expect(getApiUrl()).toBe("https://secure.api.com");
+  });
+
+  it("initializes from storage", async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValue("http://stored-url.com");
+
+    const url = await initApiUrl();
+
+    expect(url).toBe("http://stored-url.com");
+    expect(getApiUrl()).toBe("http://stored-url.com");
+  });
+
+  it("handles storage errors gracefully during init", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValue(new Error("Storage fail"));
+
+    const url = await initApiUrl();
+
+    expect(url).toBeDefined();
+
+    consoleSpy.mockRestore();
+  });
+
+  it("notifies listeners on change", async () => {
+    const listener = jest.fn();
+    const unsubscribe = onUrlChange(listener);
+
+    await setApiUrl("http://new-url.com");
+
+    expect(listener).toHaveBeenCalledWith("http://new-url.com");
+
+    unsubscribe();
+    await setApiUrl("http://another-url.com");
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 });

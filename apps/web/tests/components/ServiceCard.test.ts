@@ -33,6 +33,17 @@ describe('ServiceCard', () => {
     });
   });
 
+  it('shows as disconnected (Switch unchecked) when no connection exists', async () => {
+    const connections: any[] = [];
+    render(ServiceCard, { service: mockService, connections });
+
+    await waitFor(() => {
+      const switchEl = screen.getByRole('switch');
+      expect(switchEl).toBeInTheDocument();
+      expect(switchEl).not.toBeChecked();
+    });
+  });
+
   it('renders auth link when not connected', async () => {
     render(ServiceCard, { service: mockService, connections: [] });
 

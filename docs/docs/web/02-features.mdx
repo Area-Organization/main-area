@@ -1,35 +1,35 @@
 ---
-title: Fonctionnalités et Flux
+title: Features & Flows
 ---
 
-# Fonctionnalités
+# Features
 
-### Éditeur de Flux (Drag & Drop)
+### Flow Editor (Drag & Drop)
 
-Contrairement à une approche formulaire classique, la page `/create` implémente un éditeur visuel complet :
+Unlike a traditional form-based approach, the `/create` page implements a full visual editor:
 
-- **Canvas Infini**: Basé sur Svelte Flow, l'utilisateur dispose d'un plan de travail.
-- **Sidebar**: Liste les services disponibles (Actions à gauche, Réactions à droite).
-- **Drag & Drop**: L'utilisateur glisse (`@thisux/sveltednd`) une Action et une Réaction sur le canvas.
-- **Configuration des Nœuds**:
-  - Les nœuds (`ActionNode.svelte`, `ReactionNode.svelte`) sont interactifs.
-  - Ils affichent des champs de formulaire pour les paramètres requis.
-  - Ils valident les données en temps réel.
-- **Liaison**: L'utilisateur connecte visuellement le nœud Action au nœud Réaction pour valider le flux.
-- **Variables**: Lorsqu'une Action est connectée, le nœud Réaction affiche les variables disponibles (`{{...}}`) pour faciliter le copier-coller.
+- **Infinite Canvas**: Based on Svelte Flow, the user is provided with a workspace.
+- **Sidebar**: Lists available services (Actions on the left, Reactions on the right).
+- **Drag & Drop**: The user drags (`@thisux/sveltednd`) an Action and a Reaction onto the canvas.
+- **Node Configuration**:
+  - Nodes (`ActionNode.svelte`, `ReactionNode.svelte`) are interactive.
+  - They display form fields for the required parameters.
+  - They validate data in real time.
+- **Linking**: The user visually connects the Action node to the Reaction node to validate the flow.
+- **Variables**: When an Action is connected, the Reaction node displays available variables (`{{...}}`) to make copy-pasting easier.
 
 ### Dashboard
 
-Le dashboard affiche les AREAs sous forme de grille de cartes.
+The dashboard displays AREAs as a grid of cards.
 
-- Indicateurs visuels de l'état (Actif/Inactif).
-- Détails sur le dernier déclenchement.
-- Possibilité de désactiver une AREA sans la supprimer.
+- Visual indicators of the state (Active/Inactive).
+- Details about the last trigger.
+- Ability to disable an AREA without deleting it.
 
-### Profil & Services
+### Profile & Services
 
-La page `/profile` permet de gérer les connexions aux services tiers.
+The `/profile` page allows users to manage connections to third-party services.
 
-- Affiche l'état de connexion de chaque service (switch on/off).
-- Gère la redirection OAuth2 pour connecter un nouveau service.
-- Utilise les composants `ServiceCard` et `ServiceIcon` pour une présentation unifiée.
+- Displays the connection status of each service (on/off switch).
+- Handles OAuth2 redirection to connect a new service.
+- Uses the `ServiceCard` and `ServiceIcon` components for a unified presentation.

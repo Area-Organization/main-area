@@ -1,0 +1,51 @@
+---
+title: Architecture & Data Schema
+---
+
+# Architecture & Data Schema
+
+## Folder Structure
+
+The mobile app follows a modular architecture:
+
+```text
+apps/mobile/
+├── app/                    # Navigation system (Expo Router)
+│   ├── (auth)/             # Route group for authentication (Login/Register)
+│   ├── (tabs)/             # Main tab-based navigation (Dashboard, Explore)
+│   ├── edit-area/          # Screen to edit an automation
+│   ├── _layout.tsx
+│   ├── +not-found.tsx
+│   ├── index.tsx           # Entry point
+│   ├── modal.tsx
+│   └── oauth-callback.tsx  # Captures the deep link after third-party OAuth login
+├── assets/                 # Images, fonts, and splash screen
+│   └── images/             # Service icons (Discord, GitHub, etc.)
+├── components/             # React Native components (Cards, Custom Inputs, Loaders)
+│   ├── ui/                 # User Interface components
+│   └── wizard/
+├── constants/              # Colors, API URLs, and configuration keys
+│   └── theme.tsx
+├── hooks/                  # Custom React hooks
+│   ├── use-area-wizard.ts
+│   ├── user-color-scheme.ts
+│   ├── use-color-scheme.web.ts
+│   ├── use-service.ts
+│   └── use-theme-color.ts
+├── lib/                    # Shared logic (API client)
+├── scripts/                # Utility scripts for development/build
+└── tests/                  # Unit tests (Jest) and integration tests (Testing Library)
+```
+
+## Mobile Navigation Diagram
+
+```mermaid
+graph TD
+    A[Splash Screen] --> B{Authentifié ?}
+    B -- Non --> C[Login / Register]
+    B -- Oui --> D[Tab: Dashboard]
+    D --> E[Tab: Explorer / Create]
+    D --> F[Tab: Profil & Services]
+    E --> G[Step 1: Choose Action]
+    G --> H[Step 2: Choose Reaction]
+    H --> I[Review & Save]

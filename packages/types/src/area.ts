@@ -10,7 +10,9 @@ export const AreaActionSchema = t.Object({
   serviceName: t.String(),
   actionName: t.String(),
   params: ActionParams,
-  connectionId: t.String()
+  connectionId: t.String(),
+  posX: t.Number(),
+  posY: t.Number()
 });
 
 export const AreaReactionSchema = t.Object({
@@ -18,7 +20,17 @@ export const AreaReactionSchema = t.Object({
   serviceName: t.String(),
   reactionName: t.String(),
   params: ReactionParams,
-  connectionId: t.String()
+  connectionId: t.String(),
+  posX: t.Number(),
+  posY: t.Number()
+});
+
+export const TestReactionBody = t.Object({
+  serviceName: t.String(),
+  reactionName: t.String(),
+  params: t.Record(t.String(), t.Any()),
+  connectionId: t.String(),
+  mockData: t.Optional(t.Record(t.String(), t.Any()))
 });
 
 export const AreaSchema = t.Object({
@@ -31,7 +43,7 @@ export const AreaSchema = t.Object({
   createdAt: t.String(),
   updatedAt: t.String(),
   action: t.Optional(AreaActionSchema),
-  reaction: t.Optional(AreaReactionSchema)
+  reactions: t.Array(AreaReactionSchema)
 });
 
 export const CreateAreaBody = t.Object({
@@ -41,14 +53,20 @@ export const CreateAreaBody = t.Object({
     serviceName: t.String(),
     actionName: t.String(),
     params: ActionParams,
-    connectionId: t.String()
+    connectionId: t.String(),
+    posX: t.Optional(t.Number()),
+    posY: t.Optional(t.Number())
   }),
-  reaction: t.Object({
-    serviceName: t.String(),
-    reactionName: t.String(),
-    params: ReactionParams,
-    connectionId: t.String()
-  })
+  reactions: t.Array(
+    t.Object({
+      serviceName: t.String(),
+      reactionName: t.String(),
+      params: ReactionParams,
+      connectionId: t.String(),
+      posX: t.Optional(t.Number()),
+      posY: t.Optional(t.Number())
+    })
+  )
 });
 
 export const UpdateAreaBody = t.Object({
@@ -60,16 +78,22 @@ export const UpdateAreaBody = t.Object({
       serviceName: t.String(),
       actionName: t.String(),
       params: ActionParams,
-      connectionId: t.String()
+      connectionId: t.String(),
+      posX: t.Optional(t.Number()),
+      posY: t.Optional(t.Number())
     })
   ),
-  reaction: t.Optional(
-    t.Object({
-      serviceName: t.String(),
-      reactionName: t.String(),
-      params: ReactionParams,
-      connectionId: t.String()
-    })
+  reactions: t.Optional(
+    t.Array(
+      t.Object({
+        serviceName: t.String(),
+        reactionName: t.String(),
+        params: ReactionParams,
+        connectionId: t.String(),
+        posX: t.Optional(t.Number()),
+        posY: t.Optional(t.Number())
+      })
+    )
   )
 });
 
@@ -124,6 +148,7 @@ export const AreaErrorResponse = t.Object({
 export type AreaStatusType = Static<typeof AreaStatus>;
 export type AreaActionType = Static<typeof AreaActionSchema>;
 export type AreaReactionType = Static<typeof AreaReactionSchema>;
+export type TestReactionBodyType = Static<typeof TestReactionBody>;
 export type AreaType = Static<typeof AreaSchema>;
 export type CreateAreaBodyType = Static<typeof CreateAreaBody>;
 export type UpdateAreaType = Static<typeof UpdateAreaBody>;

@@ -3,35 +3,149 @@ title: Introduction
 sidebar_position: 1
 ---
 
-# Bienvenue sur la Documentation Technique du Projet AREA
+# Welcome to the AREA Project Technical Documentation
 
-Ce site contient la documentation technique complète pour le projet **AREA (Action-REAction)**, une plateforme d'automatisation inspirée par des services comme IFTTT et Zapier.
+This site contains the complete technical documentation for the **AREA (Action-REAction)** project, an automation platform inspired by services such as IFTTT and Zapier.
 
-## Objectif du Projet
+## Project Goal
 
-L'objectif est de permettre aux utilisateurs de connecter différents services (GitHub, Gmail, Spotify, etc.) en créant des **AREA**s. Chaque AREA est composée de :
+The objective is to allow users to connect different services (GitHub, Gmail, Spotify, etc.) by creating **AREA**s. Each AREA consists of:
 
-- **Une Action :** Un déclencheur provenant d'un service (ex: "Un nouveau ticket Jira est créé" ou "Une nouvelle musique est likée sur Spotify").
-- **Une Réaction :** Une conséquence exécutée sur un autre service (ex: "Envoyer un message sur Discord").
+- **An Action:** A trigger originating from a service (e.g., "A new Jira ticket is created" or "A new song is liked on Spotify").
+- **A Reaction:** A consequence executed on another service (e.g., "Send a message on Discord").
 
-## Architecture Globale
+## Global Architecture
 
-Le projet est structuré en **monorepo** géré par **Bun Workspaces** et se divise en quatre composants principaux :
+The project is structured as a **monorepo** managed by **Bun Workspaces** and is divided into four main components:
 
-1.  **Serveur Backend (`apps/backend`)**:
-    - API REST développée avec **ElysiaJS**.
-    - Gère la logique métier, l'authentification, les connexions aux services et le moteur d'exécution (Polling).
-    - Base de données **PostgreSQL** gérée via **Prisma**.
+1.  **Backend Server (`apps/backend`)**:
+    - REST API developed with **ElysiaJS**.
+    - Handles business logic, authentication, service connections, and the execution engine (Polling).
+    - **PostgreSQL** database managed via **Prisma**.
 
-2.  **Client Web (`apps/web`)**:
-    - Interface utilisateur développée avec **SvelteKit** et **TailwindCSS**.
-    - Dispose d'un éditeur de flux visuel (Node Editor) pour créer des automatisations.
+2.  **Web Client (`apps/web`)**:
+    - User interface developed with **SvelteKit** and **TailwindCSS**.
+    - Features a visual flow editor (Node Editor) to create automations.
 
-3.  **Client Mobile (`apps/mobile`)**:
-    - Application native développée avec **React Native (Expo)** et **NativeWind**.
-    - Propose un assistant de création interactif et animé.
+3.  **Mobile Client (`apps/mobile`)**:
+    - Native application developed with **React Native (Expo)** and **NativeWind**.
+    - Offers an interactive and animated creation assistant.
 
-4.  **Package Partagé (`packages/types`)**:
-    - Contient les définitions de types TypeScript partagées (DTOs, Schémas TypeBox) entre le backend et les clients pour garantir la cohérence des données.
+4.  **Shared Package (`packages/types`)**:
+    - Contains shared TypeScript type definitions (DTOs, TypeBox Schemas) between the backend and clients to ensure data consistency.
 
-Cette documentation est divisée en sections correspondant à chaque composant pour faciliter la navigation et la compréhension.
+## Class Diagram
+```mermaid
+classDiagram
+    class Area {
+        +String id
+        +String name
+        +Boolean enabled
+        +Object actionParams
+        +User owner
+    }
+    class ServiceRegistry {
+        <<Singleton>>
+        -Map services
+        +getService(name)
+        +getAllServices()
+    }
+    class IService {
+        <<Interface>>
+        +String name
+        +String icon
+        +IAction[] actions
+        +IReaction[] reactions
+    }
+    class IAction {
+        <<Interface>>
+        +String name
+        +checkTrigger(params, userData)
+    }
+    class IReaction {
+        <<Interface>>
+        +String name
+        +execute(params, userData)
+    }
+    class DiscordService {
+        +checkNewMessage()
+        +sendMessage()
+    }
+    Area "1" --> "1" IAction : triggers
+    Area "1" --> "1..*" IReaction : executes
+    ServiceRegistry "1" o-- "0..*" IService : manages
+    IService <|.. DiscordService : implements
+    IService "1" *-- "0..*" IAction
+    IService "1" *-- "0..*" IReaction
+```
+
+## Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant Manager as Hooks/Manager.ts
+    participant DB as Prisma/Database
+    participant Action as Service (Action)
+    participant Reaction as Service (Reaction)
+
+    loop Every X seconds (Polling)
+        Manager->>DB: Get all active AREAs
+        DB-->>Manager: List of AREAs
+        loop for each AREA
+            Manager->>Action: checkTrigger(params)
+            Action-->>Manager: triggerMet (boolean + data)
+            alt if triggerMet == true
+                loop for each Reaction in AREA
+                    Manager->>Reaction: execute(params, dataFromAction)
+                    Reaction-->>Manager: Success/Failure
+                end
+            end
+        end
+    end
+```
+
+## Sequence Diagram (OAuth)
+```mermaid
+sequenceDiagram
+    actor User
+    participant App as Frontend (Web/Mobile)
+    participant API as Backend (Elysia)
+    participant Auth as Better Auth / Provider (OAuth)
+
+    User->>App: Click "Connect to Spotify"
+    App->>API: Get Authorization URL
+    API-->>App: Return Redirect URL
+    App->>Auth: Redirect User to Spotify Login
+    Auth-->>User: Ask for permissions
+    User->>Auth: Authorize
+    Auth-->>App: Redirect with Code (Callback)
+    App->>API: Send Code to Backend
+    API->>Auth: Exchange Code for AccessToken
+    Auth-->>API: AccessToken + RefreshToken
+    API->>DB: Store Tokens for User
+    API-->>App: Success Connection
+```
+
+## Area Creation Diagram
+```mermaid
+sequenceDiagram
+    actor User
+    participant App as Frontend (Web/Mobile)
+    participant Schema as TypeBox Schema
+    participant API as Backend (Elysia)
+    participant DB as Prisma
+    User->>App: Select Action & Reactions
+    App->>Schema: Validate data (createAreaSchema)
+    alt Data is Valid
+        App->>API: POST /areas (payload)
+        API->>API: Middleware (Verify Session)
+        API->>DB: Create Area record
+        DB-->>API: Area Created
+        API-->>App: 201 Created
+        App-->>User: Display Success
+    else Data Invalid
+        Schema-->>App: Return Validation Errors
+        App-->>User: Show error messages
+    end
+```
+
+This documentation is divided into sections corresponding to each component to facilitate navigation and understanding.

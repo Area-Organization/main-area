@@ -1,37 +1,37 @@
 ---
-title: Introduction au Client Web
+title: Web Client Introduction
 ---
 
-# Introduction au Client Web
+# Web Client Introduction
 
-Le client web offre une interface riche pour la gestion avancée des AREAs, notamment grâce à un éditeur de nœuds (Node Editor) pour la création de flux.
+The web client provides a rich interface for advanced AREA management, notably through a node-based editor (Node Editor) for creating flows.
 
-## Technologies Clés
+## Key Technologies
 
 - **Framework**: SvelteKit (SSR + SPA).
-- **Core Library**: **Svelte 5** (Utilisation de la syntaxe "Runes" pour la réactivité, ex: `$state`, `$derived`).
-- **Langage**: TypeScript.
-- **Styling**: **TailwindCSS v4** + **shadcn-svelte** (Bits UI) pour les composants d'interface.
-- **Gestion d'État/Formulaires**: `sveltekit-superforms` avec validation via schémas TypeBox (`@area/types`).
-- **Éditeur de Flux**: **@xyflow/svelte** (Svelte Flow) pour l'éditeur visuel de type "Drag and Drop".
-- **Authentification**: Better Auth (Client Svelte).
+- **Core Library**: **Svelte 5** (using the “Runes” syntax for reactivity, e.g. `$state`, `$derived`).
+- **Language**: TypeScript.
+- **Styling**: **TailwindCSS v4** + **shadcn-svelte** (Bits UI) for UI components.
+- **State/Form Management**: `sveltekit-superforms` with validation via TypeBox schemas (`@area/types`).
+- **Flow Editor**: **@xyflow/svelte** (Svelte Flow) for a visual “Drag and Drop” editor.
+- **Authentication**: Better Auth (Svelte client).
 
 ## Structure
 
 ```text
 apps/web/src/
 ├── lib/
-│   ├── api/            # Fonctions d'appel API (wrappers autour d'Eden)
-│   ├── components/     # Composants UI (Header, ServiceCard, Forms)
-│   │   ├── area-editor/# Composants spécifiques à l'éditeur de flux
-│   │   └── ui/         # Composants shadcn-svelte
-│   ├── schemas/        # Schémas de validation (TypeBox)
-│   └── auth-client.ts  # Client Better Auth
+│   ├── api/            # API call functions (wrappers around Eden)
+│   ├── components/     # UI components (Header, ServiceCard, Forms)
+│   │   ├── area-editor/# Components specific to the flow editor
+│   │   └── ui/         # shadcn-svelte components
+│   ├── schemas/        # Validation schemas (TypeBox)
+│   └── auth-client.ts  # Better Auth client
 └── routes/
-    ├── +layout.svelte  # Layout global (Header, Toaster)
-    ├── +page.svelte    # Dashboard (Liste des AREAs)
-    ├── create/         # Page de création (Éditeur de Flux)
-    ├── login/          # Page de connexion
-    ├── profile/        # Gestion des services connectés
-    └── register/       # Page d'inscription
+    ├── +layout.svelte  # Global layout (Header, Toaster)
+    ├── +page.svelte    # Dashboard (AREA list)
+    ├── create/         # Creation page (Flow Editor)
+    ├── login/          # Login page
+    ├── profile/        # Connected services management
+    └── register/       # Registration page
 ```

@@ -17,6 +17,22 @@ vi.mock('@xyflow/svelte', async () => {
   };
 });
 
+// Mock Svelte Context - providing an edge so the node is "connected"
+vi.mock('svelte', async (importOriginal) => {
+  const actual = await importOriginal() as any;
+  return {
+    ...actual,
+    getContext: (key: string) => {
+      if (key === 'flow-edges') {
+        return {
+          value: [{ source: 'action-1', target: 'react-1' }]
+        };
+      }
+      return null;
+    }
+  };
+});
+
 // Mock Draggable
 vi.mock('@thisux/sveltednd', () => ({
   draggable: (node: HTMLElement) => ({ destroy: () => {} })
@@ -30,7 +46,8 @@ describe('ReactionNode', () => {
       params: {
         to: { type: 'string', label: 'Recipient', required: true, description: 'Email address' }
       }
-    }
+    },
+    label: 'reaction'
   };
 
   beforeEach(() => {
@@ -57,19 +74,33 @@ describe('ReactionNode', () => {
       dragHandle: undefined
     });
 
-    // Initially invalid (empty required field)
-    // We check if updateNodeData was called or if UI reflects state
-    // In your component, validation runs on effect, so we expect a call
-
     const input = screen.getByPlaceholderText('Email address');
 
-    // Simulate typing
+    // Simulate typing a value into the required field
     await fireEvent.input(input, { target: { value: 'user@example.com' } });
 
     expect(mockUpdateNodeData).toHaveBeenCalled();
-    // Verify the payload of the update contains valid: true
     expect(mockUpdateNodeData).toHaveBeenCalledWith('react-1', expect.objectContaining({
-       valid: true
+       valid: true,
+       paramValues: { to: 'user@example.com' }
+    }));
+  });
+
+  it('shows validation error for required input', async () => {
+    render(ReactionNode, {
+      data: mockData,
+      id: 'react-1',
+      type: 'reaction',
+      dragHandle: undefined
+    });
+
+    const input = screen.getByPlaceholderText('Email address');
+    await fireEvent.input(input, { target: { value: '' } });
+
+    // Expect some error message or invalid state
+    // (Adjust this to your actual UI)
+    expect(mockUpdateNodeData).toHaveBeenCalledWith('react-1', expect.objectContaining({
+      valid: false
     }));
   });
 
