@@ -1,0 +1,38 @@
+---
+title: Architecture & Schéma de Données
+---
+
+# Architecture & Schéma de Données
+
+## Structure des Dossiers
+
+Le mobile suit une architexture modulaire :
+
+```text
+apps/mobile/
+├── app/                    # Système de navigation (Expo Router)
+│   ├── (auth)/             # Groupe de routes pour l'authentification (Login/Register)
+│   ├── (tabs)/             # Navigation principale par onglets (Dashboard, Explore)
+│   ├── edit-area/          # Écran de modification d'une automatisation
+│   ├── _layout.tsx
+│   ├── +not-found.tsx
+│   ├── index.tsx           # Point d'entrée
+│   ├── modal.tsx
+│   └── oauth-callback.tsx  # Capture du Deep Link après connexion OAuth tiers
+├── assets/                 # Images, polices de caractères et splash screen
+│   └── images/             # Icônes des services (Discord, GitHub, etc.)
+├── components/             # Composants React Native (Cards, Custom Inputs, Loaders)
+│   ├── ui/                 # Composants User Interface
+│   └── wizard/
+├── constants/              # Couleurs, URLs API, et clés de configuration
+│   └── theme.tsx
+├── hooks/                  # Hooks React personnalisés
+│   ├── use-area-wizard.ts
+│   ├── user-color-scheme.ts
+│   ├── use-color-scheme.web.ts
+│   ├── use-service.ts
+│   └──use-theme-color.ts
+├── lib/                    # Logique partagée (Client API)
+├── scripts/                # Scripts utilitaires pour le développement/build
+└── tests/                  # Tests unitaires (Jest) et intégration (Testing Library)
+```
