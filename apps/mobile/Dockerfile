@@ -7,7 +7,7 @@ RUN apk add --no-cache curl
 
 # Download the APK from your release URL
 # Replace the URL below with your actual GitHub Release asset link
-RUN curl -L -o client.apk "https://github.com/Area-Organization/main-area/releases/download/v1.0.0/client.apk"
+RUN curl -L -o client.apk "https://github.com/Area-Organization/main-area/releases/download/v2.0.0/client.apk"
 
 # Create the directory for the shared volume
 RUN mkdir -p /dist
