@@ -8,7 +8,18 @@
 
   let { data }: PageProps = $props();
 
-  let stats = $derived(data.stats);
+  let stats = $derived({
+    ...(data.stats ?? {
+      totalAreas: 0,
+      activeAreas: 0,
+      inactiveAreas: 0,
+      totalTriggers: 0,
+      recentlyTriggered: []
+    }),
+    recentlyTriggered: Array.isArray(data.stats?.recentlyTriggered)
+      ? data.stats.recentlyTriggered
+      : []
+  });
 </script>
 
 {#snippet triggerCard()}
@@ -54,7 +65,9 @@
           <Carousel.Content class="w-110">
             {#each stats.recentlyTriggered as area}
               <Carousel.Item>
-                <div class="group/c relative h-50 w-full overflow-hidden rounded-xl border border-border bg-card p-1 shadow-sm transition-all hover:bg-accent/5">
+                <div
+                  class="group/c relative h-50 w-full overflow-hidden rounded-xl border border-border bg-card p-1 shadow-sm transition-all hover:bg-accent/5"
+                >
                   <div class="flex h-full flex-col justify-between rounded-lg bg-background/50 p-5">
                     <div class="flex items-start justify-between">
                       <div class="rounded-full bg-purple-500/10 p-2 text-purple-500">
@@ -101,19 +114,19 @@
   </div>
 
   <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-    <StatCard title="Total Areas" stat={stats.totalAreas} color="cyan" shadow="34,211,238,0.4">
+    <StatCard title="Total Areas" stat={stats.totalAreas ?? 0} color="cyan" shadow="34,211,238,0.4">
       <LayoutGrid class="h-4 w-4 text-muted-foreground" />
     </StatCard>
 
-    <StatCard title="Active Areas" stat={stats.activeAreas} color="teal" shadow="0,213,190,0.4">
+    <StatCard title="Active Areas" stat={stats.activeAreas ?? 0} color="teal" shadow="0,213,190,0.4">
       <Activity class="h-4 w-4 text-muted-foreground" />
     </StatCard>
 
-    <StatCard title="Inactive Areas" stat={stats.inactiveAreas} color="emerald" shadow="0,212,146,0.4">
+    <StatCard title="Inactive Areas" stat={stats.inactiveAreas ?? 0} color="emerald" shadow="0,212,146,0.4">
       <CirclePause class="h-4 w-4 text-muted-foreground" />
     </StatCard>
 
-    <StatCard title="Total Triggers" stat={stats.totalTriggers} color="green" shadow="5,223,114,0.4">
+    <StatCard title="Total Triggers" stat={stats.totalTriggers ?? 0} color="green" shadow="5,223,114,0.4">
       <Zap class="h-4 w-4 text-muted-foreground" />
     </StatCard>
   </div>
@@ -152,4 +165,8 @@
       </Card.Root>
     </a>
   </div>
+  <a href="/client.apk" download="client.apk" class="flex group text-primary/80 items-center justify-end w-full">
+    Area is also available on Mobile!
+    <ArrowRight class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+  </a>
 </div>

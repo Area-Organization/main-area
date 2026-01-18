@@ -1,4 +1,4 @@
-import type { ParameterDTO } from "@area/types";
+import type { ParameterDTO, UserConnectionSchemaType } from "@area/types";
 import type { Edge, Node } from "@xyflow/svelte";
 import type { ActionNodeData, ReactionNodeData } from "$lib/types";
 
@@ -52,4 +52,9 @@ export function validateNode(
     return;
   }
   updateNodeData(id, { valid: paramsValid && isConnected, paramValues });
+}
+
+export function getConnectionId(serviceName: string, connections: UserConnectionSchemaType[]): string | undefined {
+  const connection = connections.find((c) => c.serviceName === serviceName);
+  return connection?.id;
 }

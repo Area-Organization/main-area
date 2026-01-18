@@ -16,4 +16,8 @@ describe('Utils: cn (Classname Merge)', () => {
     const result = cn('flex', undefined, null, 'gap-2');
     expect(result).toBe('flex gap-2');
   });
+
+  it('returns empty string if all arguments are falsy', () => {
+    expect(cn(undefined, null, false, '')).toBe('');
+  });
 });

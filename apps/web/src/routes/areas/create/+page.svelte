@@ -10,7 +10,7 @@
   import { client } from "@/api";
   import { goto } from "$app/navigation";
   import type { PageProps } from "./$types";
-  import { validateArea } from "@/area-utils";
+  import { getConnectionId, validateArea } from "@/area-utils";
   import type { ActionNodeData, ReactionNodeData } from "@/types";
 
   let { data }: PageProps = $props();
@@ -19,11 +19,6 @@
 
   let nodes = $state.raw<Node[]>([]);
   let edges = $state.raw<Edge[]>([]);
-
-  function getConnectionId(serviceName: string): string | undefined {
-    const connection = connections.find((c) => c.serviceName === serviceName);
-    return connection?.id;
-  }
 
   let isDialogOpen = $state(false);
 
@@ -45,7 +40,7 @@
       return;
     }
 
-    const actionConnectionId = getConnectionId(actionServiceName);
+    const actionConnectionId = getConnectionId(actionServiceName, connections);
     if (!actionConnectionId) {
       toast.error(`No connection for ${actionServiceName}.`);
       return;
@@ -61,7 +56,7 @@
         return;
       }
 
-      const rConnectionId = getConnectionId(rServiceName);
+      const rConnectionId = getConnectionId(rServiceName, connections);
       if (!rConnectionId) {
         toast.error(`No connection for ${rServiceName}.`);
         return;
@@ -110,7 +105,7 @@
     <div class="grid grid-cols-[1fr_65%_1fr] h-[92vh] gap-5 p-5">
       <ServiceSidebar title="Actions" type="action" services={services ?? []} userConnections={connections} />
 
-      <EditorCanvas bind:nodes bind:edges>
+      <EditorCanvas bind:nodes bind:edges {services} {connections}>
         <CreateAreaDialog bind:open={isDialogOpen} disabled={!validateArea(nodes, edges)} onsubmit={createArea} />
       </EditorCanvas>
 

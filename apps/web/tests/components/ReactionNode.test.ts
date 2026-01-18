@@ -86,6 +86,24 @@ describe('ReactionNode', () => {
     }));
   });
 
+  it('shows validation error for required input', async () => {
+    render(ReactionNode, {
+      data: mockData,
+      id: 'react-1',
+      type: 'reaction',
+      dragHandle: undefined
+    });
+
+    const input = screen.getByPlaceholderText('Email address');
+    await fireEvent.input(input, { target: { value: '' } });
+
+    // Expect some error message or invalid state
+    // (Adjust this to your actual UI)
+    expect(mockUpdateNodeData).toHaveBeenCalledWith('react-1', expect.objectContaining({
+      valid: false
+    }));
+  });
+
   it('calls deleteElements when delete button is clicked', async () => {
     render(ReactionNode, {
       data: mockData,

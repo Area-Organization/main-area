@@ -82,7 +82,7 @@
             {#if items && items.length > 0}
               {#each items as item}
                 <div
-                  class="group flex items-start gap-2 rounded border-muted-foreground bg-muted/30 p-1.5 text-[10px] hover:bg-accent hover:text-accent-foreground hover:border-primary/30 transition-all cursor-grab active:cursor-grabbing select-none"
+                  class="group flex items-center gap-2 rounded border-muted-foreground bg-muted/30 p-1.5 text-xs hover:bg-accent hover:text-accent-foreground hover:border-primary/30 transition-all cursor-grab active:cursor-grabbing select-none"
                   use:draggable={{
                     container: "list",
                     dragData: { type: type, info: item } as DndItem

@@ -81,4 +81,22 @@ describe('ActionNode', () => {
 
     expect(mockUpdateNodeData).toHaveBeenCalled();
   });
+
+  it('shows validation error for required input', async () => {
+    render(ActionNode, {
+      data: mockData,
+      id: 'node-1',
+      type: 'action',
+      dragHandle: undefined
+    });
+
+    const input = screen.getByPlaceholderText('Repo Name');
+    await fireEvent.input(input, { target: { value: '' } });
+
+    // Expect some error message or invalid state
+    // (Adjust this to your actual UI)
+    expect(mockUpdateNodeData).toHaveBeenCalledWith('node-1', expect.objectContaining({
+      valid: false
+    }));
+  });
 });
