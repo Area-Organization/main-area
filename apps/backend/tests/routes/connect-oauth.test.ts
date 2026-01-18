@@ -107,7 +107,10 @@ describe("Route: Connections (OAuth2)", () => {
       const stateObj = { userId: "user_123", serviceName: "oauth_service" }
       const state = Buffer.from(JSON.stringify(stateObj)).toString("base64")
 
-      mockFetch.mockResolvedValue({ ok: false })
+      mockFetch.mockResolvedValue({
+        ok: false,
+        text: async () => "Mocked error body"
+      })
 
       const res = await app.handle(new Request(`http://localhost/api/connections/oauth2/callback?code=bad&state=${state}`))
 

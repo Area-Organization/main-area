@@ -3,10 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma"
 import { prisma } from "./prisma"
 import { expo } from "@better-auth/expo"
 import { openAPI, bearer, emailOTP } from "better-auth/plugins"
-import { Resend } from "resend"
 import { mailer } from "../utils/mailer"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -17,14 +14,14 @@ export const auth = betterAuth({
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user }) => {
-      console.log(`[AUTH] Déclenchement de l'OTP pour : ${user.email}`);
+      console.log(`[AUTH] Déclenchement de l'OTP pour : ${user.email}`)
       await auth.api.sendVerificationOTP({
         body: {
           email: user.email,
           type: "email-verification"
         }
-      });
-    },
+      })
+    }
   },
   emailAndPassword: {
     enabled: true,
@@ -33,15 +30,15 @@ export const auth = betterAuth({
 
   socialProviders: {
     github: {
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!
+      clientId: process.env.GITHUB_CLIENT_ID || "dummy_client_id",
+      clientSecret: process.env.GITHUB_CLIENT_SECRET || "dummy_client_secret"
     },
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!
+      clientId: process.env.GOOGLE_CLIENT_ID || "dummy_client_id",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "dummy_client_secret"
     }
   },
-  
+
   advanced: {
     // Required for Dokploy/Traefik: tells Better-Auth to send Secure cookies
     // even if the internal connection between Traefik and Bun is HTTP
@@ -56,12 +53,12 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    openAPI(), 
-    expo(), 
-    bearer(), 
+    openAPI(),
+    expo(),
+    bearer(),
     emailOTP({
-      async sendVerificationOTP({ email, otp, type }) {        
-        await mailer.sendVerificationCode(email, otp);
+      async sendVerificationOTP({ email, otp, type }) {
+        await mailer.sendVerificationCode(email, otp)
       }
     })
   ],

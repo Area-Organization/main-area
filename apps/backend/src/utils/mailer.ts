@@ -1,6 +1,6 @@
-import { Resend } from "resend";
+import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || "re_123456789")
 
 export const mailer = {
   sendVerificationCode: async (email: string, otp: string) => {
@@ -21,15 +21,15 @@ export const mailer = {
             </div>
           </div>
         `
-      });
+      })
       if (error) {
-        console.error("[MAILER ERROR]", error);
-        return { success: false, error };
+        console.error("[MAILER ERROR]", error)
+        return { success: false, error }
       }
-      return { success: true, data };
+      return { success: true, data }
     } catch (err) {
-      console.error("[MAILER FATAL ERROR]", err);
-      return { success: false, error: err };
+      console.error("[MAILER FATAL ERROR]", err)
+      return { success: false, error: err }
     }
-  },
-};
+  }
+}
