@@ -36,3 +36,16 @@ apps/mobile/
 ├── scripts/                # Scripts utilitaires pour le développement/build
 └── tests/                  # Tests unitaires (Jest) et intégration (Testing Library)
 ```
+
+## Diagramme de Navigation Mobile
+
+```mermaid
+graph TD
+    A[Splash Screen] --> B{Authentifié ?}
+    B -- Non --> C[Login / Register]
+    B -- Oui --> D[Tab: Dashboard]
+    D --> E[Tab: Explorer / Create]
+    D --> F[Tab: Profil & Services]
+    E --> G[Step 1: Choose Action]
+    G --> H[Step 2: Choose Reaction]
+    H --> I[Review & Save]
